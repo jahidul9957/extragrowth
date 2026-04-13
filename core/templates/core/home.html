@@ -1,0 +1,85 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.css" />
+
+<div class="space-y-6 animate-fade-in">
+
+    <div class="swiper mySwiper h-40 rounded-2xl overflow-hidden shadow-2xl glass-card">
+        <div class="swiper-wrapper">
+            <div class="swiper-slide flex items-center justify-center text-xl font-bold bg-gradient-to-r from-blue-600/80 to-purple-600/80 backdrop-blur">
+                🎉 New Offer: 50% Off!
+            </div>
+            <div class="swiper-slide flex items-center justify-center text-xl font-bold bg-gradient-to-r from-green-500/80 to-teal-600/80 backdrop-blur">
+                🚀 Fastest YouTube Subs
+            </div>
+            <div class="swiper-slide flex items-center justify-center text-xl font-bold bg-gradient-to-r from-orange-500/80 to-red-600/80 backdrop-blur">
+                💰 Earn Daily Commission
+            </div>
+        </div>
+        <div class="swiper-pagination"></div>
+    </div>
+
+    <div class="glass-card p-6 relative overflow-hidden">
+        <div class="absolute -right-4 -top-4 text-6xl opacity-10">💰</div>
+        
+        <p class="text-sm text-gray-300 font-medium">Available Balance</p>
+        
+        <h2 class="text-4xl font-extrabold mt-2 text-white">₹500.00</h2>
+        
+        <div class="mt-6 flex space-x-3">
+            <a href="{% url 'profile' %}" class="flex-1 bg-blue-500 hover:bg-blue-600 text-center py-3 rounded-xl font-semibold transition shadow-lg">
+                Deposit
+            </a>
+            <a href="{% url 'services' %}" class="flex-1 bg-white/10 hover:bg-white/20 border border-white/20 text-center py-3 rounded-xl font-semibold transition">
+                Buy Service
+            </a>
+        </div>
+    </div>
+
+    <div class="glass-card p-5">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-bold">Today's Activity</h3>
+            <span class="text-xs bg-green-500/20 text-green-400 px-2 py-1 rounded-md">Live</span>
+        </div>
+        <div class="flex justify-between text-center">
+            <div class="flex flex-col">
+                <span class="text-2xl font-bold">12</span>
+                <span class="text-xs text-gray-400">Total Orders</span>
+            </div>
+            <div class="w-px bg-white/10"></div> <div class="flex flex-col">
+                <span class="text-2xl font-bold">₹45</span>
+                <span class="text-xs text-gray-400">Commission</span>
+            </div>
+            <div class="w-px bg-white/10"></div> <div class="flex flex-col">
+                <span class="text-2xl font-bold">3</span>
+                <span class="text-xs text-gray-400">New Friends</span>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.js"></script>
+<script>
+    var swiper = new Swiper(".mySwiper", {
+        autoplay: {
+            delay: 3000, // 3 second mein scroll hoga
+            disableOnInteraction: false,
+        },
+        pagination: {
+            el: ".swiper-pagination",
+            dynamicBullets: true,
+        },
+        loop: true,
+    });
+</script>
+
+<style>
+    .animate-fade-in {
+        animation: fadeIn 0.5s ease-out;
+    }
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1
+          
