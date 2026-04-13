@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JERIFz SMM Panel</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <style>
+        body {
+            /* Dark gradient background */
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: white;
+            font-family: 'Arial', sans-serif;
+            min-height: 100vh;
+            margin: 0;
+            padding-bottom: 80px; /* Niche menu ke liye jagah chhodna */
+        }
+        
+        /* Glassmorphism Effect */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+        
+        /* Bottom Menu ka Glass Effect */
+        .nav-bottom {
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #9ca3af; /* Gray color */
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .nav-item:hover, .nav-item.active {
+            color: #60a5fa; /* Blue color jab click ho */
+        }
+    </style>
+</head>
+<body>
+
+    <main class="w-full max-w-md mx-auto pt-4 px-4 pb-6">
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <nav class="fixed bottom-0 left-0 right-0 nav-bottom z-50">
+        <div class="max-w-md mx-auto px-6 py-3 flex justify-between items-center">
+            
+            <a href="{% url 'home' %}" class="nav-item {% if request.path == '/' %}active{% endif %}">
+                <span class="text-xl">🏠</span>
+                <span class="text-xs mt-1">Home</span>
+            </a>
+            
+            <a href="{% url 'services' %}" class="nav-item {% if '/services' in request.path %}active{% endif %}">
+                <span class="text-xl">📋</span>
+                <span class="text-xs mt-1">Services</span>
+            </a>
+            
+            <a href="{% url 'team' %}" class="nav-item {% if '/team' in request.path %}active{% endif %}">
+                <span class="text-xl">👥</span>
+                <span class="text-xs mt-1">Team</span>
+            </a>
+            
+            <a href="{% url 'profile' %}" class="nav-item {% if '/profile' in request.path %}active{% endif %}">
+                <span class="text-xl">👤</span>
+                <span class="text-xs mt-1">Profile</span>
+            </a>
+            
+        </div>
+    </nav>
+
+</body>
+  </html>
+                  
