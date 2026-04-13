@@ -1,0 +1,114 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<div class="space-y-5 animate-fade-in pb-10">
+
+    <div class="text-center mb-4 pt-2">
+        <h2 class="text-2xl font-extrabold text-white">Refer & Earn 💸</h2>
+        <p class="text-sm text-gray-400 mt-1">Invite friends and earn lifetime commission!</p>
+    </div>
+
+    <div class="glass-card p-6 flex flex-col items-center relative overflow-hidden group">
+        <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-blue-500"></div>
+        
+        <div class="bg-white p-3 rounded-xl shadow-lg mb-4 transform group-hover:scale-105 transition duration-300">
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://jerifz-smm.onrender.com/register?ref=JERIF100" alt="QR Code" class="w-32 h-32 rounded-lg">
+        </div>
+
+        <p class="text-sm text-gray-400 mb-1">Your Invitation Code</p>
+        <h3 class="text-3xl font-black tracking-widest text-blue-400 mb-4">JERIF100</h3> <div class="w-full flex items-center bg-black/30 border border-white/10 rounded-xl p-1">
+            <input type="text" value="https://domain.com/ref=JERIF100" readonly class="w-full bg-transparent text-gray-300 text-xs px-3 focus:outline-none">
+            <button class="bg-blue-500 hover:bg-blue-600 text-white text-xs font-bold py-2 px-4 rounded-lg transition active:scale-95">
+                Copy
+            </button>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-2 gap-4">
+        <div class="glass-card p-4 text-center">
+            <p class="text-xs text-gray-400 mb-1">Total Friends</p>
+            <h4 class="text-xl font-bold text-white">128</h4>
+        </div>
+        <div class="glass-card p-4 text-center">
+            <p class="text-xs text-gray-400 mb-1">Total Commission</p>
+            <h4 class="text-xl font-bold text-green-400">₹1,450</h4>
+        </div>
+        <div class="glass-card p-4 text-center">
+            <p class="text-xs text-gray-400 mb-1">Today's Friends</p>
+            <h4 class="text-xl font-bold text-white">+5</h4>
+        </div>
+        <div class="glass-card p-4 text-center">
+            <p class="text-xs text-gray-400 mb-1">Today's Comm.</p>
+            <h4 class="text-xl font-bold text-green-400">+₹120</h4>
+        </div>
+    </div>
+
+    <div class="glass-card p-5">
+        <h3 class="text-sm font-bold mb-4 text-gray-300">This Month's Growth 📈</h3>
+        <div class="relative h-48 w-full">
+            <canvas id="commissionChart"></canvas>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    const ctx = document.getElementById('commissionChart').getContext('2d');
+    
+    // Gradient for the chart line
+    let gradient = ctx.createLinearGradient(0, 0, 0, 400);
+    gradient.addColorStop(0, 'rgba(59, 130, 246, 0.5)'); // Blue semi-transparent
+    gradient.addColorStop(1, 'rgba(59, 130, 246, 0)');   // Transparent
+
+    const commissionChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'], // X-Axis (Time)
+            datasets: [{
+                label: 'Commission (₹)',
+                data: [300, 500, 400, 850], // Y-Axis (Earnings) - Hum ise database se link karenge
+                borderColor: '#3b82f6', // Tailwind blue-500
+                backgroundColor: gradient,
+                borderWidth: 3,
+                pointBackgroundColor: '#ffffff',
+                pointBorderColor: '#3b82f6',
+                pointBorderWidth: 2,
+                pointRadius: 4,
+                fill: true,
+                tension: 0.4 // Line ko smooth/curvy banane ke liye
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false } // Upar wala label chhupane ke liye
+            },
+            scales: {
+                x: {
+                    grid: { display: false, drawBorder: false },
+                    ticks: { color: '#9ca3af', font: { size: 10 } }
+                },
+                y: {
+                    grid: { color: 'rgba(255, 255, 255, 0.05)', drawBorder: false },
+                    ticks: { color: '#9ca3af', font: { size: 10 } },
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+</script>
+
+<style>
+    .animate-fade-in {
+        animation: fadeIn 0.4s ease-out;
+    }
+    @keyframes fadeIn {
+        from { opacity: 0; transform: scale(0.95); }
+        to { opacity: 1; transform: scale(1); }
+    }
+</style>
+{% endblock %}
+          
