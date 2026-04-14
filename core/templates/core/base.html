@@ -3,88 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NextGen Ai Dev | SMM Panel</title>
+    <title>NextGen Ai Dev</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* 🌟 Master Dark Theme */
-        body {
-            background: linear-gradient(135deg, #090b10, #161b22, #0d1117);
-            color: #e6edf3;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            min-height: 100vh;
-            margin: 0;
-            padding: 0;
-        }
-
-        /* 🌟 Glassmorphism Navbar */
-        .glass-nav {
-            background: rgba(0, 0, 0, 0.4);
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
-            border-bottom: 1px solid rgba(0, 255, 204, 0.2);
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.8);
-        }
-
-        /* 🌟 Neon Hover Links */
-        .nav-link {
-            transition: all 0.3s ease;
-        }
-        .nav-link:hover {
-            color: #00ffcc !important;
-            text-shadow: 0 0 10px rgba(0, 255, 204, 0.6);
-            transform: translateY(-2px);
-        }
+        body { background: #0d1117; color: #e6edf3; font-family: sans-serif; padding-bottom: 80px; }
+        .glass-nav { background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(15px); border-bottom: 1px solid rgba(0,255,204,0.2); }
+        .bottom-nav { background: rgba(13, 17, 23, 0.9); backdrop-filter: blur(20px); border-top: 1px solid rgba(255,255,255,0.1); }
+        
+        /* MUI Style Toast Alert */
+        @keyframes slideIn { from { transform: translateY(-100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .mui-alert { animation: slideIn 0.4s ease-out; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
     </style>
 </head>
 <body>
 
-    <nav class="glass-nav fixed w-full z-50 top-0 left-0">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center justify-between h-16">
-                
-                <div class="flex-shrink-0">
-                    <a href="{% url 'home' %}" class="text-2xl font-extrabold text-white tracking-wider hover:scale-105 transition-transform inline-block">
-                        NEXTGEN<span class="text-[#00ffcc]">AI</span>
-                    </a>
-                </div>
-
-                        <div class="hidden md:block">
-                    <div class="ml-10 flex items-center space-x-6">
-                        <a href="{% url 'home' %}" class="nav-link text-gray-300 font-bold px-3 py-2 rounded-md">Dashboard</a>
-                        <a href="{% url 'services' %}" class="nav-link text-gray-300 font-bold px-3 py-2 rounded-md">Services</a>
-                        
-                        {% if request.user.is_authenticated %}
-                            <a href="{% url 'new_order' %}" class="nav-link text-gray-300 font-bold px-3 py-2 rounded-md">New Order</a>
-                            <a href="{% url 'orders' %}" class="nav-link text-gray-300 font-bold px-3 py-2 rounded-md">My Orders</a>
-                            <a href="{% url 'add_funds' %}" class="nav-link text-gray-300 font-bold px-3 py-2 rounded-md">Add Funds</a>
-                            
-                            {% if request.user.is_staff %}
-                                <a href="/admin/" target="_blank" class="nav-link text-purple-400 font-bold px-3 py-2 rounded-md">Admin Panel</a>
-                            {% endif %}
-                            
-                            <a href="{% url 'logout' %}" class="nav-link text-red-400 hover:text-red-300 font-bold px-3 py-2 rounded-md border border-red-500/30 ml-2">Logout</a>
-
-                            <div class="ml-4 px-4 py-1.5 bg-black/40 border border-[#00ffcc]/40 rounded-full shadow-[0_0_10px_rgba(0,255,204,0.2)]">
-                                <span class="text-xs text-gray-400 mr-1">Balance:</span>
-                                <span class="text-[#00ffcc] font-bold">₹{{ request.user.wallet_balance }}</span>
-                            </div>
-                        {% else %}
-                            <a href="{% url 'login' %}" class="nav-link text-[#00ffcc] font-bold px-4 py-2 rounded-md border border-[#00ffcc]/50 hover:bg-[#00ffcc]/10">Login</a>
-                            <a href="{% url 'register' %}" class="nav-link bg-gradient-to-r from-[#00d2ff] to-[#3a7bd5] text-white font-bold px-4 py-2 rounded-md shadow-[0_0_10px_rgba(0,210,255,0.3)] hover:scale-105 transition-transform">Register</a>
-                        {% endif %}
-                    </div>
-                        </div>
-                
-
-
-            </div>
-        </div>
+    <nav class="glass-nav fixed w-full z-50 top-0 left-0 h-14 flex items-center px-4">
+        <button onclick="history.back()" class="text-[#00ffcc] text-xl hover:scale-110 transition"><i class="fas fa-chevron-left"></i></button>
+        <h1 class="mx-auto text-lg font-bold tracking-widest text-white">NEXTGEN <span class="text-[#00ffcc]">AI</span></h1>
     </nav>
 
-    <div class="pt-24 px-4 md:px-8 max-w-7xl mx-auto">
-        {% block content %}
-        {% endblock %}
+    <div class="fixed top-16 left-0 right-0 z-50 px-4 flex flex-col items-center pointer-events-none">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="mui-alert px-6 py-3 rounded-lg text-sm font-bold text-white mb-2 max-w-sm w-full text-center
+                    {% if 'success' in message.tags %} bg-green-600/90 border border-green-400 {% else %} bg-red-600/90 border border-red-400 {% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
     </div>
 
+    <div class="pt-20 px-4 md:px-8 max-w-7xl mx-auto">
+        {% block content %}{% endblock %}
+    </div>
+
+    {% if request.user.is_authenticated %}
+    <div class="bottom-nav fixed bottom-0 left-0 w-full h-16 flex justify-around items-center z-50 md:hidden">
+        <a href="{% url 'home' %}" class="flex flex-col items-center text-gray-400 hover:text-[#00ffcc]"><i class="fas fa-home text-xl"></i><span class="text-[10px]">Home</span></a>
+        <a href="{% url 'services' %}" class="flex flex-col items-center text-gray-400 hover:text-[#00ffcc]"><i class="fas fa-list text-xl"></i><span class="text-[10px]">Services</span></a>
+        <a href="{% url 'new_order' %}" class="flex flex-col items-center text-gray-400 hover:text-[#00ffcc] transform -translate-y-4 bg-gradient-to-r from-[#00d2ff] to-[#3a7bd5] p-3 rounded-full text-white shadow-[0_0_15px_rgba(0,210,255,0.4)]"><i class="fas fa-plus text-xl"></i></a>
+        <a href="{% url 'orders' %}" class="flex flex-col items-center text-gray-400 hover:text-[#00ffcc]"><i class="fas fa-history text-xl"></i><span class="text-[10px]">Orders</span></a>
+        <a href="{% url 'add_funds' %}" class="flex flex-col items-center text-gray-400 hover:text-[#00ffcc]"><i class="fas fa-wallet text-xl"></i><span class="text-[10px]">Wallet</span></a>
+    </div>
+    {% endif %}
+
+    <script>
+        // Auto hide alerts after 4 seconds
+        setTimeout(() => { document.querySelectorAll('.mui-alert').forEach(el => el.style.display = 'none'); }, 4000);
+    </script>
 </body>
 </html>
