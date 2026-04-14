@@ -10,5 +10,6 @@ urlpatterns = [
     
     # 🚀 NextGen Ai Dev - Naye Links
     path('add-funds/', views.add_funds, name='add_funds'),
+    path('orders/', views.orders, name='orders'),
     path('new-order/', views.new_order, name='new_order'),
 ]
