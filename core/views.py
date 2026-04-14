@@ -87,5 +87,11 @@ def new_order(request):
         else:
             messages.error(request, "⚠️ Please fill all details correctly.")
             
+   
     return render(request, 'core/new_order.html', {'services': services_list})
-
+@login_required(login_url='/admin/login/')
+def orders(request):
+    # Sirf login wale user ke orders nikalna, naye orders sabse upar (-created_at)
+    user_orders = Order.objects.filter(user=request.user).order_by('-created_at')
+    return render(request, 'core/orders.html', {'orders': user_orders})
+            
