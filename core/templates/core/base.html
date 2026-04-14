@@ -52,6 +52,7 @@
                     <div class="ml-10 flex items-center space-x-6">
                         <a href="{% url 'home' %}" class="nav-link text-gray-300 font-bold px-3 py-2 rounded-md">Dashboard</a>
                         <a href="{% url 'new_order' %}" class="nav-link text-gray-300 font-bold px-3 py-2 rounded-md">New Order</a>
+                        <a href="{% url 'services' %}" class="nav-link text-gray-300 font-bold px-3 py-2 rounded-md">Services</a>
                         <a href="{% url 'add_funds' %}" class="nav-link text-gray-300 font-bold px-3 py-2 rounded-md">Add Funds</a>
                         
                         {% if request.user.is_staff %}
