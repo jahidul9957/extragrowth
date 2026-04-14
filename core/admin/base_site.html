@@ -1,0 +1,138 @@
+{% extends "admin/base.html" %}
+
+{% block title %}NextGen Ai Admin | Dashboard{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+    /* 🌟 Master Dark Background & Font */
+    body {
+        background: linear-gradient(135deg, #090b10, #161b22, #0d1117);
+        color: #e6edf3;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        margin: 0;
+        padding: 0;
+        min-height: 100vh;
+    }
+
+    /* 🌟 Header (Top Bar) */
+    #header {
+        background: rgba(0, 0, 0, 0.5) !important;
+        backdrop-filter: blur(15px) !important;
+        -webkit-backdrop-filter: blur(15px);
+        border-bottom: 1px solid rgba(0, 255, 204, 0.2);
+        color: #fff;
+        box-shadow: 0 4px 30px rgba(0, 0, 0, 0.8);
+    }
+
+    /* 🌟 Branding (Your Channel Name) */
+    #branding h1 {
+        color: #00ffcc !important;
+        text-shadow: 0 0 10px rgba(0, 255, 204, 0.6);
+        font-weight: 800;
+        letter-spacing: 1px;
+    }
+
+    #branding h1 a:link, #branding h1 a:visited {
+        color: #00ffcc !important;
+    }
+
+    /* 🌟 The Magic: Glassmorphism Cards */
+    .module {
+        background: rgba(255, 255, 255, 0.03) !important;
+        backdrop-filter: blur(10px) !important;
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        border-radius: 16px !important;
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5) !important;
+        margin-bottom: 25px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+
+    .module:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 40px 0 rgba(0, 255, 204, 0.15) !important;
+        border: 1px solid rgba(0, 255, 204, 0.3) !important;
+    }
+
+    .module caption, .module h2 {
+        background: rgba(0, 0, 0, 0.4) !important;
+        color: #00ffcc !important;
+        font-weight: bold;
+        padding: 12px 15px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    /* 🌟 Links & Text Neon Effect */
+    a {
+        color: #58a6ff !important;
+        transition: color 0.2s, text-shadow 0.2s;
+    }
+    a:hover {
+        color: #00ffcc !important;
+        text-shadow: 0 0 8px rgba(0, 255, 204, 0.5);
+    }
+
+    /* 🌟 Buttons (Neon Glow) */
+    .button, input[type=submit], input[type=button], .submit-row input, a.button {
+        background: linear-gradient(45deg, #00d2ff, #3a7bd5) !important;
+        border: none !important;
+        border-radius: 8px !important;
+        color: white !important;
+        font-weight: bold;
+        box-shadow: 0 4px 15px rgba(0, 210, 255, 0.3) !important;
+        transition: 0.3s all;
+        padding: 10px 15px;
+    }
+
+    .button:hover, input[type=submit]:hover {
+        background: linear-gradient(45deg, #3a7bd5, #00d2ff) !important;
+        box-shadow: 0 6px 20px rgba(0, 210, 255, 0.6) !important;
+        transform: scale(1.05);
+    }
+
+    /* 🌟 Tables inside modules */
+    table thead th {
+        background: rgba(0,0,0,0.3) !important;
+        color: #58a6ff !important;
+    }
+    tr.row1 { background: rgba(255,255,255,0.01) !important; }
+    tr.row2 { background: rgba(255,255,255,0.03) !important; }
+    tr:hover, tr.row1:hover, tr.row2:hover { 
+        background: rgba(0, 255, 204, 0.1) !important; 
+    }
+
+    /* 🌟 Inputs & Forms */
+    input[type="text"], input[type="password"], input[type="email"], select, textarea {
+        background: rgba(255, 255, 255, 0.05) !important;
+        border: 1px solid rgba(255, 255, 255, 0.2) !important;
+        color: #fff !important;
+        border-radius: 8px !important;
+        padding: 8px;
+    }
+    input[type="text"]:focus, select:focus {
+        outline: none;
+        border-color: #00ffcc !important;
+        box-shadow: 0 0 10px rgba(0, 255, 204, 0.4) !important;
+    }
+
+    /* 🌟 Sidebar and Breadcrumbs */
+    #nav-sidebar {
+        background: rgba(0, 0, 0, 0.4) !important;
+        backdrop-filter: blur(10px);
+        border-right: 1px solid rgba(255,255,255,0.05) !important;
+    }
+    .breadcrumbs {
+        background: rgba(0, 0, 0, 0.2) !important;
+        border-bottom: 1px solid rgba(255,255,255,0.05) !important;
+        color: #8b949e !important;
+    }
+</style>
+{% endblock %}
+
+{% block branding %}
+<h1 id="site-name"><a href="{% url 'admin:index' %}">NEXTGEN AI DEV Panel</a></h1>
+{% endblock %}
