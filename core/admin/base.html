@@ -1,0 +1,151 @@
+{% extends "admin/base.html" %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+    /* =========================================
+       🚀 MASTER ADMIN DARK & GLASS THEME
+       ========================================= */
+
+    /* 🌟 Global Background & Font */
+    body {
+        background: linear-gradient(135deg, #090b10, #161b22, #0d1117) !important;
+        color: #e6edf3 !important;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+    }
+
+    /* 🌟 Top Header (Navbar) */
+    #header {
+        background: rgba(0, 0, 0, 0.6) !important;
+        backdrop-filter: blur(15px) !important;
+        -webkit-backdrop-filter: blur(15px);
+        border-bottom: 1px solid rgba(0, 255, 204, 0.2) !important;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.5) !important;
+    }
+    #branding h1 a { 
+        color: #00ffcc !important; 
+        text-shadow: 0 0 10px rgba(0, 255, 204, 0.5); 
+        font-weight: 800; letter-spacing: 1px;
+    }
+
+    /* 🔐 LOGIN PAGE SPECIFIC FIX */
+    body.login { background: linear-gradient(135deg, #090b10, #1b2735) !important; }
+    body.login #container {
+        background: transparent !important;
+        box-shadow: none !important; border: none !important;
+        display: flex; justify-content: center; align-items: center; min-height: 80vh;
+    }
+    body.login #content {
+        background: rgba(255, 255, 255, 0.05) !important;
+        backdrop-filter: blur(20px) !important;
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(0, 255, 204, 0.3) !important;
+        border-radius: 20px !important;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.8), 0 0 20px rgba(0, 255, 204, 0.1) !important;
+        padding: 40px !important;
+        width: 100%; max-width: 400px;
+    }
+    .login .form-row { border: none !important; padding: 10px 0 !important; }
+    .login label { color: #00ffcc !important; font-weight: bold; margin-bottom: 5px; display: block;}
+    .login .submit-row { background: transparent !important; border: none !important; padding: 20px 0 0 0 !important;}
+
+    /* 🌟 Sidebar Navigation */
+    #nav-sidebar {
+        background: rgba(0, 0, 0, 0.4) !important;
+        backdrop-filter: blur(10px) !important;
+        border-right: 1px solid rgba(255,255,255,0.05) !important;
+    }
+    .app-app_label a { color: #00ffcc !important; font-weight: bold; }
+
+    /* 🌟 Inside Settings: Cards & Modules */
+    .module {
+        background: rgba(255, 255, 255, 0.03) !important;
+        backdrop-filter: blur(10px) !important;
+        border-radius: 12px !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.5) !important;
+        margin-bottom: 20px !important;
+        overflow: hidden !important;
+    }
+    .module h2, .module caption {
+        background: rgba(0, 0, 0, 0.5) !important;
+        color: #00d2ff !important;
+        font-weight: bold !important;
+        border-bottom: 1px solid rgba(255,255,255,0.1) !important;
+        padding: 12px 15px !important;
+        text-transform: uppercase; letter-spacing: 1px;
+    }
+
+    /* 🌟 Inputs, Selects & Textareas (Neon Effect) */
+    input[type="text"], input[type="password"], input[type="email"], input[type="number"], input[type="url"], select, textarea {
+        background: rgba(0, 0, 0, 0.4) !important;
+        border: 1px solid rgba(255, 255, 255, 0.2) !important;
+        color: #fff !important;
+        border-radius: 8px !important;
+        padding: 10px !important;
+        width: 100%; box-sizing: border-box;
+    }
+    input:focus, select:focus, textarea:focus {
+        border-color: #00ffcc !important;
+        box-shadow: 0 0 10px rgba(0, 255, 204, 0.4) !important;
+        outline: none !important;
+    }
+
+    /* 🌟 Buttons (Save, Submit, Login) */
+    .button, input[type="submit"], input[type="button"], .submit-row input, a.button {
+        background: linear-gradient(45deg, #00d2ff, #3a7bd5) !important;
+        border: none !important;
+        border-radius: 8px !important;
+        color: white !important;
+        font-weight: bold !important;
+        box-shadow: 0 4px 15px rgba(0, 210, 255, 0.3) !important;
+        transition: all 0.3s ease !important;
+        padding: 12px 20px !important;
+        cursor: pointer !important;
+    }
+    .button:hover, input[type="submit"]:hover {
+        transform: scale(1.05) !important;
+        box-shadow: 0 6px 20px rgba(0, 210, 255, 0.6) !important;
+    }
+    .button.default { 
+        background: linear-gradient(45deg, #28a745, #20c997) !important; 
+        box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3) !important; 
+    }
+
+    /* 🌟 Tables (Lists of Users, Orders, etc.) */
+    #changelist-form table { border-collapse: collapse !important; width: 100% !important; }
+    thead th { 
+        background: rgba(0,0,0,0.6) !important; 
+        color: #00d2ff !important; 
+        border: none !important; 
+        padding: 12px !important;
+    }
+    tr.row1 { background: rgba(255,255,255,0.01) !important; }
+    tr.row2 { background: rgba(255,255,255,0.03) !important; }
+    tr:hover { background: rgba(0, 255, 204, 0.1) !important; }
+    td, th { 
+        border-bottom: 1px solid rgba(255,255,255,0.05) !important; 
+        color: #e6edf3 !important; 
+        padding: 10px !important;
+    }
+
+    /* 🌟 Links & Breadcrumbs */
+    a { color: #58a6ff !important; transition: all 0.2s; }
+    a:hover { color: #00ffcc !important; text-shadow: 0 0 8px rgba(0, 255, 204, 0.5) !important; }
+    .breadcrumbs { 
+        background: rgba(0,0,0,0.3) !important; 
+        border-bottom: 1px solid rgba(255,255,255,0.05) !important; 
+        padding: 10px 40px !important; 
+    }
+
+    /* 🌟 Settings/Change Forms Area */
+    fieldset { border: none !important; background: transparent !important; margin: 0 !important; padding: 0 20px !important;}
+    .form-row { border-bottom: 1px solid rgba(255,255,255,0.05) !important; padding: 15px 0 !important; }
+    .submit-row { 
+        background: rgba(0,0,0,0.4) !important; 
+        border-top: 1px solid rgba(255,255,255,0.1) !important; 
+        border-radius: 0 0 12px 12px !important; 
+        padding: 15px 20px !important;
+    }
+</style>
+{% endblock %}
