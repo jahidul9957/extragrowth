@@ -1,59 +1,103 @@
 from django.shortcuts import render, redirect
+from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from .models import Payment, Service, Order
+from .models import Payment, Service, Order, CustomUser
 
 # ==========================================
-# 🌟 BASIC PAGES (Home, Services, Team etc.)
+# 🔐 USER AUTHENTICATION SYSTEM
+# ==========================================
+
+def register_view(request):
+    if request.user.is_authenticated:
+        return redirect('home')
+        
+    if request.method == 'POST':
+        u = request.POST.get('username')
+        e = request.POST.get('email')
+        p = request.POST.get('password')
+        
+        if CustomUser.objects.filter(username=u).exists():
+            messages.error(request, "⚠️ Username already taken! Choose another.")
+        else:
+            user = CustomUser.objects.create_user(username=u, email=e, password=p)
+            user.save()
+            messages.success(request, "🎉 Account created successfully! Please login.")
+            return redirect('login')
+            
+    return render(request, 'core/register.html')
+
+def login_view(request):
+    if request.user.is_authenticated:
+        return redirect('home')
+        
+    if request.method == 'POST':
+        u = request.POST.get('username')
+        p = request.POST.get('password')
+        user = authenticate(request, username=u, password=p)
+        
+        if user is not None:
+            if user.is_banned:
+                messages.error(request, "🚫 Your account has been banned by the Admin.")
+            else:
+                auth_login(request, user)
+                messages.success(request, f"Welcome back, {u}! 🚀")
+                return redirect('home')
+        else:
+            messages.error(request, "⚠️ Invalid username or password.")
+            
+    return render(request, 'core/login.html')
+
+def logout_view(request):
+    auth_logout(request)
+    messages.info(request, "👋 You have been logged out successfully.")
+    return redirect('login')
+
+# ==========================================
+# 🌟 BASIC PAGES (Home, Services)
 # ==========================================
 
 def home(request):
-    return render(request, 'core/home.html')
+    # Platform ke Global Stats
+    total_platform_users = CustomUser.objects.count() + 2500
+    total_platform_orders = Order.objects.count() + 15400
 
-def login_view(request):
-    return render(request, 'core/login.html')
+    context = {
+        'total_platform_users': total_platform_users,
+        'total_platform_orders': total_platform_orders,
+    }
+
+    # Agar user login hai, toh personal stats bhejein
+    if request.user.is_authenticated:
+        context['user_orders_count'] = Order.objects.filter(user=request.user).count()
+        context['user_pending_orders'] = Order.objects.filter(user=request.user, status='Pending').count()
+
+    return render(request, 'core/home.html', context)
 
 def services(request):
     services_list = Service.objects.all()
     return render(request, 'core/services.html', {'services': services_list})
 
-def team(request):
-    return render(request, 'core/team.html')
-
-@login_required(login_url='/admin/login/')
-def profile(request):
-    return render(request, 'core/profile.html')
-
-
 # ==========================================
-# 🚀 NEXTGEN AI DEV - SMM CORE FEATURES
+# 🚀 NEXTGEN AI DEV - CORE SMM FEATURES
 # ==========================================
 
-@login_required(login_url='/admin/login/')
+@login_required(login_url='/login/')
 def add_funds(request):
     if request.method == 'POST':
         amount = request.POST.get('amount')
         utr_number = request.POST.get('utr_number')
         
-        # Check karein ki details khali na hon
         if amount and utr_number:
-            Payment.objects.create(
-                user=request.user,
-                amount=amount,
-                utr_number=utr_number,
-                status='Pending'
-            )
-            messages.success(request, f"₹{amount} payment request sent successfully! Please wait for admin approval.")
+            Payment.objects.create(user=request.user, amount=amount, utr_number=utr_number, status='Pending')
+            messages.success(request, f"₹{amount} payment request sent successfully! Wait for approval.")
         else:
             messages.error(request, "Please enter both Amount and UTR Number.")
-            
     return render(request, 'core/add_funds.html')
 
-
-@login_required(login_url='/admin/login/')
+@login_required(login_url='/login/')
 def new_order(request):
-    services_list = Service.objects.all() # Database se saari services nikalna
-    
+    services_list = Service.objects.all()
     if request.method == 'POST':
         service_id = request.POST.get('service')
         link = request.POST.get('link')
@@ -64,34 +108,23 @@ def new_order(request):
                 service = Service.objects.get(id=service_id)
                 charge = (service.price_per_1000 / 1000) * quantity
                 
-                # Check karein ki user ke paas paise hain ya nahi
                 if request.user.wallet_balance >= charge:
-                    # Paise kaato aur order lagao
                     request.user.wallet_balance -= charge
                     request.user.total_spent += charge
                     request.user.save()
                     
-                    Order.objects.create(
-                        user=request.user,
-                        service=service,
-                        link=link,
-                        quantity=quantity,
-                        charge=charge,
-                        status='Pending'
-                    )
+                    Order.objects.create(user=request.user, service=service, link=link, quantity=quantity, charge=charge, status='Pending')
                     messages.success(request, f"🎉 Order placed successfully! Charge: ₹{charge}")
                 else:
                     messages.error(request, "⚠️ Insufficient balance! Please add funds.")
             except Exception as e:
-                messages.error(request, "⚠️ Something went wrong with the service selection.")
+                messages.error(request, "⚠️ Error processing order.")
         else:
-            messages.error(request, "⚠️ Please fill all details correctly.")
-            
-   
+            messages.error(request, "⚠️ Please fill details correctly.")
     return render(request, 'core/new_order.html', {'services': services_list})
-@login_required(login_url='/admin/login/')
+
+@login_required(login_url='/login/')
 def orders(request):
-    # Sirf login wale user ke orders nikalna, naye orders sabse upar (-created_at)
     user_orders = Order.objects.filter(user=request.user).order_by('-created_at')
     return render(request, 'core/orders.html', {'orders': user_orders})
-            
+        
