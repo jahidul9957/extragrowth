@@ -1,0 +1,70 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+<style>
+    .glass-box {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(0, 255, 204, 0.2);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+    .neon-input {
+        background: rgba(0,0,0,0.3) !important;
+        border: 1px solid rgba(255,255,255,0.1) !important;
+        color: #00ffcc !important;
+    }
+    .neon-input:focus {
+        border-color: #00ffcc !important;
+        box-shadow: 0 0 10px rgba(0, 255, 204, 0.5) !important;
+        outline: none;
+    }
+</style>
+
+<div class="flex justify-center items-center min-h-[75vh] pt-10 pb-10">
+    <div class="glass-box rounded-3xl p-8 max-w-md w-full relative overflow-hidden z-10">
+        
+        <div class="absolute -top-10 -left-10 w-32 h-32 bg-purple-600 rounded-full mix-blend-screen filter blur-3xl opacity-30"></div>
+        
+        <div class="text-center mb-6 z-10 relative">
+            <h2 class="text-3xl font-extrabold text-white">Create <span class="text-[#00ffcc]">Account</span> ✨</h2>
+            <p class="text-gray-400 text-sm mt-1">Join the ultimate SMM Panel today</p>
+        </div>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="bg-black/50 border {% if 'success' in message.tags %}border-green-500 text-green-400{% else %}border-red-500 text-red-400{% endif %} rounded-xl p-3 mb-4 text-sm text-center font-semibold z-10 relative">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <form method="POST" class="space-y-4 z-10 relative">
+            {% csrf_token %}
+            <div>
+                <label class="text-gray-300 text-sm font-semibold ml-1">Username</label>
+                <input type="text" name="username" required placeholder="Choose a username" class="neon-input w-full mt-1 p-3 rounded-xl transition-all">
+            </div>
+
+            <div>
+                <label class="text-gray-300 text-sm font-semibold ml-1">Email Address</label>
+                <input type="email" name="email" required placeholder="you@example.com" class="neon-input w-full mt-1 p-3 rounded-xl transition-all">
+            </div>
+
+            <div>
+                <label class="text-gray-300 text-sm font-semibold ml-1">Password</label>
+                <input type="password" name="password" required placeholder="Create a strong password" class="neon-input w-full mt-1 p-3 rounded-xl transition-all">
+            </div>
+
+            <button type="submit" class="w-full py-3 mt-4 bg-gradient-to-r from-[#00d2ff] to-[#3a7bd5] text-white font-bold rounded-xl hover:scale-105 transition-transform shadow-[0_0_15px_rgba(0,210,255,0.4)]">
+                Register Now
+            </button>
+        </form>
+
+        <p class="text-center text-gray-400 text-sm mt-6 z-10 relative">
+            Already have an account? <a href="{% url 'login' %}" class="text-[#00ffcc] hover:underline font-bold">Login here</a>
+        </p>
+
+    </div>
+</div>
+{% endblock %}
