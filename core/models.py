@@ -3,42 +3,81 @@ from django.contrib.auth.models import AbstractUser
 import random
 import string
 
+# 1. Advanced User Model
 class CustomUser(AbstractUser):
-    mobile_number = models.CharField(max_length=15, unique=True)
     wallet_balance = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
-    referral_code = models.CharField(max_length=10, unique=True, blank=True)
-    referred_by = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='team_members')
-    total_commission = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
-
+    total_spent = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    
+    # Referral System
+    invite_code = models.CharField(max_length=10, unique=True, blank=True)
+    team_code = models.CharField(max_length=10, null=True, blank=True)
+    
+    # Security
+    is_banned = models.BooleanField(default=False)
+    
     def save(self, *args, **kwargs):
-        if not self.referral_code:
-            self.referral_code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
+        # Auto-generate unique invite code for new users
+        if not self.invite_code:
+            self.invite_code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return self.username or self.mobile_number
+        return self.username
 
-class Service(models.Model):
-    name = models.CharField(max_length=255)
-    quantity = models.IntegerField(help_text="Example: 50")
-    price_inr = models.DecimalField(max_digits=10, decimal_places=2)
+# 2. Bot Management System
+class Bot(models.fields.Model):
+    name = models.CharField(max_length=100)
+    cookies_json = models.TextField(help_text="Paste JSON cookies here")
     is_active = models.BooleanField(default=True)
+    is_banned = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.name} - ₹{self.price_inr}"
+        return f"{self.name} - {'Active' if self.is_active else 'Inactive'}"
 
-class Order(models.Model):
-    STATUS_CHOICES = [
+# 3. Payment & UTR System
+class Payment(models.fields.Model):
+    STATUS_CHOICES = (
         ('Pending', 'Pending'),
-        ('Completed', 'Completed'),
-        ('Cancelled', 'Cancelled'),
-    ]
-    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='orders')
-    service = models.ForeignKey(Service, on_delete=models.CASCADE)
-    target_link = models.URLField()
+        ('Approved', 'Approved'),
+        ('Rejected', 'Rejected'),
+    )
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='payments')
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    utr_number = models.CharField(max_length=50, unique=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Pending')
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Order #{self.id} by {self.user.mobile_number}"
-  
+        return f"{self.user.username} - ₹{self.amount} ({self.status})"
+
+# 4. Service & Order Models (Aapke purane models thode upgrade ke sath)
+class Service(models.fields.Model):
+    name = models.CharField(max_length=255)
+    price_per_1000 = models.DecimalField(max_digits=10, decimal_places=2)
+    min_order = models.IntegerField(default=100)
+    max_order = models.IntegerField(default=10000)
+    description = models.TextField(blank=True)
+
+    def __str__(self):
+        return self.name
+
+class Order(models.fields.Model):
+    STATUS_CHOICES = (
+        ('Pending', 'Pending'),
+        ('Processing', 'Processing'),
+        ('Completed', 'Completed'),
+        ('Canceled', 'Canceled'),
+    )
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    service = models.ForeignKey(Service, on_delete=models.CASCADE)
+    link = models.URLField()
+    quantity = models.IntegerField()
+    charge = models.DecimalField(max_digits=10, decimal_places=2)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Pending')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Order #{self.id} - {self.user.username}"
+    
