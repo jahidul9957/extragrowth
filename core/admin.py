@@ -32,8 +32,11 @@ class PaymentAdmin(admin.ModelAdmin):
 # 4. Service Management
 @admin.register(Service)
 class ServiceAdmin(admin.ModelAdmin):
-    list_display = ('name', 'price_per_1000', 'min_order', 'max_order')
-    search_fields = ('name',)
+    list_display = ('name', 'category', 'price_per_1000', 'min_order', 'max_order')
+    list_filter = ('category',) # Category ke hisaab se filter karne ke liye
+    search_fields = ('name', 'category')
+    list_editable = ('price_per_1000', 'category') # Bahar se hi price aur category badalne ke liye
+    
 
 # 5. Order Management
 @admin.register(Order)
