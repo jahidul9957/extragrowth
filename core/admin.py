@@ -1,20 +1,45 @@
 from django.contrib import admin
-from .models import CustomUser, Service, Order
+from django.contrib.auth.admin import UserAdmin
+from .models import CustomUser, Bot, Payment, Service, Order
 
-# Admin panel ko sundar banane ke liye customization
-class CustomUserAdmin(admin.ModelAdmin):
-    list_display = ('username', 'mobile_number', 'wallet_balance', 'referral_code', 'total_commission')
-    search_fields = ('username', 'mobile_number')
+# 1. User Management (Wallet aur Ban System ke sath)
+@admin.register(CustomUser)
+class CustomUserAdmin(UserAdmin):
+    list_display = ('username', 'email', 'wallet_balance', 'is_active', 'is_banned')
+    list_filter = ('is_banned', 'is_active', 'is_staff')
+    search_fields = ('username', 'email', 'ip_address', 'invite_code')
+    # Naye fields ko admin form mein dikhane ke liye
+    fieldsets = UserAdmin.fieldsets + (
+        ('SMM Panel Details', {'fields': ('wallet_balance', 'total_spent', 'ip_address', 'invite_code', 'team_code', 'is_banned')}),
+    )
 
-class ServiceAdmin(admin.ModelAdmin):
-    list_display = ('name', 'quantity', 'price_inr', 'is_active')
-    list_editable = ('price_inr', 'is_active')
+# 2. Bot Management
+@admin.register(Bot)
+class BotAdmin(admin.ModelAdmin):
+    list_display = ('name', 'is_active', 'is_banned', 'created_at')
+    list_filter = ('is_active', 'is_banned')
+    search_fields = ('name',)
+    list_editable = ('is_active', 'is_banned') # Ek click mein on/off karein
 
-class OrderAdmin(admin.ModelAdmin):
-    list_display = ('id', 'user', 'service', 'status', 'created_at')
+# 3. Payment System (1-Click Approve)
+@admin.register(Payment)
+class PaymentAdmin(admin.ModelAdmin):
+    list_display = ('user', 'amount', 'utr_number', 'status', 'created_at')
     list_filter = ('status', 'created_at')
-    list_editable = ('status',)
+    search_fields = ('utr_number', 'user__username')
+    list_editable = ('status',) # Admin panel se direct Approve/Reject karein
 
-admin.site.register(CustomUser, CustomUserAdmin)
-admin.site.register(Service, ServiceAdmin)
-admin.site.register(Order, OrderAdmin)
+# 4. Service Management
+@admin.register(Service)
+class ServiceAdmin(admin.ModelAdmin):
+    list_display = ('name', 'price_per_1000', 'min_order', 'max_order')
+    search_fields = ('name',)
+
+# 5. Order Management
+@admin.register(Order)
+class OrderAdmin(admin.ModelAdmin):
+    list_display = ('id', 'user', 'service', 'quantity', 'charge', 'status', 'created_at')
+    list_filter = ('status', 'service')
+    search_fields = ('user__username', 'link')
+    list_editable = ('status',) # Order status direct change karein
+    
