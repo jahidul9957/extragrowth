@@ -6,7 +6,7 @@ urlpatterns = [
     path('', views.home, name='home'),
     path('services/', views.services, name='services'),
     
-    # 🔐 Authentication System (Naye Links)
+    # 🔐 Authentication System 
     path('login/', views.login_view, name='login'),
     path('register/', views.register_view, name='register'),
     path('logout/', views.logout_view, name='logout'),
@@ -15,8 +15,4 @@ urlpatterns = [
     path('add-funds/', views.add_funds, name='add_funds'),
     path('new-order/', views.new_order, name='new_order'),
     path('orders/', views.orders, name='orders'),
-    
-    # Extra pages (Agar aapne banaye hain)
-    path('team/', views.team, name='team'),
-    path('profile/', views.profile, name='profile'),
 ]
