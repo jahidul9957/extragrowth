@@ -3,84 +3,76 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JERIFz SMM Panel</title>
-    
+    <title>NextGen Ai Dev | SMM Panel</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    
     <style>
+        /* 🌟 Master Dark Theme */
         body {
-            /* Dark gradient background */
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-            color: white;
-            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #090b10, #161b22, #0d1117);
+            color: #e6edf3;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             min-height: 100vh;
             margin: 0;
-            padding-bottom: 80px; /* Niche menu ke liye jagah chhodna */
+            padding: 0;
         }
-        
-        /* Glassmorphism Effect */
-        .glass-card {
-            background: rgba(255, 255, 255, 0.05);
+
+        /* 🌟 Glassmorphism Navbar */
+        .glass-nav {
+            background: rgba(0, 0, 0, 0.4);
             backdrop-filter: blur(15px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 20px;
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-        }
-        
-        /* Bottom Menu ka Glass Effect */
-        .nav-bottom {
-            background: rgba(15, 23, 42, 0.85);
-            backdrop-filter: blur(20px);
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            -webkit-backdrop-filter: blur(15px);
+            border-bottom: 1px solid rgba(0, 255, 204, 0.2);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.8);
         }
 
-        .nav-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            color: #9ca3af; /* Gray color */
-            text-decoration: none;
-            transition: color 0.3s ease;
+        /* 🌟 Neon Hover Links */
+        .nav-link {
+            transition: all 0.3s ease;
         }
-
-        .nav-item:hover, .nav-item.active {
-            color: #60a5fa; /* Blue color jab click ho */
+        .nav-link:hover {
+            color: #00ffcc !important;
+            text-shadow: 0 0 10px rgba(0, 255, 204, 0.6);
+            transform: translateY(-2px);
         }
     </style>
 </head>
 <body>
 
-    <main class="w-full max-w-md mx-auto pt-4 px-4 pb-6">
-        {% block content %}
-        {% endblock %}
-    </main>
+    <nav class="glass-nav fixed w-full z-50 top-0 left-0">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                
+                <div class="flex-shrink-0">
+                    <a href="{% url 'home' %}" class="text-2xl font-extrabold text-white tracking-wider hover:scale-105 transition-transform inline-block">
+                        NEXTGEN<span class="text-[#00ffcc]">AI</span>
+                    </a>
+                </div>
 
-    <nav class="fixed bottom-0 left-0 right-0 nav-bottom z-50">
-        <div class="max-w-md mx-auto px-6 py-3 flex justify-between items-center">
-            
-            <a href="{% url 'home' %}" class="nav-item {% if request.path == '/' %}active{% endif %}">
-                <span class="text-xl">🏠</span>
-                <span class="text-xs mt-1">Home</span>
-            </a>
-            
-            <a href="{% url 'services' %}" class="nav-item {% if '/services' in request.path %}active{% endif %}">
-                <span class="text-xl">📋</span>
-                <span class="text-xs mt-1">Services</span>
-            </a>
-            
-            <a href="{% url 'team' %}" class="nav-item {% if '/team' in request.path %}active{% endif %}">
-                <span class="text-xl">👥</span>
-                <span class="text-xs mt-1">Team</span>
-            </a>
-            
-            <a href="{% url 'profile' %}" class="nav-item {% if '/profile' in request.path %}active{% endif %}">
-                <span class="text-xl">👤</span>
-                <span class="text-xs mt-1">Profile</span>
-            </a>
-            
+                <div class="hidden md:block">
+                    <div class="ml-10 flex items-center space-x-6">
+                        <a href="{% url 'home' %}" class="nav-link text-gray-300 font-bold px-3 py-2 rounded-md">Dashboard</a>
+                        <a href="{% url 'new_order' %}" class="nav-link text-gray-300 font-bold px-3 py-2 rounded-md">New Order</a>
+                        <a href="{% url 'add_funds' %}" class="nav-link text-gray-300 font-bold px-3 py-2 rounded-md">Add Funds</a>
+                        
+                        {% if request.user.is_staff %}
+                        <a href="/admin/" target="_blank" class="nav-link text-purple-400 font-bold px-3 py-2 rounded-md">Admin Panel</a>
+                        {% endif %}
+
+                        <div class="ml-4 px-4 py-1.5 bg-black/40 border border-[#00ffcc]/40 rounded-full shadow-[0_0_10px_rgba(0,255,204,0.2)]">
+                            <span class="text-xs text-gray-400 mr-1">Balance:</span>
+                            <span class="text-[#00ffcc] font-bold">₹{% if request.user.is_authenticated %}{{ request.user.wallet_balance }}{% else %}0.00{% endif %}</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
         </div>
     </nav>
 
+    <div class="pt-24 px-4 md:px-8 max-w-7xl mx-auto">
+        {% block content %}
+        {% endblock %}
+    </div>
+
 </body>
-  </html>
-                  
+</html>
