@@ -43,4 +43,44 @@ def add_funds(request):
             messages.error(request, "Please enter both Amount and UTR Number.")
             
     return render(request, 'core/add_funds.html')
+from .models import Service, Order
 
+@login_required(login_url='/admin/login/')
+def new_order(request):
+    services = Service.objects.all() # Database se saari services nikalna
+    
+    if request.method == 'POST':
+        service_id = request.POST.get('service')
+        link = request.POST.get('link')
+        quantity = int(request.POST.get('quantity', 0))
+        
+        if service_id and link and quantity > 0:
+            try:
+                service = Service.objects.get(id=service_id)
+                charge = (service.price_per_1000 / 1000) * quantity
+                
+                # Check karein ki user ke paas paise hain ya nahi
+                if request.user.wallet_balance >= charge:
+                    # Paise kaato aur order lagao
+                    request.user.wallet_balance -= charge
+                    request.user.total_spent += charge
+                    request.user.save()
+                    
+                    Order.objects.create(
+                        user=request.user,
+                        service=service,
+                        link=link,
+                        quantity=quantity,
+                        charge=charge,
+                        status='Pending'
+                    )
+                    messages.success(request, f"🎉 Order placed successfully! Charge: ₹{charge}")
+                else:
+                    messages.error(request, "⚠️ Insufficient balance! Please add funds.")
+            except:
+                messages.error(request, "⚠️ Something went wrong.")
+        else:
+            messages.error(request, "⚠️ Please fill all details correctly.")
+            
+    return render(request, 'core/new_order.html', {'services': services})
+        
