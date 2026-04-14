@@ -26,7 +26,7 @@ class CustomUser(AbstractUser):
         return self.username
 
 # 2. Bot Management System
-class Bot(models.fields.Model):
+class Bot(models.Model):
     name = models.CharField(max_length=100)
     cookies_json = models.TextField(help_text="Paste JSON cookies here")
     is_active = models.BooleanField(default=True)
@@ -37,7 +37,7 @@ class Bot(models.fields.Model):
         return f"{self.name} - {'Active' if self.is_active else 'Inactive'}"
 
 # 3. Payment & UTR System
-class Payment(models.fields.Model):
+class Payment(models.Model):
     STATUS_CHOICES = (
         ('Pending', 'Pending'),
         ('Approved', 'Approved'),
@@ -52,8 +52,8 @@ class Payment(models.fields.Model):
     def __str__(self):
         return f"{self.user.username} - ₹{self.amount} ({self.status})"
 
-# 4. Service & Order Models (Aapke purane models thode upgrade ke sath)
-class Service(models.fields.Model):
+# 4. Service Model (Category ke sath)
+class Service(models.Model):
     category = models.CharField(max_length=100, default="General", help_text="Example: YouTube Subscribers, IG Followers")
     name = models.CharField(max_length=255, help_text="Example: Real Active Subscribers")
     price_per_1000 = models.DecimalField(max_digits=10, decimal_places=2)
@@ -63,9 +63,8 @@ class Service(models.fields.Model):
 
     def __str__(self):
         return f"[{self.category}] {self.name}"
-        
 
-class Order(models.fields.Model):
+class Order(models.Model):
     STATUS_CHOICES = (
         ('Pending', 'Pending'),
         ('Processing', 'Processing'),
