@@ -54,14 +54,16 @@ class Payment(models.fields.Model):
 
 # 4. Service & Order Models (Aapke purane models thode upgrade ke sath)
 class Service(models.fields.Model):
-    name = models.CharField(max_length=255)
+    category = models.CharField(max_length=100, default="General", help_text="Example: YouTube Subscribers, IG Followers")
+    name = models.CharField(max_length=255, help_text="Example: Real Active Subscribers")
     price_per_1000 = models.DecimalField(max_digits=10, decimal_places=2)
     min_order = models.IntegerField(default=100)
     max_order = models.IntegerField(default=10000)
     description = models.TextField(blank=True)
 
     def __str__(self):
-        return self.name
+        return f"[{self.category}] {self.name}"
+        
 
 class Order(models.fields.Model):
     STATUS_CHOICES = (
