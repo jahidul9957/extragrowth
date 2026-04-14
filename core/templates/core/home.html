@@ -3,58 +3,87 @@
 {% block content %}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.css" />
 
-<div class="space-y-6 animate-fade-in">
+<style>
+    /* Neon Glow Animations */
+    @keyframes glow {
+        0% { box-shadow: 0 0 10px rgba(0, 255, 204, 0.2); }
+        50% { box-shadow: 0 0 20px rgba(0, 255, 204, 0.6); }
+        100% { box-shadow: 0 0 10px rgba(0, 255, 204, 0.2); }
+    }
+    .glass-card {
+        background: rgba(255, 255, 255, 0.03);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        transition: transform 0.3s ease, border-color 0.3s ease;
+    }
+    .glass-card:hover {
+        transform: translateY(-5px);
+        border-color: rgba(0, 255, 204, 0.4);
+        animation: glow 2s infinite;
+    }
+    .text-gradient {
+        background: linear-gradient(90deg, #00d2ff 0%, #3a7bd5 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+</style>
 
-    <div class="swiper mySwiper h-40 rounded-2xl overflow-hidden shadow-2xl glass-card">
+<div class="space-y-8 animate-fade-in mt-6 pb-12">
+
+    <div class="swiper mySwiper h-48 rounded-3xl overflow-hidden shadow-2xl border border-white/10">
         <div class="swiper-wrapper">
-            <div class="swiper-slide flex items-center justify-center text-xl font-bold bg-gradient-to-r from-blue-600/80 to-purple-600/80 backdrop-blur">
-                🎉 New Offer: 50% Off!
+            <div class="swiper-slide flex flex-col items-center justify-center bg-gradient-to-r from-gray-900 via-blue-900 to-gray-900 relative">
+                <div class="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
+                <h2 class="text-3xl font-extrabold text-white z-10 tracking-widest text-shadow-lg">NEXTGEN <span class="text-[#00ffcc]">AI</span> DEV</h2>
+                <p class="text-gray-300 z-10 mt-2">Premium SMM Services at Your Fingertips</p>
             </div>
-            <div class="swiper-slide flex items-center justify-center text-xl font-bold bg-gradient-to-r from-green-500/80 to-teal-600/80 backdrop-blur">
-                🚀 Fastest YouTube Subs
+            <div class="swiper-slide flex items-center justify-center bg-gradient-to-r from-purple-800 to-blue-600">
+                <h2 class="text-2xl font-bold text-white tracking-wide">🎉 New Offer: 50% Off on YouTube Views!</h2>
             </div>
-            <div class="swiper-slide flex items-center justify-center text-xl font-bold bg-gradient-to-r from-orange-500/80 to-red-600/80 backdrop-blur">
-                💰 Earn Daily Commission
-            </div>
-        </div>
-        <div class="swiper-pagination"></div>
-    </div>
-
-    <div class="glass-card p-6 relative overflow-hidden">
-        <div class="absolute -right-4 -top-4 text-6xl opacity-10">💰</div>
-        
-        <p class="text-sm text-gray-300 font-medium">Available Balance</p>
-        
-        <h2 class="text-4xl font-extrabold mt-2 text-white">₹500.00</h2>
-        
-        <div class="mt-6 flex space-x-3">
-            <a href="{% url 'profile' %}" class="flex-1 bg-blue-500 hover:bg-blue-600 text-center py-3 rounded-xl font-semibold transition shadow-lg">
-                Deposit
-            </a>
-            <a href="{% url 'services' %}" class="flex-1 bg-white/10 hover:bg-white/20 border border-white/20 text-center py-3 rounded-xl font-semibold transition">
-                Buy Service
-            </a>
         </div>
     </div>
 
-    <div class="glass-card p-5">
-        <div class="flex justify-between items-center mb-4">
-            <h3 class="text-lg font-bold">Today's Activity</h3>
-            <span class="text-xs bg-green-500/20 text-green-400 px-2 py-1 rounded-md">Live</span>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="glass-card rounded-2xl p-5 shadow-lg flex flex-col items-center justify-center relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-16 h-16 bg-blue-500 rounded-full mix-blend-screen filter blur-3xl opacity-50"></div>
+            <p class="text-gray-400 text-sm mb-1">Wallet Balance</p>
+            <h3 class="text-2xl font-bold text-white">₹{% if request.user.is_authenticated %}{{ request.user.wallet_balance }}{% else %}0.00{% endif %}</h3>
         </div>
-        <div class="flex justify-between text-center">
-            <div class="flex flex-col">
-                <span class="text-2xl font-bold">12</span>
-                <span class="text-xs text-gray-400">Total Orders</span>
-            </div>
-            <div class="w-px bg-white/10"></div> <div class="flex flex-col">
-                <span class="text-2xl font-bold">₹45</span>
-                <span class="text-xs text-gray-400">Commission</span>
-            </div>
-            <div class="w-px bg-white/10"></div> <div class="flex flex-col">
-                <span class="text-2xl font-bold">3</span>
-                <span class="text-xs text-gray-400">New Friends</span>
-            </div>
+        
+        <div class="glass-card rounded-2xl p-5 shadow-lg flex flex-col items-center justify-center relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-16 h-16 bg-purple-500 rounded-full mix-blend-screen filter blur-3xl opacity-50"></div>
+            <p class="text-gray-400 text-sm mb-1">Total Spent</p>
+            <h3 class="text-2xl font-bold text-[#00ffcc]">₹{% if request.user.is_authenticated %}{{ request.user.total_spent }}{% else %}0.00{% endif %}</h3>
+        </div>
+
+        <div class="glass-card rounded-2xl p-5 shadow-lg flex flex-col items-center justify-center">
+            <p class="text-gray-400 text-sm mb-1">Total Orders</p>
+            <h3 class="text-2xl font-bold text-white">1,204</h3>
+        </div>
+
+        <div class="glass-card rounded-2xl p-5 shadow-lg flex flex-col items-center justify-center">
+            <p class="text-gray-400 text-sm mb-1">Account Status</p>
+            <h3 class="text-xl font-bold text-green-400">Active ✓</h3>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="glass-card rounded-3xl p-8 flex flex-col items-center justify-center text-center">
+            <h2 class="text-2xl font-bold text-white mb-4">Ready to Grow?</h2>
+            <p class="text-gray-400 mb-6">Boost your social media presence instantly with our AI-driven system.</p>
+            <a href="#" class="px-8 py-3 bg-gradient-to-r from-[#00d2ff] to-[#3a7bd5] text-white font-bold rounded-full hover:scale-105 transition-transform shadow-[0_0_15px_rgba(0,210,255,0.5)]">
+                + Place New Order
+            </a>
+        </div>
+
+        <div class="glass-card rounded-3xl p-6">
+            <h3 class="text-xl font-bold text-white mb-4 border-b border-gray-700 pb-2">🔔 Latest Updates</h3>
+            <ul class="space-y-3 text-gray-300 text-sm">
+                <li class="flex items-center"><span class="text-[#00ffcc] mr-2">●</span> IG Followers service is lightning fast right now!</li>
+                <li class="flex items-center"><span class="text-[#00ffcc] mr-2">●</span> Added new payment gateway for instant deposits.</li>
+                <li class="flex items-center"><span class="text-[#00ffcc] mr-2">●</span> YT Watchtime bots updated for 2026 algorithm.</li>
+            </ul>
         </div>
     </div>
 
@@ -64,23 +93,11 @@
 <script>
     var swiper = new Swiper(".mySwiper", {
         autoplay: {
-            delay: 3000, // 3 second mein scroll hoga
+            delay: 3000,
             disableOnInteraction: false,
         },
-        pagination: {
-            el: ".swiper-pagination",
-            dynamicBullets: true,
-        },
         loop: true,
+        effect: "fade",
     });
 </script>
-
-<style>
-    .animate-fade-in {
-        animation: fadeIn 0.5s ease-out;
-    }
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(10px); }
-        to { opacity: 1
-      {% endblock %}
-    
+{% endblock %}
