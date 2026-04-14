@@ -1,11 +1,15 @@
 #!/usr/bin/env bash
-# exit on error
+# Exit on error
 set -o errexit
 
+# 1. Zaroori packages install karein
 pip install -r requirements.txt
-python manage.py collectstatic --no-input
+
+# 2. Database ki tables banayein (Yeh sabse zaroori hai!)
+python manage.py makemigrations
 python manage.py migrate
-# Apna superuser banane ka code
+
+# 3. Apna Admin account banayein
 export DJANGO_SUPERUSER_USERNAME=admin
 export DJANGO_SUPERUSER_PASSWORD=adminpass
 export DJANGO_SUPERUSER_EMAIL=admin@admin.com
