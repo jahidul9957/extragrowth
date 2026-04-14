@@ -10,4 +10,6 @@ urlpatterns = [
     
     # 👇 bas yeh ek line yahan jod dein:
     path('add-funds/', views.add_funds, name='add_funds'),
+    path('new-order/', views.new_order, name='new_order'),
+    
 ]
