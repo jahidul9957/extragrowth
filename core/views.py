@@ -1,9 +1,9 @@
 import threading
-from playwright_stealth import stealth_sync
 import time
 import json
 import os  
 from playwright.sync_api import sync_playwright
+from playwright_stealth import stealth_sync  # 🥷 STEALTH MODE IMPORT
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
 from django.contrib.auth.decorators import login_required
@@ -73,7 +73,7 @@ def services(request):
     return render(request, 'core/services.html', {'services': services_list})
 
 # ==========================================
-# 🤖 PLAYWRIGHT ENGINE (STEALTH MODE 🥷 + CAMERA 📸)
+# 🤖 PLAYWRIGHT ENGINE (ULTIMATE STEALTH 🥷 + CAMERA 📸)
 # ==========================================
 def run_bot_task(order_id):
     # 🛡️ DJANGO ASYNC SECURITY BYPASS 
@@ -89,7 +89,7 @@ def run_bot_task(order_id):
     
     try:
         with sync_playwright() as p:
-            # 🥷 STEALTH MODE: Google Captcha Bypass
+            # 🥷 STEALTH MODE: Google Captcha Bypass Args
             browser = p.chromium.launch(
                 headless=True,
                 args=["--disable-blink-features=AutomationControlled"]
@@ -102,7 +102,6 @@ def run_bot_task(order_id):
                     
                     # 🧹 SMART COOKIE CLEANER
                     for c in raw_cookies:
-                        # Fix sameSite issue
                         if c.get("sameSite") == "no_restriction":
                             c["sameSite"] = "None"
                         elif c.get("sameSite") not in ["Strict", "Lax", "None"]:
@@ -119,13 +118,16 @@ def run_bot_task(order_id):
                         locale='en-US'
                     )
                     
-                    # 🥷 Remove Webdriver flag
+                    # 🥷 Remove Webdriver flag manually
                     context.add_init_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
                     
                     context.add_cookies(clean_cookies)
                     page = context.new_page()
                     
-                    print(f"\n🚀 Bot [{bot.name}] (Stealth Mode) is navigating to: {target_link}")
+                    # 🥷 THE ULTIMATE STEALTH MAGIC WAND (Google ko andha karne ke liye)
+                    stealth_sync(page)
+                    
+                    print(f"\n🚀 Bot [{bot.name}] (Ultimate Stealth) is navigating to: {target_link}")
                     page.goto(target_link, timeout=60000)
                     page.wait_for_load_state("networkidle")
                     time.sleep(5) 
@@ -249,4 +251,4 @@ def spy_camera(request):
     
     with open(latest_file, 'rb') as f:
         return HttpResponse(f.read(), content_type="image/png")
-        
+            
