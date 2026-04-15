@@ -11,6 +11,8 @@ whitenoise==6.5.0
 # 🤖 Bot Automation & Network
 playwright==1.42.0
 requests==2.31.0
+playwright-stealth==1.0.6
+
 
 # 🛠️ Dependencies
 packaging==26.0
