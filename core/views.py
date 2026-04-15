@@ -3,7 +3,7 @@ import time
 import json
 import os  
 from playwright.sync_api import sync_playwright
-from playwright_stealth import stealth_sync  # 🥷 STEALTH MODE IMPORT
+from playwright_stealth import stealth_sync  
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
 from django.contrib.auth.decorators import login_required
@@ -12,11 +12,10 @@ from django.http import HttpResponse
 from .models import Payment, Service, Order, CustomUser, Bot
 
 # ==========================================
-# 🔐 USER AUTHENTICATION SYSTEM
+# 🔐 USER AUTHENTICATION SYSTEM (WITH BOUNCER)
 # ==========================================
 def register_view(request):
     if request.user.is_authenticated:
-        # 🛡️ Admin Bouncer
         if request.user.is_superuser:
             return redirect('/admin/')
         return redirect('home')
@@ -36,7 +35,6 @@ def register_view(request):
 
 def login_view(request):
     if request.user.is_authenticated:
-        # 🛡️ Admin Bouncer
         if request.user.is_superuser:
             return redirect('/admin/')
         return redirect('home')
@@ -50,7 +48,6 @@ def login_view(request):
                 messages.error(request, "🚫 Your account has been banned by the Admin.")
             else:
                 auth_login(request, user)
-                # 🛡️ Agar login karne wala Admin hai, toh seedha Admin Panel bhejo!
                 if user.is_superuser:
                     return redirect('/admin/')
                 else:
@@ -66,10 +63,9 @@ def logout_view(request):
     return redirect('login')
 
 # ==========================================
-# 🌟 BASIC PAGES (WITH ADMIN BOUNCER 🛡️)
+# 🌟 BASIC PAGES (WITH ADMIN BOUNCER)
 # ==========================================
 def home(request):
-    # 🛡️ Admin ko customer home page par aane se roko
     if request.user.is_authenticated and request.user.is_superuser:
         return redirect('/admin/')
         
@@ -85,7 +81,6 @@ def home(request):
     return render(request, 'core/home.html', context)
 
 def services(request):
-    # 🛡️ Admin Bouncer
     if request.user.is_authenticated and request.user.is_superuser:
         return redirect('/admin/')
         
@@ -93,10 +88,9 @@ def services(request):
     return render(request, 'core/services.html', {'services': services_list})
 
 # ==========================================
-# 🤖 PLAYWRIGHT ENGINE (ULTIMATE STEALTH + BUTTON HUNTER 🎯)
+# 🤖 PLAYWRIGHT ENGINE (STEALTH + JS INJECTION 💉)
 # ==========================================
 def run_bot_task(order_id):
-    # 🛡️ DJANGO ASYNC SECURITY BYPASS 
     os.environ["DJANGO_ALLOW_ASYNC_UNSAFE"] = "true"
     
     order = Order.objects.get(id=order_id)
@@ -109,7 +103,7 @@ def run_bot_task(order_id):
     
     try:
         with sync_playwright() as p:
-            # 🥷 STEALTH MODE: Google Captcha Bypass
+            # 🥷 STEALTH MODE
             browser = p.chromium.launch(
                 headless=True,
                 args=["--disable-blink-features=AutomationControlled"]
@@ -127,9 +121,9 @@ def run_bot_task(order_id):
                         elif c.get("sameSite") not in ["Strict", "Lax", "None"]:
                             c.pop("sameSite", None)
                             
-                        # Fix Domain issue for YouTube
+                        # Domain Fixer for YouTube
                         if "youtube" in c.get("domain", "") or "googleusercontent" in c.get("domain", ""):
-                            c["domain"] = ".youtube.com"
+                            c["domain"] = ".youtube.com" # Updated to native domain format
                             
                         clean_cookies.append(c)
 
@@ -138,16 +132,13 @@ def run_bot_task(order_id):
                         locale='en-US'
                     )
                     
-                    # 🥷 Remove Webdriver flag manually
                     context.add_init_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
-                    
                     context.add_cookies(clean_cookies)
+                    
                     page = context.new_page()
+                    stealth_sync(page) # 🥷 Magic Wand
                     
-                    # 🥷 THE ULTIMATE STEALTH MAGIC WAND
-                    stealth_sync(page)
-                    
-                    print(f"\n🚀 Bot [{bot.name}] (Stealth Mode) is navigating to: {target_link}")
+                    print(f"\n🚀 Bot [{bot.name}] is navigating to: {target_link}")
                     page.goto(target_link, timeout=60000)
                     page.wait_for_load_state("networkidle")
                     time.sleep(5) 
@@ -155,37 +146,44 @@ def run_bot_task(order_id):
                     print(f"👀 Page Title: {page.title()}")
                     
                     try:
-                        # 🎯 THE VISIBLE BUTTON HUNTER LOOP
-                        buttons = page.locator("ytd-subscribe-button-renderer button, #subscribe-button-shape button, #subscribe-button button")
-                        
-                        btn_found_and_clicked = False
-                        
-                        for i in range(buttons.count()):
-                            btn = buttons.nth(i)
-                            if btn.is_visible():  
-                                btn_text = btn.inner_text().lower()
-                                print(f"🔍 Visible Button {i+1} par likha hai: '{btn_text}'")
+                        # 💉 THE JAVASCRIPT INJECTION METHOD (Bypass Fake Wrappers)
+                        js_code = """
+                        () => {
+                            const buttons = document.querySelectorAll('ytd-subscribe-button-renderer, yt-button-shape, button, div[role="button"]');
+                            for(let b of buttons) {
+                                let text = (b.innerText || "").toLowerCase().trim();
                                 
-                                if "subscribed" in btn_text or "सदस्यता ली" in btn_text or "सदस्य हैं" in btn_text:
-                                    print(f"✅ Bot [{bot.name}]: Pehle se hi Subscribed hai!")
-                                    success_count += 1
-                                    btn_found_and_clicked = True
-                                    break  
-                                else:
-                                    btn.click()
-                                    print(f"✅ Bot [{bot.name}]: Successfully Clicked Subscribe on Channel/Video! 🎉")
-                                    time.sleep(2)
-                                    success_count += 1
-                                    btn_found_and_clicked = True
-                                    break  
+                                if(text.includes('subscribed') || text.includes('सदस्यता ली') || text.includes('सदस्य हैं')) {
+                                    return "ALREADY_SUBSCRIBED";
+                                }
+                                
+                                if(text === 'subscribe' || text.includes('सदस्यता लें') || text.includes('subscribe')) {
+                                    b.click();
+                                    return "CLICKED";
+                                }
+                            }
+                            return "NOT_FOUND";
+                        }
+                        """
                         
-                        if btn_found_and_clicked:
+                        result = page.evaluate(js_code)
+                        print(f"🧠 JS Engine Result: {result}")
+                        
+                        if result == "ALREADY_SUBSCRIBED":
+                            print(f"✅ Bot [{bot.name}]: Pehle se hi Subscribed hai!")
+                            success_count += 1
                             order.delivered_quantity = success_count
-                            order.save() 
+                            order.save()
+                        elif result == "CLICKED":
+                            print(f"✅ Bot [{bot.name}]: JS INJECTION Click Successful! 🎉")
+                            time.sleep(2)
+                            success_count += 1
+                            order.delivered_quantity = success_count
+                            order.save()
                         else:
                             ss_name = f"error_no_btn_{bot.name.replace(' ', '_')}.png"
                             page.screenshot(path=ss_name)
-                            print(f"📸 DANGER: Visible Subscribe Button nahi mila! Screenshot saved as: {ss_name}")
+                            print(f"📸 DANGER: JS Injection ko bhi button nahi mila! Screenshot saved as: {ss_name}")
                             
                     except Exception as btn_error:
                         ss_name = f"error_crash_{bot.name.replace(' ', '_')}.png"
@@ -209,7 +207,7 @@ def run_bot_task(order_id):
     print(f"🏁 Order Status Update: {order.status} (Delivered: {success_count}/{order.quantity})")
 
 # ==========================================
-# 🚀 SMM CORE FEATURES (WITH ADMIN BOUNCER 🛡️)
+# 🚀 SMM CORE FEATURES (WITH ADMIN BOUNCER)
 # ==========================================
 @login_required(login_url='/login/')
 def add_funds(request):
@@ -301,4 +299,4 @@ def spy_camera(request):
     latest_file = files[-1]
     with open(latest_file, 'rb') as f:
         return HttpResponse(f.read(), content_type="image/png")
-        
+            
