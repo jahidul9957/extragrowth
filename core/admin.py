@@ -1,11 +1,23 @@
 from django.contrib import admin
-from .models import CustomUser, Service, Order, Payment, Bot
+from django.utils.html import format_html # Naya import
+from .models import CustomUser, Order, Bot, Service, Payment
+
+# Baaki sab waisa hi rahega...
 
 @admin.register(CustomUser)
 class CustomUserAdmin(admin.ModelAdmin):
-    # Sirf wahi fields jo CustomUser model mein hain
-    list_display = ['username', 'email', 'wallet_balance', 'total_spent', 'is_banned']
-    list_editable = ['wallet_balance', 'is_banned']
+    # 'login_as_button' ko list me add kiya
+    list_display = ('username', 'email', 'wallet_balance', 'total_spent', 'login_as_button')
+    search_fields = ('username', 'email')
+
+    # 🪄 Naya Jaadui Button
+    def login_as_button(self, obj):
+        return format_html(
+            '<a class="button" style="background-color:#417690; color:white; padding:5px 10px; border-radius:4px; font-weight:bold; text-decoration:none;" href="/login-as/{}/">🕵️‍♂️ Login as User</a>', 
+            obj.id
+        )
+    login_as_button.short_description = 'Impersonate (God Mode)'
+
 
 @admin.register(Service)
 class ServiceAdmin(admin.ModelAdmin):
