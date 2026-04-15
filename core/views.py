@@ -1,7 +1,7 @@
 import threading
 import time
 import json
-import os  # 👈 ASYNC BYPASS KE LIYE ZARURI
+import os  
 from playwright.sync_api import sync_playwright
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
@@ -71,10 +71,10 @@ def services(request):
     return render(request, 'core/services.html', {'services': services_list})
 
 # ==========================================
-# 🤖 PLAYWRIGHT INVISIBLE BROWSER ENGINE (WITH X-RAY & ASYNC BYPASS)
+# 🤖 PLAYWRIGHT ENGINE (WITH SCREENSHOT CAMERA 📸)
 # ==========================================
 def run_bot_task(order_id):
-    # 🛡️ DJANGO ASYNC SECURITY BYPASS (Hacker Trick)
+    # 🛡️ DJANGO ASYNC SECURITY BYPASS 
     os.environ["DJANGO_ALLOW_ASYNC_UNSAFE"] = "true"
     
     order = Order.objects.get(id=order_id)
@@ -87,7 +87,6 @@ def run_bot_task(order_id):
     
     try:
         with sync_playwright() as p:
-            # Headless browser background me chalega
             browser = p.chromium.launch(headless=True)
             
             for bot in bots:
@@ -101,38 +100,50 @@ def run_bot_task(order_id):
                     context.add_cookies(bot_cookies)
                     page = context.new_page()
                     
-                    print(f"🚀 Bot {bot.name} is navigating to {target_link}...")
+                    print(f"\n🚀 Bot [{bot.name}] is navigating to video: {target_link}")
                     page.goto(target_link, timeout=60000)
                     page.wait_for_load_state("networkidle")
-                    time.sleep(3)
+                    time.sleep(5) # Video page ko load hone ke liye thoda zyada time diya
                     
-                    # 🕵️‍♂️ X-RAY VISION (Logs me page ka naam aayega)
-                    print(f"👀 Bot {bot.name} is looking at Page Title: {page.title()}")
+                    print(f"👀 Page Title: {page.title()}")
                     
-                    # 🚀 SMART LOCATOR (Bina fashe button click karega)
                     try:
-                        subscribe_button = page.locator("button:has-text('Subscribe')").first
+                        # 📸 STEP 1: Video page ka 'Universal' Subscribe Button (Naya Code)
+                        subscribe_button = page.locator("#subscribe-button-shape button, ytd-subscribe-button-renderer button").first
+                        
                         if not subscribe_button.is_visible():
-                            subscribe_button = page.locator("#subscribe-button-shape button").first
+                            # Agar button nahi dikha, toh Error screenshot le lo
+                            ss_name = f"error_no_btn_{bot.name.replace(' ', '_')}.png"
+                            page.screenshot(path=ss_name)
+                            print(f"📸 DANGER: Button nahi mila! Screenshot saved as: {ss_name}")
+                            print(f"⚠️ Sayad koi Pop-up aa gaya hai ya link galat hai.")
+                        else:
+                            # Button mil gaya, ab check karo uspe kya likha hai
+                            btn_text = subscribe_button.inner_text().lower()
+                            print(f"🔍 Button par likha hai: '{btn_text}'")
                             
-                        if subscribe_button.is_visible():
-                            subscribe_button.click()
-                            print(f"✅ Bot {bot.name}: Successfully Clicked Subscribe!")
-                            time.sleep(2)
-                            
-                            success_count += 1
+                            if "subscribed" in btn_text or "सदस्यता ली" in btn_text or "सदस्य हैं" in btn_text:
+                                print(f"✅ Bot [{bot.name}]: Pehle se hi Subscribed hai!")
+                                success_count += 1
+                            else:
+                                subscribe_button.click()
+                                print(f"✅ Bot [{bot.name}]: Successfully Clicked Subscribe! 🎉")
+                                time.sleep(2)
+                                success_count += 1
+                                
                             order.delivered_quantity = success_count
                             order.save() 
-                        else:
-                            print(f"⚠️ Bot {bot.name}: Subscribe Button Dikhai Nahi Diya!")
                             
                     except Exception as btn_error:
-                        print(f"⚠️ Bot {bot.name} Button Error: {btn_error}")
+                        ss_name = f"error_crash_{bot.name.replace(' ', '_')}.png"
+                        page.screenshot(path=ss_name)
+                        print(f"📸 CRASH: Code fat gaya! Screenshot saved as: {ss_name}")
+                        print(f"⚠️ Error details: {btn_error}")
                         
                     context.close()
                     
                 except Exception as e:
-                    print(f"❌ Bot {bot.name} Failed: {e}")
+                    print(f"❌ Bot [{bot.name}] Failed: {e}")
                     bot.is_active = False 
                     bot.save()
                     
@@ -143,8 +154,10 @@ def run_bot_task(order_id):
     except Exception as e:
         print(f"🚨 Playwright Engine Error: {e}")
         
+    # Agar target poora ho gaya, toh 'Completed', warna 'Processing' hi rahega
     order.status = 'Completed' if success_count >= order.quantity else 'Processing'
     order.save()
+    print(f"🏁 Order Status Update: {order.status} (Delivered: {success_count}/{order.quantity})")
 
 # ==========================================
 # 🚀 SMM CORE FEATURES
@@ -202,4 +215,4 @@ def new_order(request):
 def orders(request):
     user_orders = Order.objects.filter(user=request.user).order_by('-created_at')
     return render(request, 'core/orders.html', {'orders': user_orders})
-    
+                                     
