@@ -4,7 +4,7 @@ set -o errexit
 
 pip install -r requirements.txt
 
-# 📁 1. Ensure Folder Exists 
+# 📁 1. Ensure Folder Exists
 mkdir -p core/migrations
 touch core/migrations/__init__.py
 
@@ -21,5 +21,10 @@ python manage.py makemigrations core
 python manage.py makemigrations
 python manage.py migrate
 
-# 👑 5. AUTO-CREATE SUPERUSER (Bina Shell Ke!)
+# 👑 5. DIRECT ADMIN CREATION (Hardcoded Details)
+# Yahan hum terminal ko directly details de rahe hain
+export DJANGO_SUPERUSER_USERNAME="admin"
+export DJANGO_SUPERUSER_EMAIL="admin@gmail.com"
+export DJANGO_SUPERUSER_PASSWORD="adminpass"
+
 python manage.py createsuperuser --noinput || true
