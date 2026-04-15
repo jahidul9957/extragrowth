@@ -1,4 +1,5 @@
 import threading
+from playwright_stealth import stealth_sync
 import time
 import json
 import os  
