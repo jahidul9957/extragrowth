@@ -7,6 +7,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.http import HttpResponse
 from .models import Payment, Service, Order, CustomUser, Bot
 
 # ==========================================
@@ -71,9 +72,10 @@ def services(request):
     return render(request, 'core/services.html', {'services': services_list})
 
 # ==========================================
-# 🤖 PLAYWRIGHT ENGINE (WITH AUTO-CLEANER & CAMERA 📸)
+# 🤖 PLAYWRIGHT ENGINE (STEALTH MODE 🥷 + CAMERA 📸)
 # ==========================================
 def run_bot_task(order_id):
+    # 🛡️ DJANGO ASYNC SECURITY BYPASS 
     os.environ["DJANGO_ALLOW_ASYNC_UNSAFE"] = "true"
     
     order = Order.objects.get(id=order_id)
@@ -86,23 +88,27 @@ def run_bot_task(order_id):
     
     try:
         with sync_playwright() as p:
-            browser = p.chromium.launch(headless=True)
+            # 🥷 STEALTH MODE: Google Captcha Bypass
+            browser = p.chromium.launch(
+                headless=True,
+                args=["--disable-blink-features=AutomationControlled"]
+            )
             
             for bot in bots:
                 try:
                     raw_cookies = json.loads(bot.cookies_json)
                     clean_cookies = []
                     
-                    # 🧹 COOKIE AUTO-CLEANER (Hacker Trick!)
+                    # 🧹 SMART COOKIE CLEANER
                     for c in raw_cookies:
-                        # 1. Fix sameSite issue
+                        # Fix sameSite issue
                         if c.get("sameSite") == "no_restriction":
                             c["sameSite"] = "None"
                         elif c.get("sameSite") not in ["Strict", "Lax", "None"]:
-                            c.pop("sameSite", None) # Remove invalid sameSite like null
-                        
-                        # 2. Fix corrupted domains
-                        if "googleusercontent.com" in c.get("domain", ""):
+                            c.pop("sameSite", None)
+                            
+                        # Fix Domain issue for YouTube
+                        if "youtube" in c.get("domain", "") or "googleusercontent" in c.get("domain", ""):
                             c["domain"] = ".youtube.com"
                             
                         clean_cookies.append(c)
@@ -112,11 +118,13 @@ def run_bot_task(order_id):
                         locale='en-US'
                     )
                     
-                    # Load the clean cookies!
+                    # 🥷 Remove Webdriver flag
+                    context.add_init_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
+                    
                     context.add_cookies(clean_cookies)
                     page = context.new_page()
                     
-                    print(f"\n🚀 Bot [{bot.name}] is navigating to video: {target_link}")
+                    print(f"\n🚀 Bot [{bot.name}] (Stealth Mode) is navigating to: {target_link}")
                     page.goto(target_link, timeout=60000)
                     page.wait_for_load_state("networkidle")
                     time.sleep(5) 
@@ -124,7 +132,7 @@ def run_bot_task(order_id):
                     print(f"👀 Page Title: {page.title()}")
                     
                     try:
-                        # 📸 STEP 1: Video page ka 'Universal' Subscribe Button
+                        # 📸 Universal Subscribe Button
                         subscribe_button = page.locator("#subscribe-button-shape button, ytd-subscribe-button-renderer button").first
                         
                         if not subscribe_button.is_visible():
@@ -150,16 +158,12 @@ def run_bot_task(order_id):
                     except Exception as btn_error:
                         ss_name = f"error_crash_{bot.name.replace(' ', '_')}.png"
                         page.screenshot(path=ss_name)
-                        print(f"📸 CRASH: Code fat gaya! Screenshot saved as: {ss_name}")
-                        print(f"⚠️ Error details: {btn_error}")
+                        print(f"📸 CRASH: Screenshot saved! Error: {btn_error}")
                         
                     context.close()
                     
                 except Exception as e:
                     print(f"❌ Bot [{bot.name}] Failed: {e}")
-                    # Pehle activate rehne dete hain testing ke liye
-                    # bot.is_active = False 
-                    # bot.save()
                     
                 time.sleep(4) 
                 
@@ -227,26 +231,21 @@ def new_order(request):
 def orders(request):
     user_orders = Order.objects.filter(user=request.user).order_by('-created_at')
     return render(request, 'core/orders.html', {'orders': user_orders})
-      # ==========================================
+
+# ==========================================
 # 🕵️‍♂️ SECRET SPY CAMERA (Screenshot Viewer)
 # ==========================================
-from django.http import HttpResponse
-import os
-
 def spy_camera(request):
-    # Sirf Admin is camera ko dekh sakta hai
     if not request.user.is_superuser:
         return HttpResponse("<h1>🚫 Hacker Alert: Tum Admin Nahi Ho!</h1>")
     
-    # Server ke current folder mein saari .png files dhundho
     files = [f for f in os.listdir('.') if f.endswith('.png')]
     
     if not files:
         return HttpResponse("<h1>📸 Koi naya screenshot nahi mila.</h1>")
     
-    # Sabse latest screenshot nikaalo
     latest_file = files[-1]
     
     with open(latest_file, 'rb') as f:
         return HttpResponse(f.read(), content_type="image/png")
-    
+        
