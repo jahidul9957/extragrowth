@@ -16,7 +16,11 @@ from .models import Payment, Service, Order, CustomUser, Bot
 # ==========================================
 def register_view(request):
     if request.user.is_authenticated:
+        # 🛡️ Admin Bouncer
+        if request.user.is_superuser:
+            return redirect('/admin/')
         return redirect('home')
+        
     if request.method == 'POST':
         u = request.POST.get('username')
         e = request.POST.get('email')
@@ -32,7 +36,11 @@ def register_view(request):
 
 def login_view(request):
     if request.user.is_authenticated:
+        # 🛡️ Admin Bouncer
+        if request.user.is_superuser:
+            return redirect('/admin/')
         return redirect('home')
+        
     if request.method == 'POST':
         u = request.POST.get('username')
         p = request.POST.get('password')
@@ -42,8 +50,12 @@ def login_view(request):
                 messages.error(request, "🚫 Your account has been banned by the Admin.")
             else:
                 auth_login(request, user)
-                messages.success(request, f"Welcome back, {u}! 🚀")
-                return redirect('home')
+                # 🛡️ Agar login karne wala Admin hai, toh seedha Admin Panel bhejo!
+                if user.is_superuser:
+                    return redirect('/admin/')
+                else:
+                    messages.success(request, f"Welcome back, {u}! 🚀")
+                    return redirect('home')
         else:
             messages.error(request, "⚠️ Invalid username or password.")
     return render(request, 'core/login.html')
@@ -54,9 +66,13 @@ def logout_view(request):
     return redirect('login')
 
 # ==========================================
-# 🌟 BASIC PAGES
+# 🌟 BASIC PAGES (WITH ADMIN BOUNCER 🛡️)
 # ==========================================
 def home(request):
+    # 🛡️ Admin ko customer home page par aane se roko
+    if request.user.is_authenticated and request.user.is_superuser:
+        return redirect('/admin/')
+        
     total_platform_users = CustomUser.objects.count() + 2500
     total_platform_orders = Order.objects.count() + 15400
     context = {
@@ -69,6 +85,10 @@ def home(request):
     return render(request, 'core/home.html', context)
 
 def services(request):
+    # 🛡️ Admin Bouncer
+    if request.user.is_authenticated and request.user.is_superuser:
+        return redirect('/admin/')
+        
     services_list = Service.objects.all()
     return render(request, 'core/services.html', {'services': services_list})
 
@@ -135,14 +155,14 @@ def run_bot_task(order_id):
                     print(f"👀 Page Title: {page.title()}")
                     
                     try:
-                        # 🎯 THE VISIBLE BUTTON HUNTER LOOP (For Video & Channel pages)
+                        # 🎯 THE VISIBLE BUTTON HUNTER LOOP
                         buttons = page.locator("ytd-subscribe-button-renderer button, #subscribe-button-shape button, #subscribe-button button")
                         
                         btn_found_and_clicked = False
                         
                         for i in range(buttons.count()):
                             btn = buttons.nth(i)
-                            if btn.is_visible():  # Sirf usi ko dekho jo screen par sach me hai
+                            if btn.is_visible():  
                                 btn_text = btn.inner_text().lower()
                                 print(f"🔍 Visible Button {i+1} par likha hai: '{btn_text}'")
                                 
@@ -189,10 +209,13 @@ def run_bot_task(order_id):
     print(f"🏁 Order Status Update: {order.status} (Delivered: {success_count}/{order.quantity})")
 
 # ==========================================
-# 🚀 SMM CORE FEATURES
+# 🚀 SMM CORE FEATURES (WITH ADMIN BOUNCER 🛡️)
 # ==========================================
 @login_required(login_url='/login/')
 def add_funds(request):
+    if request.user.is_superuser:
+        return redirect('/admin/')
+        
     if request.method == 'POST':
         amount = request.POST.get('amount')
         utr_number = request.POST.get('utr_number')
@@ -205,6 +228,9 @@ def add_funds(request):
 
 @login_required(login_url='/login/')
 def new_order(request):
+    if request.user.is_superuser:
+        return redirect('/admin/')
+        
     services_list = Service.objects.all()
     if request.method == 'POST':
         service_id = request.POST.get('service')
@@ -241,23 +267,38 @@ def new_order(request):
 
 @login_required(login_url='/login/')
 def orders(request):
+    if request.user.is_superuser:
+        return redirect('/admin/')
+        
     user_orders = Order.objects.filter(user=request.user).order_by('-created_at')
     return render(request, 'core/orders.html', {'orders': user_orders})
 
 # ==========================================
-# 🕵️‍♂️ SECRET SPY CAMERA (Screenshot Viewer)
+# 🕵️‍♂️ GOD MODE & SPY CAMERA
 # ==========================================
+def login_as_user(request, user_id):
+    if not request.user.is_superuser:
+        messages.error(request, "🚫 Hacker Alert: Tum Admin Nahi Ho!")
+        return redirect('home')
+        
+    try:
+        target_user = CustomUser.objects.get(id=user_id)
+        auth_login(request, target_user, backend='django.contrib.auth.backends.ModelBackend')
+        messages.success(request, f"🕵️‍♂️ God Mode: You are now logged in as '{target_user.username}'")
+        return redirect('home')
+        
+    except CustomUser.DoesNotExist:
+        return HttpResponse("<h1>❌ User nahi mila!</h1>")
+
 def spy_camera(request):
     if not request.user.is_superuser:
         return HttpResponse("<h1>🚫 Hacker Alert: Tum Admin Nahi Ho!</h1>")
     
     files = [f for f in os.listdir('.') if f.endswith('.png')]
-    
     if not files:
         return HttpResponse("<h1>📸 Koi naya screenshot nahi mila.</h1>")
     
     latest_file = files[-1]
-    
     with open(latest_file, 'rb') as f:
         return HttpResponse(f.read(), content_type="image/png")
-            
+        
