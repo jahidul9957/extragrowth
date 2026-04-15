@@ -9,7 +9,7 @@ psycopg2-binary==2.9.9
 whitenoise==6.5.0
 
 # 🤖 Bot Automation & API Features
-requests==2.31.0
+playwright==1.42.0
 
 # 🛠️ Dependencies & Utils
 packaging==26.0
