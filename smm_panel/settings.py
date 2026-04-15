@@ -56,6 +56,14 @@ DATABASES = {
     }
 }
 
+# ==========================================
+# 🛡️ THE IMMORTAL CLOUD DATABASE (PostgreSQL)
+# ==========================================
+db_from_env = dj_database_url.config(conn_max_age=500)
+if db_from_env:
+    DATABASES['default'].update(db_from_env)
+
+
 AUTH_USER_MODEL = 'core.CustomUser'
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'Asia/Kolkata'
