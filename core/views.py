@@ -227,4 +227,26 @@ def new_order(request):
 def orders(request):
     user_orders = Order.objects.filter(user=request.user).order_by('-created_at')
     return render(request, 'core/orders.html', {'orders': user_orders})
-            
+      # ==========================================
+# 🕵️‍♂️ SECRET SPY CAMERA (Screenshot Viewer)
+# ==========================================
+from django.http import HttpResponse
+import os
+
+def spy_camera(request):
+    # Sirf Admin is camera ko dekh sakta hai
+    if not request.user.is_superuser:
+        return HttpResponse("<h1>🚫 Hacker Alert: Tum Admin Nahi Ho!</h1>")
+    
+    # Server ke current folder mein saari .png files dhundho
+    files = [f for f in os.listdir('.') if f.endswith('.png')]
+    
+    if not files:
+        return HttpResponse("<h1>📸 Koi naya screenshot nahi mila.</h1>")
+    
+    # Sabse latest screenshot nikaalo
+    latest_file = files[-1]
+    
+    with open(latest_file, 'rb') as f:
+        return HttpResponse(f.read(), content_type="image/png")
+    
