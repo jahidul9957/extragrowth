@@ -71,10 +71,9 @@ def services(request):
     return render(request, 'core/services.html', {'services': services_list})
 
 # ==========================================
-# 🤖 PLAYWRIGHT ENGINE (WITH SCREENSHOT CAMERA 📸)
+# 🤖 PLAYWRIGHT ENGINE (WITH AUTO-CLEANER & CAMERA 📸)
 # ==========================================
 def run_bot_task(order_id):
-    # 🛡️ DJANGO ASYNC SECURITY BYPASS 
     os.environ["DJANGO_ALLOW_ASYNC_UNSAFE"] = "true"
     
     order = Order.objects.get(id=order_id)
@@ -91,34 +90,48 @@ def run_bot_task(order_id):
             
             for bot in bots:
                 try:
-                    bot_cookies = json.loads(bot.cookies_json)
+                    raw_cookies = json.loads(bot.cookies_json)
+                    clean_cookies = []
+                    
+                    # 🧹 COOKIE AUTO-CLEANER (Hacker Trick!)
+                    for c in raw_cookies:
+                        # 1. Fix sameSite issue
+                        if c.get("sameSite") == "no_restriction":
+                            c["sameSite"] = "None"
+                        elif c.get("sameSite") not in ["Strict", "Lax", "None"]:
+                            c.pop("sameSite", None) # Remove invalid sameSite like null
+                        
+                        # 2. Fix corrupted domains
+                        if "googleusercontent.com" in c.get("domain", ""):
+                            c["domain"] = ".youtube.com"
+                            
+                        clean_cookies.append(c)
+
                     context = browser.new_context(
                         user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
                         locale='en-US'
                     )
                     
-                    context.add_cookies(bot_cookies)
+                    # Load the clean cookies!
+                    context.add_cookies(clean_cookies)
                     page = context.new_page()
                     
                     print(f"\n🚀 Bot [{bot.name}] is navigating to video: {target_link}")
                     page.goto(target_link, timeout=60000)
                     page.wait_for_load_state("networkidle")
-                    time.sleep(5) # Video page ko load hone ke liye thoda zyada time diya
+                    time.sleep(5) 
                     
                     print(f"👀 Page Title: {page.title()}")
                     
                     try:
-                        # 📸 STEP 1: Video page ka 'Universal' Subscribe Button (Naya Code)
+                        # 📸 STEP 1: Video page ka 'Universal' Subscribe Button
                         subscribe_button = page.locator("#subscribe-button-shape button, ytd-subscribe-button-renderer button").first
                         
                         if not subscribe_button.is_visible():
-                            # Agar button nahi dikha, toh Error screenshot le lo
                             ss_name = f"error_no_btn_{bot.name.replace(' ', '_')}.png"
                             page.screenshot(path=ss_name)
                             print(f"📸 DANGER: Button nahi mila! Screenshot saved as: {ss_name}")
-                            print(f"⚠️ Sayad koi Pop-up aa gaya hai ya link galat hai.")
                         else:
-                            # Button mil gaya, ab check karo uspe kya likha hai
                             btn_text = subscribe_button.inner_text().lower()
                             print(f"🔍 Button par likha hai: '{btn_text}'")
                             
@@ -144,17 +157,17 @@ def run_bot_task(order_id):
                     
                 except Exception as e:
                     print(f"❌ Bot [{bot.name}] Failed: {e}")
-                    bot.is_active = False 
-                    bot.save()
+                    # Pehle activate rehne dete hain testing ke liye
+                    # bot.is_active = False 
+                    # bot.save()
                     
-                time.sleep(4) # Anti-Ban Sleep
+                time.sleep(4) 
                 
             browser.close()
             
     except Exception as e:
         print(f"🚨 Playwright Engine Error: {e}")
         
-    # Agar target poora ho gaya, toh 'Completed', warna 'Processing' hi rahega
     order.status = 'Completed' if success_count >= order.quantity else 'Processing'
     order.save()
     print(f"🏁 Order Status Update: {order.status} (Delivered: {success_count}/{order.quantity})")
@@ -201,7 +214,6 @@ def new_order(request):
                     quantity=quantity, charge=charge, status='Pending'
                 )
                 
-                # Start Playwright Bot Engine in Background
                 threading.Thread(target=run_bot_task, args=(order.id,)).start()
                 messages.success(request, f"🎉 Order placed! Bots are checking the target...")
                 return redirect('orders')
@@ -215,4 +227,4 @@ def new_order(request):
 def orders(request):
     user_orders = Order.objects.filter(user=request.user).order_by('-created_at')
     return render(request, 'core/orders.html', {'orders': user_orders})
-                                     
+            
