@@ -1,7 +1,7 @@
 import threading
 import time
 import json
-import requests
+from playwright.sync_api import sync_playwright
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
 from django.contrib.auth.decorators import login_required
@@ -51,7 +51,7 @@ def logout_view(request):
     return redirect('login')
 
 # ==========================================
-# 🌟 BASIC PAGES (Dashboard & Services)
+# 🌟 BASIC PAGES
 # ==========================================
 def home(request):
     total_platform_users = CustomUser.objects.count() + 2500
@@ -70,63 +70,70 @@ def services(request):
     return render(request, 'core/services.html', {'services': services_list})
 
 # ==========================================
-# 🤖 ADVANCED AUTO-BOT WORKER (Cookie Based)
+# 🤖 PLAYWRIGHT INVISIBLE BROWSER ENGINE
 # ==========================================
 def run_bot_task(order_id):
-    # Yeh function background mein chalega bina user ko wait karaye
     order = Order.objects.get(id=order_id)
     bots = Bot.objects.filter(is_active=True, is_banned=False)[:order.quantity]
     
     order.status = 'Processing'
     order.save()
-    
     success_count = order.delivered_quantity
-    target_channel_link = order.link 
+    target_link = order.link 
     
-    for bot in bots:
-        try:
-            bot_cookies = json.loads(bot.cookies_json)
+    try:
+        with sync_playwright() as p:
+            # Headless browser (Render server ke background mein chalega)
+            browser = p.chromium.launch(headless=True)
             
-            headers = {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
-                'Referer': target_channel_link,
-            }
-            
-            # TODO: Yahan aapko apna Target Platform ka asli API URL daalna hoga
-            api_url = "https://example.com/api/v1/subscribe" 
-            
-            payload = {
-                "target_link": target_channel_link,
-            }
-            
-            session = requests.Session()
-            session.cookies.update(bot_cookies)
-            
-            # Action Execute 🚀
-            response = session.post(api_url, headers=headers, json=payload, timeout=10)
-            
-            if response.status_code == 200:
-                success_count += 1
-                order.delivered_quantity = success_count
-                order.save() # Live progress update hogi
-            else:
-                bot.is_active = False
-                bot.save()
+            for bot in bots:
+                try:
+                    bot_cookies = json.loads(bot.cookies_json)
+                    context = browser.new_context(
+                        user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+                    )
+                    
+                    context.add_cookies(bot_cookies)
+                    page = context.new_page()
+                    
+                    print(f"🚀 Bot {bot.name} is navigating to {target_link}...")
+                    page.goto(target_link, timeout=60000)
+                    page.wait_for_load_state("networkidle")
+                    time.sleep(3)
+                    
+                    # Target Subscribe Button (YouTube/Instagram)
+                    subscribe_button = page.get_by_role("button", name="Subscribe", exact=True)
+                    
+                    if subscribe_button.is_visible():
+                        subscribe_button.click()
+                        print(f"✅ Bot {bot.name}: Successfully Subscribed!")
+                        time.sleep(2)
+                        
+                        success_count += 1
+                        order.delivered_quantity = success_count
+                        order.save() 
+                    else:
+                        print(f"⚠️ Bot {bot.name}: Button not found or already Subscribed.")
+                        
+                    context.close()
+                    
+                except Exception as e:
+                    print(f"❌ Bot {bot.name} Failed: {e}")
+                    bot.is_active = False 
+                    bot.save()
+                    
+                time.sleep(4) # Anti-Ban Sleep
                 
-        except Exception as e:
-            print(f"Bot {bot.name} Failed: {e}")
-            bot.is_active = False
-            bot.save()
+            browser.close()
             
-        time.sleep(3) # Anti-ban sleep (3 seconds gap)
+    except Exception as e:
+        print(f"🚨 Playwright Engine Error: {e}")
         
     order.status = 'Completed' if success_count >= order.quantity else 'Processing'
     order.save()
 
 # ==========================================
-# 🚀 SMM CORE FEATURES (Wallet & Orders)
+# 🚀 SMM CORE FEATURES
 # ==========================================
 @login_required(login_url='/login/')
 def add_funds(request):
@@ -135,7 +142,7 @@ def add_funds(request):
         utr_number = request.POST.get('utr_number')
         if amount and utr_number:
             Payment.objects.create(user=request.user, amount=amount, utr_number=utr_number, status='Pending')
-            messages.success(request, f"₹{amount} payment request sent successfully! Wait for approval.")
+            messages.success(request, f"₹{amount} payment request sent successfully!")
         else:
             messages.error(request, "Please enter both Amount and UTR Number.")
     return render(request, 'core/add_funds.html')
@@ -149,31 +156,27 @@ def new_order(request):
         quantity = int(request.POST.get('quantity', 0))
         
         if service_id and link and quantity > 0:
-            # 1. Check Bot Stock
             available_bots = Bot.objects.filter(is_active=True, is_banned=False).count()
             if available_bots < quantity:
-                messages.error(request, f"⚠️ Low Bot Stock! Only {available_bots} bots available right now.")
+                messages.error(request, f"⚠️ Low Bot Stock! Only {available_bots} bots available.")
                 return redirect('new_order')
 
             service = Service.objects.get(id=service_id)
             charge = (service.price_per_1000 / 1000) * quantity
             
-            # 2. Check Balance
             if request.user.wallet_balance >= charge:
                 request.user.wallet_balance -= charge
                 request.user.total_spent += charge
                 request.user.save()
                 
-                # 3. Create Order
                 order = Order.objects.create(
                     user=request.user, service=service, link=link, 
                     quantity=quantity, charge=charge, status='Pending'
                 )
                 
-                # 4. Start Bot Automation in Background
+                # Start Playwright Bot Engine in Background
                 threading.Thread(target=run_bot_task, args=(order.id,)).start()
-                
-                messages.success(request, f"🎉 Order placed successfully! Bots are starting their work.")
+                messages.success(request, f"🎉 Order placed! The stealth bots have been deployed.")
                 return redirect('orders')
             else:
                 messages.error(request, "⚠️ Insufficient balance! Please add funds.")
@@ -185,4 +188,3 @@ def new_order(request):
 def orders(request):
     user_orders = Order.objects.filter(user=request.user).order_by('-created_at')
     return render(request, 'core/orders.html', {'orders': user_orders})
-        
