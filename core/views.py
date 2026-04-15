@@ -1,6 +1,7 @@
 import threading
 import time
 import json
+import os  # 👈 ASYNC BYPASS KE LIYE ZARURI
 from playwright.sync_api import sync_playwright
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
@@ -70,9 +71,12 @@ def services(request):
     return render(request, 'core/services.html', {'services': services_list})
 
 # ==========================================
-# 🤖 PLAYWRIGHT INVISIBLE BROWSER ENGINE (WITH X-RAY)
+# 🤖 PLAYWRIGHT INVISIBLE BROWSER ENGINE (WITH X-RAY & ASYNC BYPASS)
 # ==========================================
 def run_bot_task(order_id):
+    # 🛡️ DJANGO ASYNC SECURITY BYPASS (Hacker Trick)
+    os.environ["DJANGO_ALLOW_ASYNC_UNSAFE"] = "true"
+    
     order = Order.objects.get(id=order_id)
     bots = Bot.objects.filter(is_active=True, is_banned=False)[:order.quantity]
     
@@ -83,7 +87,7 @@ def run_bot_task(order_id):
     
     try:
         with sync_playwright() as p:
-            # Headless mode True rakhein render ke liye
+            # Headless browser background me chalega
             browser = p.chromium.launch(headless=True)
             
             for bot in bots:
@@ -91,7 +95,7 @@ def run_bot_task(order_id):
                     bot_cookies = json.loads(bot.cookies_json)
                     context = browser.new_context(
                         user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                        locale='en-US' # Bhasha ko English par set karne ki koshish
+                        locale='en-US'
                     )
                     
                     context.add_cookies(bot_cookies)
@@ -102,16 +106,13 @@ def run_bot_task(order_id):
                     page.wait_for_load_state("networkidle")
                     time.sleep(3)
                     
-                    # 🕵️‍♂️ X-RAY VISION: Console me print hoga page ka asli title
+                    # 🕵️‍♂️ X-RAY VISION (Logs me page ka naam aayega)
                     print(f"👀 Bot {bot.name} is looking at Page Title: {page.title()}")
                     
-                    # 🚀 SMART LOCATOR: YouTube ke naye UI ko pakadne ka tarika
+                    # 🚀 SMART LOCATOR (Bina fashe button click karega)
                     try:
-                        # 1. English button try karega
                         subscribe_button = page.locator("button:has-text('Subscribe')").first
-                        
                         if not subscribe_button.is_visible():
-                            # 2. Agar English nahi mila, toh generic id/class se dhundhega (Hindi wagera ke liye)
                             subscribe_button = page.locator("#subscribe-button-shape button").first
                             
                         if subscribe_button.is_visible():
@@ -119,7 +120,6 @@ def run_bot_task(order_id):
                             print(f"✅ Bot {bot.name}: Successfully Clicked Subscribe!")
                             time.sleep(2)
                             
-                            # Success count tabhi badhega jab click hoga
                             success_count += 1
                             order.delivered_quantity = success_count
                             order.save() 
@@ -143,7 +143,6 @@ def run_bot_task(order_id):
     except Exception as e:
         print(f"🚨 Playwright Engine Error: {e}")
         
-    # Check if target is met
     order.status = 'Completed' if success_count >= order.quantity else 'Processing'
     order.save()
 
@@ -203,3 +202,4 @@ def new_order(request):
 def orders(request):
     user_orders = Order.objects.filter(user=request.user).order_by('-created_at')
     return render(request, 'core/orders.html', {'orders': user_orders})
+    
