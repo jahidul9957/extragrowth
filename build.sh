@@ -1,16 +1,15 @@
 #!/usr/bin/env bash
+# exit on error
 set -o errexit
 
-# 1. Packages install karein
+# 1. Install all libraries from requirements.txt
 pip install -r requirements.txt
 
-# 2. Database tables banayein (Yahan 'core' likhna zaroori hai)
-python manage.py makemigrations core
+# 2. Collect Static Files (CSS, JS, Images)
+# Yeh aapke Glassmorphism design ko live karne ke liye zaruri hai
+python manage.py collectstatic --no-input
+
+# 3. Database Updates
+# Jab bhi models.py mein badlav karenge, yeh commands zaruri hain
 python manage.py makemigrations
 python manage.py migrate
-
-# 3. Admin account banayein
-export DJANGO_SUPERUSER_USERNAME=admin
-export DJANGO_SUPERUSER_PASSWORD=adminpass
-export DJANGO_SUPERUSER_EMAIL=admin@admin.com
-python manage.py createsuperuser --noinput || true
