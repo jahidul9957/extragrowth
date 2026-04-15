@@ -1,6 +1,7 @@
 import threading
 import time
 import json
+import requests
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
 from django.contrib.auth.decorators import login_required
@@ -50,7 +51,7 @@ def logout_view(request):
     return redirect('login')
 
 # ==========================================
-# 🌟 BASIC PAGES
+# 🌟 BASIC PAGES (Dashboard & Services)
 # ==========================================
 def home(request):
     total_platform_users = CustomUser.objects.count() + 2500
@@ -69,34 +70,63 @@ def services(request):
     return render(request, 'core/services.html', {'services': services_list})
 
 # ==========================================
-# 🤖 BACKGROUND BOT WORKER
+# 🤖 ADVANCED AUTO-BOT WORKER (Cookie Based)
 # ==========================================
 def run_bot_task(order_id):
+    # Yeh function background mein chalega bina user ko wait karaye
     order = Order.objects.get(id=order_id)
     bots = Bot.objects.filter(is_active=True, is_banned=False)[:order.quantity]
     
     order.status = 'Processing'
     order.save()
     
-    success_count = 0
+    success_count = order.delivered_quantity
+    target_channel_link = order.link 
+    
     for bot in bots:
         try:
-            # Yahan par real API hit ya Selenium logic aayega
-            time.sleep(2) # Fake process (2 seconds)
-            success_count += 1
+            bot_cookies = json.loads(bot.cookies_json)
             
-            # Progress bar update ke liye database save karein
-            order.delivered_quantity = success_count
-            order.save()
+            headers = {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'Referer': target_channel_link,
+            }
+            
+            # TODO: Yahan aapko apna Target Platform ka asli API URL daalna hoga
+            api_url = "https://example.com/api/v1/subscribe" 
+            
+            payload = {
+                "target_link": target_channel_link,
+            }
+            
+            session = requests.Session()
+            session.cookies.update(bot_cookies)
+            
+            # Action Execute 🚀
+            response = session.post(api_url, headers=headers, json=payload, timeout=10)
+            
+            if response.status_code == 200:
+                success_count += 1
+                order.delivered_quantity = success_count
+                order.save() # Live progress update hogi
+            else:
+                bot.is_active = False
+                bot.save()
+                
         except Exception as e:
+            print(f"Bot {bot.name} Failed: {e}")
             bot.is_active = False
             bot.save()
             
-    order.status = 'Completed' if success_count == order.quantity else 'Processing'
+        time.sleep(3) # Anti-ban sleep (3 seconds gap)
+        
+    order.status = 'Completed' if success_count >= order.quantity else 'Processing'
     order.save()
 
 # ==========================================
-# 🚀 SMM CORE FEATURES
+# 🚀 SMM CORE FEATURES (Wallet & Orders)
 # ==========================================
 @login_required(login_url='/login/')
 def add_funds(request):
@@ -119,7 +149,7 @@ def new_order(request):
         quantity = int(request.POST.get('quantity', 0))
         
         if service_id and link and quantity > 0:
-            # Bot Stock check
+            # 1. Check Bot Stock
             available_bots = Bot.objects.filter(is_active=True, is_banned=False).count()
             if available_bots < quantity:
                 messages.error(request, f"⚠️ Low Bot Stock! Only {available_bots} bots available right now.")
@@ -128,18 +158,19 @@ def new_order(request):
             service = Service.objects.get(id=service_id)
             charge = (service.price_per_1000 / 1000) * quantity
             
-            # Balance check
+            # 2. Check Balance
             if request.user.wallet_balance >= charge:
                 request.user.wallet_balance -= charge
                 request.user.total_spent += charge
                 request.user.save()
                 
+                # 3. Create Order
                 order = Order.objects.create(
                     user=request.user, service=service, link=link, 
                     quantity=quantity, charge=charge, status='Pending'
                 )
                 
-                # Start Auto-Bot in Background
+                # 4. Start Bot Automation in Background
                 threading.Thread(target=run_bot_task, args=(order.id,)).start()
                 
                 messages.success(request, f"🎉 Order placed successfully! Bots are starting their work.")
@@ -154,4 +185,4 @@ def new_order(request):
 def orders(request):
     user_orders = Order.objects.filter(user=request.user).order_by('-created_at')
     return render(request, 'core/orders.html', {'orders': user_orders})
-    
+        
