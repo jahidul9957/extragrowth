@@ -70,7 +70,7 @@ def services(request):
     return render(request, 'core/services.html', {'services': services_list})
 
 # ==========================================
-# 🤖 PLAYWRIGHT INVISIBLE BROWSER ENGINE
+# 🤖 PLAYWRIGHT INVISIBLE BROWSER ENGINE (WITH X-RAY)
 # ==========================================
 def run_bot_task(order_id):
     order = Order.objects.get(id=order_id)
@@ -83,13 +83,15 @@ def run_bot_task(order_id):
     
     try:
         with sync_playwright() as p:
+            # Headless mode True rakhein render ke liye
             browser = p.chromium.launch(headless=True)
             
             for bot in bots:
                 try:
                     bot_cookies = json.loads(bot.cookies_json)
                     context = browser.new_context(
-                        user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+                        user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                        locale='en-US' # Bhasha ko English par set karne ki koshish
                     )
                     
                     context.add_cookies(bot_cookies)
@@ -100,19 +102,32 @@ def run_bot_task(order_id):
                     page.wait_for_load_state("networkidle")
                     time.sleep(3)
                     
-                    # Target Subscribe Button (YouTube/Instagram)
-                    subscribe_button = page.get_by_role("button", name="Subscribe", exact=True)
+                    # 🕵️‍♂️ X-RAY VISION: Console me print hoga page ka asli title
+                    print(f"👀 Bot {bot.name} is looking at Page Title: {page.title()}")
                     
-                    if subscribe_button.is_visible():
-                        subscribe_button.click()
-                        print(f"✅ Bot {bot.name}: Successfully Subscribed!")
-                        time.sleep(2)
+                    # 🚀 SMART LOCATOR: YouTube ke naye UI ko pakadne ka tarika
+                    try:
+                        # 1. English button try karega
+                        subscribe_button = page.locator("button:has-text('Subscribe')").first
                         
-                        success_count += 1
-                        order.delivered_quantity = success_count
-                        order.save() 
-                    else:
-                        print(f"⚠️ Bot {bot.name}: Button not found or already Subscribed.")
+                        if not subscribe_button.is_visible():
+                            # 2. Agar English nahi mila, toh generic id/class se dhundhega (Hindi wagera ke liye)
+                            subscribe_button = page.locator("#subscribe-button-shape button").first
+                            
+                        if subscribe_button.is_visible():
+                            subscribe_button.click()
+                            print(f"✅ Bot {bot.name}: Successfully Clicked Subscribe!")
+                            time.sleep(2)
+                            
+                            # Success count tabhi badhega jab click hoga
+                            success_count += 1
+                            order.delivered_quantity = success_count
+                            order.save() 
+                        else:
+                            print(f"⚠️ Bot {bot.name}: Subscribe Button Dikhai Nahi Diya!")
+                            
+                    except Exception as btn_error:
+                        print(f"⚠️ Bot {bot.name} Button Error: {btn_error}")
                         
                     context.close()
                     
@@ -128,6 +143,7 @@ def run_bot_task(order_id):
     except Exception as e:
         print(f"🚨 Playwright Engine Error: {e}")
         
+    # Check if target is met
     order.status = 'Completed' if success_count >= order.quantity else 'Processing'
     order.save()
 
@@ -175,7 +191,7 @@ def new_order(request):
                 
                 # Start Playwright Bot Engine in Background
                 threading.Thread(target=run_bot_task, args=(order.id,)).start()
-                messages.success(request, f"🎉 Order placed! The stealth bots have been deployed.")
+                messages.success(request, f"🎉 Order placed! Bots are checking the target...")
                 return redirect('orders')
             else:
                 messages.error(request, "⚠️ Insufficient balance! Please add funds.")
