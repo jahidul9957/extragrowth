@@ -16,6 +16,8 @@ from .models import Payment, Service, Order, CustomUser, Bot
 # ==========================================
 def register_view(request):
     if request.user.is_authenticated:
+        if request.user.is_superuser:
+            return redirect('/admin/')
         return redirect('home')
         
     if request.method == 'POST':
@@ -33,6 +35,8 @@ def register_view(request):
 
 def login_view(request):
     if request.user.is_authenticated:
+        if request.user.is_superuser:
+            return redirect('/admin/')
         return redirect('home')
         
     if request.method == 'POST':
@@ -44,7 +48,6 @@ def login_view(request):
                 messages.error(request, "🚫 Your account has been banned by the Admin.")
             else:
                 auth_login(request, user)
-                # Agar Admin login kar raha hai toh seedha admin panel me bhejo
                 if user.is_superuser:
                     return redirect('/admin/')
                 else:
@@ -60,10 +63,12 @@ def logout_view(request):
     return redirect('login')
 
 # ==========================================
-# 🌟 BASIC PAGES (BOUNCER REMOVED 🔓)
+# 🌟 BASIC PAGES 
 # ==========================================
 def home(request):
-    # Ab Admin aaram se Home page dekh sakta hai!
+    if request.user.is_authenticated and request.user.is_superuser:
+        return redirect('/admin/')
+        
     total_platform_users = CustomUser.objects.count() + 2500
     total_platform_orders = Order.objects.count() + 15400
     context = {
@@ -76,11 +81,14 @@ def home(request):
     return render(request, 'core/home.html', context)
 
 def services(request):
+    if request.user.is_authenticated and request.user.is_superuser:
+        return redirect('/admin/')
+        
     services_list = Service.objects.all()
     return render(request, 'core/services.html', {'services': services_list})
 
 # ==========================================
-# 🤖 PLAYWRIGHT ENGINE (STEALTH + BULLETPROOF HUNTER 🎯)
+# 🤖 PLAYWRIGHT ENGINE (DOM SCANNER + FORCE CLICK 🔨)
 # ==========================================
 def run_bot_task(order_id):
     os.environ["DJANGO_ALLOW_ASYNC_UNSAFE"] = "true"
@@ -135,35 +143,36 @@ def run_bot_task(order_id):
                     print(f"👀 Page Title: {page.title()}")
                     
                     try:
-                        buttons = page.locator(
-                            "ytd-subscribe-button-renderer button, "
-                            "#subscribe-button-shape button, "
-                            "#subscribe-button button, "
-                            "button[aria-label*='Subscribe'], "
-                            "button[aria-label*='subscribe'], "
-                            "button[aria-label*='सदस्यता लें']"
-                        )
+                        # 🎯 THE DOM SCANNER
+                        # Ab hum IDs nahi dhoondhenge. Hum pure page ke saare "buttons" uthayenge.
+                        buttons = page.locator("button, yt-button-shape, div[role='button']")
                         
                         btn_found_and_clicked = False
                         
+                        # Saare buttons padho
                         for i in range(buttons.count()):
                             btn = buttons.nth(i)
                             if btn.is_visible():  
-                                btn_text = btn.inner_text().lower()
-                                print(f"🔍 Visible Button {i+1} par likha hai: '{btn_text}'")
+                                btn_text = btn.inner_text().lower().strip()
                                 
-                                if "subscribed" in btn_text or "सदस्यता ली" in btn_text or "सदस्य हैं" in btn_text:
-                                    print(f"✅ Bot [{bot.name}]: Pehle se hi Subscribed hai!")
-                                    success_count += 1
-                                    btn_found_and_clicked = True
-                                    break  
-                                else:
-                                    btn.click()
-                                    print(f"✅ Bot [{bot.name}]: Successfully Clicked Subscribe! 🎉")
-                                    time.sleep(2)
-                                    success_count += 1
-                                    btn_found_and_clicked = True
-                                    break  
+                                # Kya is button ke text mein 'subscribe' ya 'सदस्यता' likha hai?
+                                if "subscribe" in btn_text or "सदस्यता" in btn_text:
+                                    print(f"🔍 Button Found with Text: '{btn_text}'")
+                                    
+                                    # Check karo ki pehle se subscribed toh nahi?
+                                    if "subscribed" in btn_text or "सदस्यता ली" in btn_text or "सदस्य हैं" in btn_text:
+                                        print(f"✅ Bot [{bot.name}]: Pehle se hi Subscribed hai!")
+                                        success_count += 1
+                                        btn_found_and_clicked = True
+                                        break  
+                                    else:
+                                        # 🔨 HACKER HAMMER (Force=True) - Yeh kisi bhi shield ko tod dega!
+                                        btn.click(force=True)
+                                        print(f"✅ Bot [{bot.name}]: FORCE CLICK Successful! 🎉")
+                                        time.sleep(2)
+                                        success_count += 1
+                                        btn_found_and_clicked = True
+                                        break  
                         
                         if btn_found_and_clicked:
                             order.delivered_quantity = success_count
@@ -199,6 +208,9 @@ def run_bot_task(order_id):
 # ==========================================
 @login_required(login_url='/login/')
 def add_funds(request):
+    if request.user.is_superuser:
+        return redirect('/admin/')
+        
     if request.method == 'POST':
         amount = request.POST.get('amount')
         utr_number = request.POST.get('utr_number')
@@ -211,6 +223,9 @@ def add_funds(request):
 
 @login_required(login_url='/login/')
 def new_order(request):
+    if request.user.is_superuser:
+        return redirect('/admin/')
+        
     services_list = Service.objects.all()
     if request.method == 'POST':
         service_id = request.POST.get('service')
@@ -247,6 +262,9 @@ def new_order(request):
 
 @login_required(login_url='/login/')
 def orders(request):
+    if request.user.is_superuser:
+        return redirect('/admin/')
+        
     user_orders = Order.objects.filter(user=request.user).order_by('-created_at')
     return render(request, 'core/orders.html', {'orders': user_orders})
 
@@ -278,4 +296,4 @@ def spy_camera(request):
     latest_file = files[-1]
     with open(latest_file, 'rb') as f:
         return HttpResponse(f.read(), content_type="image/png")
-            
+                    
