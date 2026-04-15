@@ -3,7 +3,7 @@ import time
 import json
 import os  
 from playwright.sync_api import sync_playwright
-from playwright_stealth import stealth_sync  # 🥷 STEALTH MODE IMPORT
+from playwright_stealth import stealth_sync  
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
 from django.contrib.auth.decorators import login_required
@@ -12,12 +12,10 @@ from django.http import HttpResponse
 from .models import Payment, Service, Order, CustomUser, Bot
 
 # ==========================================
-# 🔐 USER AUTHENTICATION SYSTEM (WITH BOUNCER)
+# 🔐 USER AUTHENTICATION SYSTEM
 # ==========================================
 def register_view(request):
     if request.user.is_authenticated:
-        if request.user.is_superuser:
-            return redirect('/admin/')
         return redirect('home')
         
     if request.method == 'POST':
@@ -35,8 +33,6 @@ def register_view(request):
 
 def login_view(request):
     if request.user.is_authenticated:
-        if request.user.is_superuser:
-            return redirect('/admin/')
         return redirect('home')
         
     if request.method == 'POST':
@@ -48,6 +44,7 @@ def login_view(request):
                 messages.error(request, "🚫 Your account has been banned by the Admin.")
             else:
                 auth_login(request, user)
+                # Agar Admin login kar raha hai toh seedha admin panel me bhejo
                 if user.is_superuser:
                     return redirect('/admin/')
                 else:
@@ -63,12 +60,10 @@ def logout_view(request):
     return redirect('login')
 
 # ==========================================
-# 🌟 BASIC PAGES (WITH ADMIN BOUNCER)
+# 🌟 BASIC PAGES (BOUNCER REMOVED 🔓)
 # ==========================================
 def home(request):
-    if request.user.is_authenticated and request.user.is_superuser:
-        return redirect('/admin/')
-        
+    # Ab Admin aaram se Home page dekh sakta hai!
     total_platform_users = CustomUser.objects.count() + 2500
     total_platform_orders = Order.objects.count() + 15400
     context = {
@@ -81,9 +76,6 @@ def home(request):
     return render(request, 'core/home.html', context)
 
 def services(request):
-    if request.user.is_authenticated and request.user.is_superuser:
-        return redirect('/admin/')
-        
     services_list = Service.objects.all()
     return render(request, 'core/services.html', {'services': services_list})
 
@@ -103,7 +95,6 @@ def run_bot_task(order_id):
     
     try:
         with sync_playwright() as p:
-            # 🥷 STEALTH MODE
             browser = p.chromium.launch(
                 headless=True,
                 args=["--disable-blink-features=AutomationControlled"]
@@ -114,14 +105,12 @@ def run_bot_task(order_id):
                     raw_cookies = json.loads(bot.cookies_json)
                     clean_cookies = []
                     
-                    # 🧹 SMART COOKIE CLEANER
                     for c in raw_cookies:
                         if c.get("sameSite") == "no_restriction":
                             c["sameSite"] = "None"
                         elif c.get("sameSite") not in ["Strict", "Lax", "None"]:
                             c.pop("sameSite", None)
                             
-                        # Domain Fixer for YouTube
                         if "youtube" in c.get("domain", "") or "googleusercontent" in c.get("domain", ""):
                             c["domain"] = ".youtube.com"
                             
@@ -136,7 +125,7 @@ def run_bot_task(order_id):
                     context.add_cookies(clean_cookies)
                     
                     page = context.new_page()
-                    stealth_sync(page) # 🥷 Magic Wand
+                    stealth_sync(page) 
                     
                     print(f"\n🚀 Bot [{bot.name}] is navigating to: {target_link}")
                     page.goto(target_link, timeout=60000)
@@ -146,7 +135,6 @@ def run_bot_task(order_id):
                     print(f"👀 Page Title: {page.title()}")
                     
                     try:
-                        # 🎯 THE BULLETPROOF VISIBLE BUTTON HUNTER
                         buttons = page.locator(
                             "ytd-subscribe-button-renderer button, "
                             "#subscribe-button-shape button, "
@@ -207,13 +195,10 @@ def run_bot_task(order_id):
     print(f"🏁 Order Status Update: {order.status} (Delivered: {success_count}/{order.quantity})")
 
 # ==========================================
-# 🚀 SMM CORE FEATURES (WITH ADMIN BOUNCER)
+# 🚀 SMM CORE FEATURES
 # ==========================================
 @login_required(login_url='/login/')
 def add_funds(request):
-    if request.user.is_superuser:
-        return redirect('/admin/')
-        
     if request.method == 'POST':
         amount = request.POST.get('amount')
         utr_number = request.POST.get('utr_number')
@@ -226,9 +211,6 @@ def add_funds(request):
 
 @login_required(login_url='/login/')
 def new_order(request):
-    if request.user.is_superuser:
-        return redirect('/admin/')
-        
     services_list = Service.objects.all()
     if request.method == 'POST':
         service_id = request.POST.get('service')
@@ -265,9 +247,6 @@ def new_order(request):
 
 @login_required(login_url='/login/')
 def orders(request):
-    if request.user.is_superuser:
-        return redirect('/admin/')
-        
     user_orders = Order.objects.filter(user=request.user).order_by('-created_at')
     return render(request, 'core/orders.html', {'orders': user_orders})
 
@@ -299,4 +278,4 @@ def spy_camera(request):
     latest_file = files[-1]
     with open(latest_file, 'rb') as f:
         return HttpResponse(f.read(), content_type="image/png")
-        
+            
