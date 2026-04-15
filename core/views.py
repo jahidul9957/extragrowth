@@ -73,7 +73,7 @@ def services(request):
     return render(request, 'core/services.html', {'services': services_list})
 
 # ==========================================
-# 🤖 PLAYWRIGHT ENGINE (ULTIMATE STEALTH 🥷 + CAMERA 📸)
+# 🤖 PLAYWRIGHT ENGINE (ULTIMATE STEALTH + BUTTON HUNTER 🎯)
 # ==========================================
 def run_bot_task(order_id):
     # 🛡️ DJANGO ASYNC SECURITY BYPASS 
@@ -89,7 +89,7 @@ def run_bot_task(order_id):
     
     try:
         with sync_playwright() as p:
-            # 🥷 STEALTH MODE: Google Captcha Bypass Args
+            # 🥷 STEALTH MODE: Google Captcha Bypass
             browser = p.chromium.launch(
                 headless=True,
                 args=["--disable-blink-features=AutomationControlled"]
@@ -124,10 +124,10 @@ def run_bot_task(order_id):
                     context.add_cookies(clean_cookies)
                     page = context.new_page()
                     
-                    # 🥷 THE ULTIMATE STEALTH MAGIC WAND (Google ko andha karne ke liye)
+                    # 🥷 THE ULTIMATE STEALTH MAGIC WAND
                     stealth_sync(page)
                     
-                    print(f"\n🚀 Bot [{bot.name}] (Ultimate Stealth) is navigating to: {target_link}")
+                    print(f"\n🚀 Bot [{bot.name}] (Stealth Mode) is navigating to: {target_link}")
                     page.goto(target_link, timeout=60000)
                     page.wait_for_load_state("networkidle")
                     time.sleep(5) 
@@ -135,28 +135,37 @@ def run_bot_task(order_id):
                     print(f"👀 Page Title: {page.title()}")
                     
                     try:
-                        # 📸 Universal Subscribe Button
-                        subscribe_button = page.locator("#subscribe-button-shape button, ytd-subscribe-button-renderer button").first
+                        # 🎯 THE VISIBLE BUTTON HUNTER LOOP (For Video & Channel pages)
+                        buttons = page.locator("ytd-subscribe-button-renderer button, #subscribe-button-shape button, #subscribe-button button")
                         
-                        if not subscribe_button.is_visible():
-                            ss_name = f"error_no_btn_{bot.name.replace(' ', '_')}.png"
-                            page.screenshot(path=ss_name)
-                            print(f"📸 DANGER: Button nahi mila! Screenshot saved as: {ss_name}")
-                        else:
-                            btn_text = subscribe_button.inner_text().lower()
-                            print(f"🔍 Button par likha hai: '{btn_text}'")
-                            
-                            if "subscribed" in btn_text or "सदस्यता ली" in btn_text or "सदस्य हैं" in btn_text:
-                                print(f"✅ Bot [{bot.name}]: Pehle se hi Subscribed hai!")
-                                success_count += 1
-                            else:
-                                subscribe_button.click()
-                                print(f"✅ Bot [{bot.name}]: Successfully Clicked Subscribe! 🎉")
-                                time.sleep(2)
-                                success_count += 1
+                        btn_found_and_clicked = False
+                        
+                        for i in range(buttons.count()):
+                            btn = buttons.nth(i)
+                            if btn.is_visible():  # Sirf usi ko dekho jo screen par sach me hai
+                                btn_text = btn.inner_text().lower()
+                                print(f"🔍 Visible Button {i+1} par likha hai: '{btn_text}'")
                                 
+                                if "subscribed" in btn_text or "सदस्यता ली" in btn_text or "सदस्य हैं" in btn_text:
+                                    print(f"✅ Bot [{bot.name}]: Pehle se hi Subscribed hai!")
+                                    success_count += 1
+                                    btn_found_and_clicked = True
+                                    break  
+                                else:
+                                    btn.click()
+                                    print(f"✅ Bot [{bot.name}]: Successfully Clicked Subscribe on Channel/Video! 🎉")
+                                    time.sleep(2)
+                                    success_count += 1
+                                    btn_found_and_clicked = True
+                                    break  
+                        
+                        if btn_found_and_clicked:
                             order.delivered_quantity = success_count
                             order.save() 
+                        else:
+                            ss_name = f"error_no_btn_{bot.name.replace(' ', '_')}.png"
+                            page.screenshot(path=ss_name)
+                            print(f"📸 DANGER: Visible Subscribe Button nahi mila! Screenshot saved as: {ss_name}")
                             
                     except Exception as btn_error:
                         ss_name = f"error_crash_{bot.name.replace(' ', '_')}.png"
