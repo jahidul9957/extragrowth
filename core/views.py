@@ -83,7 +83,6 @@ def run_bot_task(order_id):
     
     try:
         with sync_playwright() as p:
-            # Headless browser (Render server ke background mein chalega)
             browser = p.chromium.launch(headless=True)
             
             for bot in bots:
