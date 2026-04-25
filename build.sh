@@ -11,9 +11,10 @@ playwright install chromium
 # 🎨 3. Collect Static Files
 python manage.py collectstatic --no-input
 
-# 🚀 4. SMART MIGRATIONS (Yeh existing tables ko bypass kar dega)
+# 🚀 4. THE BULLETPROOF MIGRATIONS (Force Core First)
+python manage.py makemigrations core
 python manage.py makemigrations
-python manage.py migrate --fake-initial
+python manage.py migrate
 
 # 👑 5. DIRECT ADMIN CREATION
 export DJANGO_SUPERUSER_USERNAME="admin"
