@@ -1,312 +1,247 @@
-import threading
-import time
+import hmac
+import hashlib
 import json
-import os  
-from playwright.sync_api import sync_playwright
-from playwright_stealth import stealth_sync  
-from django.shortcuts import render, redirect
-from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
+from urllib.parse import parse_qsl
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth import login as auth_login, logout, authenticate
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.http import HttpResponse
-from .models import Payment, Service, Order, CustomUser, Bot
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.utils import timezone
+from django.db.models import Sum
+
+from .models import CustomUser, Service, Order, Payment, Bot
 
 # ==========================================
-# 🔐 USER AUTHENTICATION SYSTEM (WITH BOUNCER)
+# 🚀 1. TELEGRAM SILENT AUTH ENGINE
 # ==========================================
-def register_view(request):
-    if request.user.is_authenticated:
-        if request.user.is_superuser:
-            return redirect('/admin/')
-        return redirect('home')
-        
-    if request.method == 'POST':
-        u = request.POST.get('username')
-        e = request.POST.get('email')
-        p = request.POST.get('password')
-        if CustomUser.objects.filter(username=u).exists():
-            messages.error(request, "⚠️ Username already taken! Choose another.")
-        else:
-            user = CustomUser.objects.create_user(username=u, email=e, password=p)
-            user.save()
-            messages.success(request, "🎉 Account created successfully! Please login.")
-            return redirect('login')
-    return render(request, 'core/register.html')
+TELEGRAM_BOT_TOKEN = "YOUR_BOT_TOKEN_HERE" # Apna Bot Token yahan zaroor daalein
 
-def login_view(request):
-    if request.user.is_authenticated:
-        if request.user.is_superuser:
-            return redirect('/admin/')
-        return redirect('home')
-        
-    if request.method == 'POST':
-        u = request.POST.get('username')
-        p = request.POST.get('password')
-        user = authenticate(request, username=u, password=p)
-        if user is not None:
-            if user.is_banned:
-                messages.error(request, "🚫 Your account has been banned by the Admin.")
-            else:
-                auth_login(request, user)
-                if user.is_superuser:
-                    return redirect('/admin/')
-                else:
-                    messages.success(request, f"Welcome back, {u}! 🚀")
-                    return redirect('home')
-        else:
-            messages.error(request, "⚠️ Invalid username or password.")
-    return render(request, 'core/login.html')
-
-def logout_view(request):
-    auth_logout(request)
-    messages.info(request, "👋 You have been logged out successfully.")
-    return redirect('login')
-
-# ==========================================
-# 🌟 BASIC PAGES (WITH ADMIN BOUNCER)
-# ==========================================
-def home(request):
-    if request.user.is_authenticated and request.user.is_superuser:
-        return redirect('/admin/')
-        
-    total_platform_users = CustomUser.objects.count() + 2500
-    total_platform_orders = Order.objects.count() + 15400
-    context = {
-        'total_platform_users': total_platform_users,
-        'total_platform_orders': total_platform_orders,
-    }
-    if request.user.is_authenticated:
-        context['user_orders_count'] = Order.objects.filter(user=request.user).count()
-        context['user_pending_orders'] = Order.objects.filter(user=request.user, status='Pending').count()
-    return render(request, 'core/home.html', context)
-
-def services(request):
-    if request.user.is_authenticated and request.user.is_superuser:
-        return redirect('/admin/')
-        
-    services_list = Service.objects.all()
-    return render(request, 'core/services.html', {'services': services_list})
-
-# ==========================================
-# 🤖 PLAYWRIGHT ENGINE (STEALTH + JS INJECTION 💉)
-# ==========================================
-def run_bot_task(order_id):
-    os.environ["DJANGO_ALLOW_ASYNC_UNSAFE"] = "true"
-    
-    order = Order.objects.get(id=order_id)
-    bots = Bot.objects.filter(is_active=True, is_banned=False)[:order.quantity]
-    
-    order.status = 'Processing'
-    order.save()
-    success_count = order.delivered_quantity
-    target_link = order.link 
-    
+def verify_telegram_data(init_data):
     try:
-        with sync_playwright() as p:
-            # 🥷 STEALTH MODE
-            browser = p.chromium.launch(
-                headless=True,
-                args=["--disable-blink-features=AutomationControlled"]
+        parsed_data = dict(parse_qsl(init_data))
+        hash_val = parsed_data.pop('hash', None)
+        if not hash_val: return False, None, None
+            
+        data_check_string = '\n'.join([f"{k}={v}" for k, v in sorted(parsed_data.items())])
+        secret_key = hmac.new(b"WebAppData", TELEGRAM_BOT_TOKEN.encode(), hashlib.sha256).digest()
+        calc_hash = hmac.new(secret_key, data_check_string.encode(), hashlib.sha256).hexdigest()
+        
+        if calc_hash == hash_val:
+            user_data = json.loads(parsed_data.get('user', '{}'))
+            start_param = parsed_data.get('start_param', None) 
+            return True, user_data, start_param
+    except Exception as e:
+        print(f"Auth Error: {e}")
+    return False, None, None
+
+@csrf_exempt
+def telegram_auth_api(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            init_data = data.get('initData')
+            is_valid, tg_user, start_param = verify_telegram_data(init_data)
+            
+            if not is_valid or not tg_user:
+                return JsonResponse({'status': 'error', 'message': 'Invalid Signature!'}, status=403)
+                
+            tg_id = tg_user.get('id')
+            tg_username = tg_user.get('username', f"user_{tg_id}")
+            
+            user, created = CustomUser.objects.get_or_create(
+                telegram_id=tg_id,
+                defaults={'username': tg_username, 'telegram_username': tg_username}
             )
             
-            for bot in bots:
-                try:
-                    raw_cookies = json.loads(bot.cookies_json)
-                    clean_cookies = []
-                    
-                    # 🧹 SMART COOKIE CLEANER
-                    for c in raw_cookies:
-                        if c.get("sameSite") == "no_restriction":
-                            c["sameSite"] = "None"
-                        elif c.get("sameSite") not in ["Strict", "Lax", "None"]:
-                            c.pop("sameSite", None)
-                            
-                        # Domain Fixer for YouTube
-                        if "youtube" in c.get("domain", "") or "googleusercontent" in c.get("domain", ""):
-                            c["domain"] = ".youtube.com" # Updated to native domain format
-                            
-                        clean_cookies.append(c)
+            # Apply Invite Logic
+            if created and start_param and start_param.startswith('invite_'):
+                invite_code = start_param.replace('invite_', '')
+                inviter = CustomUser.objects.filter(invite_code=invite_code).first()
+                if inviter:
+                    user.invited_by = inviter
+                    user.save()
 
-                    context = browser.new_context(
-                        user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                        locale='en-US'
-                    )
-                    
-                    context.add_init_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
-                    context.add_cookies(clean_cookies)
-                    
-                    page = context.new_page()
-                    stealth_sync(page) # 🥷 Magic Wand
-                    
-                    print(f"\n🚀 Bot [{bot.name}] is navigating to: {target_link}")
-                    page.goto(target_link, timeout=60000)
-                    page.wait_for_load_state("networkidle")
-                    time.sleep(5) 
-                    
-                    print(f"👀 Page Title: {page.title()}")
-                    
-                    try:
-                        # 💉 THE JAVASCRIPT INJECTION METHOD (Bypass Fake Wrappers)
-                        js_code = """
-                        () => {
-                            const buttons = document.querySelectorAll('ytd-subscribe-button-renderer, yt-button-shape, button, div[role="button"]');
-                            for(let b of buttons) {
-                                let text = (b.innerText || "").toLowerCase().trim();
-                                
-                                if(text.includes('subscribed') || text.includes('सदस्यता ली') || text.includes('सदस्य हैं')) {
-                                    return "ALREADY_SUBSCRIBED";
-                                }
-                                
-                                if(text === 'subscribe' || text.includes('सदस्यता लें') || text.includes('subscribe')) {
-                                    b.click();
-                                    return "CLICKED";
-                                }
-                            }
-                            return "NOT_FOUND";
-                        }
-                        """
-                        
-                        result = page.evaluate(js_code)
-                        print(f"🧠 JS Engine Result: {result}")
-                        
-                        if result == "ALREADY_SUBSCRIBED":
-                            print(f"✅ Bot [{bot.name}]: Pehle se hi Subscribed hai!")
-                            success_count += 1
-                            order.delivered_quantity = success_count
-                            order.save()
-                        elif result == "CLICKED":
-                            print(f"✅ Bot [{bot.name}]: JS INJECTION Click Successful! 🎉")
-                            time.sleep(2)
-                            success_count += 1
-                            order.delivered_quantity = success_count
-                            order.save()
-                        else:
-                            ss_name = f"error_no_btn_{bot.name.replace(' ', '_')}.png"
-                            page.screenshot(path=ss_name)
-                            print(f"📸 DANGER: JS Injection ko bhi button nahi mila! Screenshot saved as: {ss_name}")
-                            
-                    except Exception as btn_error:
-                        ss_name = f"error_crash_{bot.name.replace(' ', '_')}.png"
-                        page.screenshot(path=ss_name)
-                        print(f"📸 CRASH: Screenshot saved! Error: {btn_error}")
-                        
-                    context.close()
-                    
-                except Exception as e:
-                    print(f"❌ Bot [{bot.name}] Failed: {e}")
-                    
-                time.sleep(4) 
+            if user.is_banned:
+                return JsonResponse({'status': 'error', 'message': 'Account banned.'}, status=403)
                 
-            browser.close()
+            auth_login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+            return JsonResponse({'status': 'success', 'redirect_url': '/'})
             
-    except Exception as e:
-        print(f"🚨 Playwright Engine Error: {e}")
-        
-    order.status = 'Completed' if success_count >= order.quantity else 'Processing'
-    order.save()
-    print(f"🏁 Order Status Update: {order.status} (Delivered: {success_count}/{order.quantity})")
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+    return JsonResponse({'status': 'error', 'message': 'POST only'})
 
 # ==========================================
-# 🚀 SMM CORE FEATURES (WITH ADMIN BOUNCER)
+# 📱 2. FRONTEND VIEWS (Customer App)
 # ==========================================
 @login_required(login_url='/login/')
-def add_funds(request):
-    if request.user.is_superuser:
-        return redirect('/admin/')
-        
-    if request.method == 'POST':
-        amount = request.POST.get('amount')
-        utr_number = request.POST.get('utr_number')
-        if amount and utr_number:
-            Payment.objects.create(user=request.user, amount=amount, utr_number=utr_number, status='Pending')
-            messages.success(request, f"₹{amount} payment request sent successfully!")
-        else:
-            messages.error(request, "Please enter both Amount and UTR Number.")
-    return render(request, 'core/add_funds.html')
+def home_view(request):
+    return render(request, 'core/home.html')
 
 @login_required(login_url='/login/')
-def new_order(request):
-    if request.user.is_superuser:
-        return redirect('/admin/')
-        
-    services_list = Service.objects.all()
+def services_view(request):
+    services = Service.objects.filter(is_active=True).order_by('-id')
+    return render(request, 'core/services.html', {'services': services})
+
+@login_required(login_url='/login/')
+def new_order_view(request):
     if request.method == 'POST':
         service_id = request.POST.get('service')
         link = request.POST.get('link')
-        quantity = int(request.POST.get('quantity', 0))
+        quantity = int(request.POST.get('quantity'))
         
-        if service_id and link and quantity > 0:
-            available_bots = Bot.objects.filter(is_active=True, is_banned=False).count()
-            if available_bots < quantity:
-                messages.error(request, f"⚠️ Low Bot Stock! Only {available_bots} bots available.")
-                return redirect('new_order')
-
-            service = Service.objects.get(id=service_id)
-            charge = (service.price_per_1000 / 1000) * quantity
+        service = get_object_or_404(Service, id=service_id)
+        charge = (service.price_per_1000 / 1000) * quantity
+        
+        if request.user.wallet_balance >= charge:
+            # Deduct balance
+            request.user.wallet_balance -= charge
+            request.user.total_spent += charge
+            request.user.save()
             
-            if request.user.wallet_balance >= charge:
-                request.user.wallet_balance -= charge
-                request.user.total_spent += charge
-                request.user.save()
-                
-                order = Order.objects.create(
-                    user=request.user, service=service, link=link, 
-                    quantity=quantity, charge=charge, status='Pending'
-                )
-                
-                threading.Thread(target=run_bot_task, args=(order.id,)).start()
-                messages.success(request, f"🎉 Order placed! Bots are checking the target...")
-                return redirect('orders')
-            else:
-                messages.error(request, "⚠️ Insufficient balance! Please add funds.")
+            # 💎 DIAMOND REWARD SYSTEM (Give diamonds to Inviter)
+            if request.user.invited_by:
+                earned_diamonds = int(charge * 5) # Formula: ₹1 = 5 Diamonds
+                inviter = request.user.invited_by
+                inviter.diamonds += earned_diamonds
+                inviter.save()
+            
+            Order.objects.create(user=request.user, service=service, link=link, quantity=quantity, charge=charge)
+            messages.success(request, f"🎉 Order placed successfully! ₹{charge} deducted.")
+            return redirect('orders')
         else:
-            messages.error(request, "⚠️ Please fill details correctly.")
-    return render(request, 'core/new_order.html', {'services': services_list})
+            messages.error(request, "⚠️ Insufficient balance! Please add funds.")
+            return redirect('add_funds')
+            
+    services = Service.objects.filter(is_active=True)
+    return render(request, 'core/new_order.html', {'services': services})
 
 @login_required(login_url='/login/')
-def orders(request):
-    if request.user.is_superuser:
-        return redirect('/admin/')
-        
-    user_orders = Order.objects.filter(user=request.user).order_by('-created_at')
-    return render(request, 'core/orders.html', {'orders': user_orders})
+def orders_view(request):
+    orders = Order.objects.filter(user=request.user).order_by('-created_at')
+    return render(request, 'core/orders.html', {'orders': orders})
 
-# ==========================================
-# 🕵️‍♂️ GOD MODE & SPY CAMERA
-# ==========================================
-def login_as_user(request, user_id):
-    if not request.user.is_superuser:
-        messages.error(request, "🚫 Hacker Alert: Tum Admin Nahi Ho!")
-        return redirect('home')
+@login_required(login_url='/login/')
+def add_funds_view(request):
+    if request.method == 'POST':
+        amount = request.POST.get('amount')
+        utr_number = request.POST.get('utr_number')
         
-    try:
-        target_user = CustomUser.objects.get(id=user_id)
-        auth_login(request, target_user, backend='django.contrib.auth.backends.ModelBackend')
-        messages.success(request, f"🕵️‍♂️ God Mode: You are now logged in as '{target_user.username}'")
-        return redirect('home')
-        
-    except CustomUser.DoesNotExist:
-        return HttpResponse("<h1>❌ User nahi mila!</h1>")
+        if Payment.objects.filter(utr_number=utr_number).exists():
+            messages.error(request, "❌ This UTR number has already been used.")
+        else:
+            Payment.objects.create(user=request.user, amount=amount, utr_number=utr_number)
+            messages.success(request, "✅ Payment request submitted! Admin will verify it shortly.")
+        return redirect('add_funds')
+    return render(request, 'core/add_funds.html')
 
-def spy_camera(request):
-    if not request.user.is_superuser:
-        return HttpResponse("<h1>🚫 Hacker Alert: Tum Admin Nahi Ho!</h1>")
-    
-    files = [f for f in os.listdir('.') if f.endswith('.png')]
-    if not files:
-        return HttpResponse("<h1>📸 Koi naya screenshot nahi mila.</h1>")
-    
-    latest_file = files[-1]
-    with open(latest_file, 'rb') as f:
-        return HttpResponse(f.read(), content_type="image/png")
-            
 @login_required(login_url='/login/')
 def account_view(request):
-    if request.user.is_superuser:
-        return redirect('/admin/')
-    
-    # User ke total orders count karne ke liye
     user_orders_count = Order.objects.filter(user=request.user).count()
-    
     return render(request, 'core/account.html', {'user_orders_count': user_orders_count})
-                                             
+
+@login_required(login_url='/login/')
+def team_and_rewards(request):
+    invited_friends = request.user.referrals.all().order_by('-date_joined')
+    total_invites = invited_friends.count()
+    active_invites = invited_friends.filter(total_spent__gt=0).count()
+    
+    # Tier Level System
+    if total_invites >= 50:
+        tier_name, tier_icon, tier_color = "Gold", "🥇", "text-yellow-500"
+    elif total_invites >= 10:
+        tier_name, tier_icon, tier_color = "Silver", "🥈", "text-slate-400"
+    else:
+        tier_name, tier_icon, tier_color = "Bronze", "🥉", "text-orange-500"
+
+    if request.method == 'POST' and request.POST.get('action') == 'redeem':
+        if request.user.diamonds >= 50:
+            rs_to_add = request.user.diamonds / 50
+            request.user.wallet_balance += rs_to_add
+            request.user.diamonds = 0
+            request.user.save()
+            messages.success(request, f"🎉 Success! ₹{rs_to_add} added to your wallet.")
+        else:
+            messages.error(request, "⚠️ Minimum 50 Diamonds required to redeem!")
+        return redirect('team_rewards')
+
+    context = {
+        'invited_friends': invited_friends, 'total_invites': total_invites,
+        'active_invites': active_invites, 'tier_name': tier_name,
+        'tier_icon': tier_icon, 'tier_color': tier_color,
+    }
+    return render(request, 'core/team.html', context)
+
+
+# ==========================================
+# 👑 3. SUPER ADMIN VIEWS
+# ==========================================
+@login_required(login_url='/login/')
+def custom_admin_dashboard(request):
+    if not request.user.is_superuser: return redirect('home')
+    
+    context = {
+        'total_users': CustomUser.objects.count(),
+        'active_bots': Bot.objects.filter(is_active=True).count(),
+        'orders_today': Order.objects.filter(created_at__date=timezone.now().date()).count(),
+        'total_revenue': Order.objects.filter(status='Completed').aggregate(total=Sum('charge'))['total'] or 0.00,
+        'recent_orders': Order.objects.all().order_by('-created_at')[:5],
+    }
+    return render(request, 'core/admin_dashboard.html', context)
+
+@login_required(login_url='/login/')
+def admin_users_view(request):
+    if not request.user.is_superuser: return redirect('home')
+    platform_users = CustomUser.objects.all().order_by('-date_joined')
+    return render(request, 'core/admin_users.html', {'platform_users': platform_users})
+
+@login_required(login_url='/login/')
+def admin_services_view(request):
+    if not request.user.is_superuser: return redirect('home')
+    platform_services = Service.objects.all().order_by('-id')
+    return render(request, 'core/admin_services.html', {'platform_services': platform_services})
+
+@login_required(login_url='/login/')
+def admin_payments_view(request):
+    if not request.user.is_superuser: return redirect('home')
+    context = {
+        'platform_payments': Payment.objects.all().order_by('-created_at'),
+        'pending_count': Payment.objects.filter(status='Pending').count(),
+    }
+    return render(request, 'core/admin_payments.html', context)
+
+@login_required(login_url='/login/')
+def admin_bots_view(request):
+    if not request.user.is_superuser: return redirect('home')
+    context = {
+        'platform_bots': Bot.objects.all().order_by('-id'),
+        'active_bots_count': Bot.objects.filter(is_active=True, is_banned=False).count(),
+    }
+    return render(request, 'core/admin_bots.html', context)
+
+@login_required(login_url='/login/')
+def login_as_user(request, user_id):
+    if not request.user.is_superuser: return redirect('home')
+    target_user = get_object_or_404(CustomUser, id=user_id)
+    auth_login(request, target_user, backend='django.contrib.auth.backends.ModelBackend')
+    return redirect('home')
+
+# ==========================================
+# 🔐 4. NORMAL WEB AUTH (Fallback)
+# ==========================================
+def login_view(request):
+    if request.user.is_authenticated: return redirect('home')
+    # ... (Your standard login logic here) ...
+    return render(request, 'core/login.html')
+
+def register_view(request):
+    if request.user.is_authenticated: return redirect('home')
+    # ... (Your standard register logic here) ...
+    return render(request, 'core/register.html')
+
+def logout_view(request):
+    logout(request)
+    return redirect('login')
+            
