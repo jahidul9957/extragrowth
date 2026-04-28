@@ -1,65 +1,82 @@
-{% extends 'core/base.html' %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - NextGen SMM</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-{% block content %}
-<style>
-    .glass-box {
-        background: rgba(255, 255, 255, 0.05);
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-        border: 1px solid rgba(0, 255, 204, 0.2);
-        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-    }
-    .neon-input {
-        background: rgba(0,0,0,0.3) !important;
-        border: 1px solid rgba(255,255,255,0.1) !important;
-        color: #00ffcc !important;
-    }
-    .neon-input:focus {
-        border-color: #00ffcc !important;
-        box-shadow: 0 0 10px rgba(0, 255, 204, 0.5) !important;
-        outline: none;
-    }
-</style>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .font-poppins { font-family: 'Poppins', sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-50 antialiased min-h-screen flex flex-col justify-center relative overflow-hidden">
 
-<div class="flex justify-center items-center min-h-[75vh] pt-10 pb-10">
-    <div class="glass-box rounded-3xl p-8 max-w-md w-full relative overflow-hidden z-10">
-        
-        <div class="absolute -top-10 -right-10 w-32 h-32 bg-blue-500 rounded-full mix-blend-screen filter blur-3xl opacity-30"></div>
-        
-        <div class="text-center mb-6 z-10 relative">
-            <h2 class="text-3xl font-extrabold text-white">Welcome <span class="text-[#00ffcc]">Back!</span> 🚀</h2>
-            <p class="text-gray-400 text-sm mt-1">Login to access your SMM dashboard</p>
-        </div>
-
-        {% if messages %}
-            {% for message in messages %}
-                <div class="bg-black/50 border {% if 'success' in message.tags %}border-green-500 text-green-400{% else %}border-red-500 text-red-400{% endif %} rounded-xl p-3 mb-4 text-sm text-center font-semibold z-10 relative">
-                    {{ message }}
-                </div>
-            {% endfor %}
-        {% endif %}
-
-        <form method="POST" class="space-y-5 z-10 relative">
-            {% csrf_token %}
-            <div>
-                <label class="text-gray-300 text-sm font-semibold ml-1">Username</label>
-                <input type="text" name="username" required placeholder="Enter your username" class="neon-input w-full mt-1 p-3 rounded-xl transition-all">
-            </div>
-
-            <div>
-                <label class="text-gray-300 text-sm font-semibold ml-1">Password</label>
-                <input type="password" name="password" required placeholder="••••••••" class="neon-input w-full mt-1 p-3 rounded-xl transition-all">
-            </div>
-
-            <button type="submit" class="w-full py-3 mt-4 bg-gradient-to-r from-[#00d2ff] to-[#3a7bd5] text-white font-bold rounded-xl hover:scale-105 transition-transform shadow-[0_0_15px_rgba(0,210,255,0.4)]">
-                Login
-            </button>
-        </form>
-
-        <p class="text-center text-gray-400 text-sm mt-6 z-10 relative">
-            Don't have an account? <a href="{% url 'register' %}" class="text-[#00ffcc] hover:underline font-bold">Sign up here</a>
-        </p>
-
+    <div class="absolute top-0 left-0 w-full h-full opacity-40 pointer-events-none">
+        <div class="absolute w-96 h-96 bg-blue-300 rounded-full blur-3xl -top-20 -left-20"></div>
+        <div class="absolute w-96 h-96 bg-purple-300 rounded-full blur-3xl bottom-10 right-10"></div>
     </div>
-</div>
-{% endblock %}
+
+    <div class="max-w-md w-full mx-auto p-6 relative z-10">
+        <a href="{% url 'home' %}" class="inline-flex items-center text-sm font-semibold text-slate-500 hover:text-blue-600 transition mb-6">
+            <i class="fa-solid fa-arrow-left mr-2"></i> Back to Home
+        </a>
+
+        <div class="bg-white/80 backdrop-blur-xl rounded-3xl shadow-xl border border-white/50 p-8">
+            
+            <div class="text-center mb-8">
+                <div class="w-16 h-16 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center text-3xl mx-auto mb-4 shadow-inner">
+                    <i class="fa-solid fa-rocket"></i>
+                </div>
+                <h2 class="text-2xl font-poppins font-bold text-slate-800">Welcome Back</h2>
+                <p class="text-sm text-slate-500 mt-1">Log in to manage your growth.</p>
+            </div>
+
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="p-3 mb-6 rounded-lg text-sm font-semibold text-center {% if message.tags == 'error' %}bg-red-50 text-red-600 border border-red-100{% else %}bg-green-50 text-green-600 border border-green-100{% endif %}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <form method="POST" action="{% url 'login' %}" class="space-y-5">
+                {% csrf_token %}
+                
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">Username</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <i class="fa-regular fa-user text-slate-400"></i>
+                        </div>
+                        <input type="text" name="username" placeholder="Enter your username" required class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">Password</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <i class="fa-solid fa-lock text-slate-400"></i>
+                        </div>
+                        <input type="password" name="password" placeholder="Enter your password" required class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all">
+                    </div>
+                </div>
+
+                <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold py-3.5 rounded-xl hover:shadow-lg hover:shadow-blue-500/30 hover:-translate-y-0.5 transition-all duration-300 mt-2">
+                    Sign In
+                </button>
+            </form>
+
+            <p class="text-center text-sm text-slate-600 mt-8">
+                Don't have an account? 
+                <a href="{% url 'register' %}" class="font-bold text-blue-600 hover:text-blue-700 hover:underline transition">Sign up now</a>
+            </p>
+        </div>
+    </div>
+</body>
+</html>
