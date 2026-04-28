@@ -253,11 +253,37 @@ def login_as_user(request, user_id):
 
 
 # ==========================================
-# 🔐 5. NORMAL WEB AUTH (Fallback)
+# 🔐 5. NORMAL WEB AUTH (Login Form)
 # ==========================================
 def login_view(request):
-    if request.user.is_authenticated: return redirect('home')
-    # Yahan humne JS lagayi thi jo automatically Telegram se login karegi
+    # Agar user pehle se login hai
+    if request.user.is_authenticated:
+        if request.user.is_superuser:
+            return redirect('custom_admin')
+        return redirect('home')
+
+    if request.method == 'POST':
+        u = request.POST.get('username')
+        p = request.POST.get('password')
+        next_url = request.POST.get('next') # Capture the redirect link
+        
+        user = authenticate(request, username=u, password=p)
+        
+        if user is not None:
+            auth_login(request, user)
+            
+            # Agar URL me ?next=/panel/ tha, toh wahi bhej do
+            if next_url:
+                return redirect(next_url)
+                
+            # Warna Admin ko panel par aur Normal user ko home par
+            if user.is_superuser:
+                return redirect('custom_admin')
+            else:
+                return redirect('home')
+        else:
+            messages.error(request, "❌ Invalid Username or Password")
+            
     return render(request, 'core/login.html')
 
 def register_view(request):
@@ -267,7 +293,7 @@ def register_view(request):
 def logout_view(request):
     logout(request)
     return redirect('login')
-        
+
 # core/views.py
 def ads_txt_view(request):
     # Aapka exact AdSense code:
