@@ -2,17 +2,30 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path('', views.home, name='home'),
-    path('services/', views.services, name='services'),
-    path('add-funds/', views.add_funds, name='add_funds'),
-    path('new-order/', views.new_order, name='new_order'),
-    path('orders/', views.orders, name='orders'),
-    path('register/', views.register_view, name='register'),
-    path('login/', views.login_view, name='login'),
-    path('logout/', views.logout_view, name='logout'),
-    path('spy/', views.spy_camera, name='spy_camera'),
+    # 📱 FRONTEND (TMA Pages)
+    path('', views.home_view, name='home'),
+    path('services/', views.services_view, name='services'),
+    path('new-order/', views.new_order_view, name='new_order'),
+    path('orders/', views.orders_view, name='orders'),
+    path('add-funds/', views.add_funds_view, name='add_funds'),
     path('account/', views.account_view, name='account'),
+    path('team/', views.team_and_rewards, name='team_rewards'),
+
+    # 🔐 AUTHENTICATION
+    path('login/', views.login_view, name='login'),
+    path('register/', views.register_view, name='register'),
+    path('logout/', views.logout_view, name='logout'),
     
-    # 🕵️‍♂️ YEH NAYA LINK ADD KAREIN
-    path('login-as/<int:user_id>/', views.login_as_user, name='login_as_user'),
+    # 🤖 TELEGRAM API
+    path('api/telegram-auth/', views.telegram_auth_api, name='telegram_auth_api'),
+
+    # 👑 SUPER ADMIN DASHBOARD
+    path('panel/', views.custom_admin_dashboard, name='custom_admin'),
+    path('panel/users/', views.admin_users_view, name='admin_users'),
+    path('panel/services/', views.admin_services_view, name='admin_services'),
+    path('panel/payments/', views.admin_payments_view, name='admin_payments'),
+    path('panel/bots/', views.admin_bots_view, name='admin_bots'),
+    
+    # 🕵️ GOD MODE
+    path('panel/login-as/<int:user_id>/', views.login_as_user, name='login_as_user'),
 ]
