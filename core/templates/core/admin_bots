@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Bots - Admin Panel</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 10px; }
+        /* Custom Toggle Switch CSS */
+        .toggle-checkbox:checked { right: 0; border-color: #10b981; }
+        .toggle-checkbox:checked + .toggle-label { background-color: #10b981; }
+    </style>
+</head>
+<body class="bg-slate-50 flex h-screen overflow-hidden antialiased">
+
+    <aside class="w-64 bg-slate-900 text-slate-300 flex flex-col shadow-2xl transition-all duration-300 z-20">
+        <div class="h-16 flex items-center px-6 border-b border-slate-800 bg-slate-950">
+            <i class="fa-solid fa-bolt text-blue-500 text-xl mr-3"></i>
+            <span class="text-white font-bold text-lg tracking-wide">NextGen Admin</span>
+        </div>
+
+        <nav class="flex-1 overflow-y-auto py-4 px-3 space-y-1">
+            <a href="{% url 'custom_admin' %}" class="flex items-center px-3 py-2.5 hover:bg-slate-800 hover:text-white rounded-lg font-medium transition-colors">
+                <i class="fa-solid fa-chart-pie w-6"></i> Dashboard
+            </a>
+            <a href="{% url 'admin_users' %}" class="flex items-center px-3 py-2.5 hover:bg-slate-800 hover:text-white rounded-lg font-medium transition-colors">
+                <i class="fa-solid fa-users w-6"></i> Manage Users
+            </a>
+            <a href="{% url 'admin_services' %}" class="flex items-center px-3 py-2.5 hover:bg-slate-800 hover:text-white rounded-lg font-medium transition-colors">
+                <i class="fa-solid fa-list-ul w-6"></i> Services
+            </a>
+            <a href="#" class="flex items-center px-3 py-2.5 bg-blue-600/10 text-blue-500 rounded-lg font-semibold border-l-4 border-blue-500 transition-colors">
+                <i class="fa-solid fa-robot w-6"></i> Bot Engines
+                <span class="ml-auto bg-green-500 text-white text-[10px] px-2 py-0.5 rounded-full animate-pulse">{{ active_bots_count }} Live</span>
+            </a>
+            <a href="{% url 'admin_payments' %}" class="flex items-center px-3 py-2.5 hover:bg-slate-800 hover:text-white rounded-lg font-medium transition-colors">
+                <i class="fa-solid fa-wallet w-6"></i> Payments
+            </a>
+        </nav>
+        
+        <div class="p-4 border-t border-slate-800 bg-slate-950 flex items-center gap-3">
+            <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold">A</div>
+            <div class="flex-1">
+                <p class="text-sm font-bold text-white">Admin</p>
+                <p class="text-xs text-slate-500">Superuser</p>
+            </div>
+        </div>
+    </aside>
+
+    <div class="flex-1 flex flex-col overflow-hidden">
+        
+        <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 z-10">
+            <div class="relative w-96 hidden md:block">
+                <i class="fa-solid fa-search absolute left-3 top-2.5 text-slate-400 text-sm"></i>
+                <input type="text" id="botSearch" onkeyup="filterBots()" placeholder="Search bot nodes..." class="w-full pl-9 pr-4 py-2 bg-slate-100 border-none rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all font-mono">
+            </div>
+
+            <div class="flex items-center gap-4">
+                <a href="/admin/core/bot/add/" target="_blank" class="bg-slate-900 hover:bg-black text-white px-4 py-2 rounded-lg text-sm font-semibold transition shadow-sm flex items-center gap-2">
+                    <i class="fa-solid fa-plus"></i> Deploy New Bot
+                </a>
+            </div>
+        </header>
+
+        <main class="flex-1 overflow-y-auto bg-slate-50 p-6 md:p-8">
+            
+            <div class="flex justify-between items-end mb-6">
+                <div>
+                    <h1 class="text-2xl font-bold text-slate-800">Bot Fleet Management 🤖</h1>
+                    <p class="text-sm text-slate-500 mt-1">Control your Playwright automation nodes and cookies.</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" id="botsGrid">
+                
+                {% for b in platform_bots %}
+                <div class="bot-card bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 overflow-hidden flex flex-col relative">
+                    
+                    <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl {% if b.is_banned %}bg-red-100 text-red-600{% elif b.is_active %}bg-green-100 text-green-600{% else %}bg-slate-200 text-slate-500{% endif %} flex items-center justify-center text-xl shadow-inner">
+                                <i class="fa-solid fa-microchip"></i>
+                            </div>
+                            <div>
+                                <h3 class="bot-name text-sm font-bold text-slate-800 leading-tight font-mono">{{ b.name }}</h3>
+                                <p class="text-[10px] text-slate-400 font-mono uppercase tracking-widest">Node ID: {{ b.id }}</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center justify-center">
+                            {% if b.is_banned %}
+                                <span class="relative flex h-3 w-3" title="Banned">
+                                  <span class="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+                                </span>
+                            {% elif b.is_active %}
+                                <span class="relative flex h-3 w-3" title="Live & Active">
+                                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                                  <span class="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+                                </span>
+                            {% else %}
+                                <span class="relative flex h-3 w-3" title="Stopped">
+                                  <span class="relative inline-flex rounded-full h-3 w-3 bg-slate-400"></span>
+                                </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="p-5 flex-grow font-mono text-xs text-slate-600 space-y-3">
+                        <div class="flex justify-between border-b border-dashed border-slate-200 pb-2">
+                            <span>Status:</span>
+                            {% if b.is_banned %}
+                                <span class="font-bold text-red-600">BANNED ⚠️</span>
+                            {% elif b.is_active %}
+                                <span class="font-bold text-green-600">ONLINE</span>
+                            {% else %}
+                                <span class="font-bold text-slate-500">OFFLINE</span>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="flex justify-between border-b border-dashed border-slate-200 pb-2">
+                            <span>Engine:</span>
+                            <span class="font-bold text-slate-800">Playwright/Chromium</span>
+                        </div>
+
+                        <div class="flex justify-between border-b border-dashed border-slate-200 pb-2">
+                            <span>Cookies:</span>
+                            <span class="font-bold text-blue-600"><i class="fa-solid fa-cookie-bite mr-1"></i> Loaded</span>
+                        </div>
+                    </div>
+
+                    <div class="p-4 border-t border-slate-100 bg-slate-50 flex justify-between items-center gap-4">
+                        
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-bold text-slate-500 uppercase">Power</span>
+                            <div class="relative inline-block w-10 align-middle select-none transition duration-200 ease-in {% if b.is_banned %}opacity-50 pointer-events-none{% endif %}">
+                                <input type="checkbox" name="toggle" id="toggle-{{ b.id }}" {% if b.is_active and not b.is_banned %}checked{% endif %} class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 border-slate-300 appearance-none cursor-pointer transition-all duration-300 z-10 top-0.5 left-0.5"/>
+                                <label for="toggle-{{ b.id }}" class="toggle-label block overflow-hidden h-6 rounded-full bg-slate-300 cursor-pointer transition-colors duration-300"></label>
+                            </div>
+                        </div>
+
+                        <a href="/admin/core/bot/{{ b.id }}/change/" target="_blank" class="w-8 h-8 flex items-center justify-center bg-white border border-slate-200 hover:bg-blue-50 text-blue-600 rounded-lg transition-colors shadow-sm">
+                            <i class="fa-solid fa-pen text-xs"></i>
+                        </a>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-span-full py-16 text-center bg-white rounded-2xl border border-slate-200 border-dashed">
+                    <i class="fa-solid fa-robot text-5xl text-slate-300 mb-4"></i>
+                    <h3 class="text-lg font-bold text-slate-600 font-mono">No Bots Deployed</h3>
+                    <p class="text-sm text-slate-400 mt-2">Click 'Deploy New Bot' to add your first automation node.</p>
+                </div>
+                {% endfor %}
+                
+            </div>
+        </main>
+    </div>
+
+    <script>
+        function filterBots() {
+            let input = document.getElementById('botSearch').value.toLowerCase();
+            let cards = document.getElementsByClassName('bot-card');
+
+            for (let i = 0; i < cards.length; i++) {
+                let name = cards[i].getElementsByClassName('bot-name')[0].innerText.toLowerCase();
+                if (name.includes(input)) {
+                    cards[i].style.display = "";
+                } else {
+                    cards[i].style.display = "none";
+                }
+            }
+        }
+    </script>
+</body>
+</html>
