@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Admin Command Center{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; }
+        .font-poppins { font-family: 'Poppins', sans-serif; }
+        .sidebar-transition { transition: transform 0.3s ease-in-out; }
+        .animate-bounce-short { animation: slideDown 0.4s ease-out; }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="antialiased overflow-x-hidden">
+
+    <div id="global-loader" class="fixed inset-0 bg-slate-900/90 backdrop-blur-sm z-[9999] hidden flex-col items-center justify-center">
+        <div class="relative w-20 h-20 flex items-center justify-center mb-4">
+            <div class="absolute inset-0 border-4 border-blue-500/20 rounded-full"></div>
+            <div class="absolute inset-0 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+            <i class="fa-solid fa-bolt text-blue-400 text-2xl animate-pulse"></i>
+        </div>
+        <h2 class="text-white font-poppins font-black text-xl tracking-widest animate-pulse">PROCESSING...</h2>
+    </div>
+
+    <div id="sidebar-overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black/50 z-40 hidden lg:hidden backdrop-blur-sm"></div>
+
+    <aside id="sidebar" class="fixed inset-y-0 left-0 w-64 bg-slate-900 text-slate-300 z-50 transform -translate-x-full lg:translate-x-0 sidebar-transition flex flex-col shadow-2xl">
+        <div class="flex items-center justify-between h-20 px-6 border-b border-white/10">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white"><i class="fa-solid fa-shield-halved"></i></div>
+                <span class="font-poppins font-bold text-lg text-white">Admin Panel</span>
+            </div>
+            <button onclick="toggleSidebar()" class="lg:hidden text-slate-400 hover:text-white text-xl active:scale-95 transition"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+
+        <nav class="flex-1 overflow-y-auto py-6 px-4 space-y-2">
+            <a href="{% url 'custom_admin' %}" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 hover:text-white transition group loader-trigger"><i class="fa-solid fa-chart-pie w-5 text-center text-slate-500 group-hover:text-blue-400"></i><span class="font-bold text-sm">Dashboard</span></a>
+            <a href="{% url 'admin_users' %}" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 hover:text-white transition group loader-trigger"><i class="fa-solid fa-users w-5 text-center text-slate-500 group-hover:text-purple-400"></i><span class="font-bold text-sm">Users</span></a>
+            <a href="{% url 'admin_services' %}" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 hover:text-white transition group loader-trigger"><i class="fa-solid fa-box-open w-5 text-center text-slate-500 group-hover:text-green-400"></i><span class="font-bold text-sm">Services</span></a>
+            <a href="{% url 'admin_payments' %}" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 hover:text-white transition group loader-trigger"><i class="fa-solid fa-wallet w-5 text-center text-slate-500 group-hover:text-yellow-400"></i><span class="font-bold text-sm">Payments</span></a>
+            <a href="{% url 'admin_bots' %}" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 hover:text-white transition group loader-trigger"><i class="fa-solid fa-robot w-5 text-center text-slate-500 group-hover:text-orange-400"></i><span class="font-bold text-sm">Bot Engines</span></a>
+        </nav>
+        
+        <div class="p-4 border-t border-white/10">
+            <a href="{% url 'logout' %}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-red-400 hover:bg-red-500/10 transition loader-trigger"><i class="fa-solid fa-right-from-bracket w-5 text-center"></i><span class="font-bold text-sm">Logout</span></a>
+        </div>
+    </aside>
+
+    <div class="lg:pl-64 flex flex-col min-h-screen transition-all duration-300">
+        
+        <header class="bg-white h-20 px-6 flex items-center justify-between shadow-sm sticky top-0 z-30">
+            <div class="flex items-center gap-4">
+                <button onclick="toggleSidebar()" class="lg:hidden w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center text-slate-600 hover:bg-slate-200 transition active:scale-95"><i class="fa-solid fa-bars"></i></button>
+                <h1 class="font-poppins font-bold text-xl text-slate-800">{% block header_title %}Overview{% endblock %}</h1>
+            </div>
+            <div class="flex items-center gap-3">
+                <div class="text-right hidden sm:block"><p class="text-xs font-bold text-slate-800">Admin_Root</p><p class="text-[10px] text-green-500 font-bold uppercase tracking-widest"><i class="fa-solid fa-circle text-[8px]"></i> Online</p></div>
+                <div class="w-10 h-10 bg-slate-900 rounded-full flex items-center justify-center text-white shadow-md"><i class="fa-solid fa-user-tie"></i></div>
+            </div>
+        </header>
+
+        <main class="flex-1 p-6">
+            {% block content %}
+            {% endblock %}
+        </main>
+    </div>
+
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            sidebar.classList.toggle('-translate-x-full');
+            overlay.classList.toggle('hidden');
+        }
+        document.querySelectorAll('.loader-trigger').forEach(link => {
+            link.addEventListener('click', () => {
+                document.getElementById('global-loader').classList.remove('hidden');
+                document.getElementById('global-loader').classList.add('flex');
+            });
+        });
+        window.addEventListener('pageshow', () => {
+            document.getElementById('global-loader').classList.add('hidden');
+            document.getElementById('global-loader').classList.remove('flex');
+        });
+    </script>
+</body>
+              </html>
+  
