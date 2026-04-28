@@ -1,1 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Account - NextGen SMM</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; padding-bottom: 70px; }
+        @media (min-width: 768px) { body { padding-bottom: 0; } }
+        h1, h2, h3, .font-poppins { font-family: 'Poppins', sans-serif; }
+    </style>
+</head>
+<body class="text-slate-800 antialiased">
+
+    <nav class="sticky top-0 z-50 bg-white/90 backdrop-blur-md shadow-sm border-b border-slate-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <a href="{% url 'home' %}" class="flex-shrink-0 flex items-center gap-2 cursor-pointer">
+                    <i class="fa-solid fa-rocket text-blue-600 text-2xl"></i>
+                    <span class="font-poppins font-bold text-xl tracking-tight text-slate-900">NextGen<span class="text-blue-600">SMM</span></span>
+                </a>
+                
+                <div class="hidden md:flex space-x-8 items-center font-medium text-slate-600">
+                    <a href="{% url 'home' %}" class="hover:text-blue-600 transition">Home</a>
+                    <a href="{% url 'services' %}" class="hover:text-blue-600 transition">Services</a>
+                    <a href="{% url 'orders' %}" class="hover:text-blue-600 transition">My Orders</a>
+                    
+                    <div class="flex items-center gap-4 border-l pl-6 border-slate-200">
+                        <span class="text-sm bg-slate-100 py-1 px-3 rounded-full text-slate-700 font-semibold">₹ {{ user.wallet_balance|floatformat:2 }}</span>
+                        <a href="{% url 'logout' %}" class="text-red-500 hover:text-red-600 transition" title="Logout"><i class="fa-solid fa-right-from-bracket"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        
+        <h1 class="text-2xl md:text-3xl font-poppins font-bold text-slate-800 mb-6">My Profile 👤</h1>
+
+        <div class="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden mb-8">
+            <div class="h-32 bg-gradient-to-r from-blue-600 to-purple-600 relative">
+                <div class="absolute -bottom-10 left-8">
+                    <div class="w-24 h-24 bg-white rounded-full p-1 shadow-lg">
+                        <div class="w-full h-full bg-slate-100 rounded-full flex items-center justify-center text-4xl text-slate-400">
+                            <i class="fa-solid fa-user"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="pt-14 pb-8 px-8 flex justify-between items-start">
+                <div>
+                    <h2 class="text-2xl font-poppins font-bold text-slate-800">@{{ user.username }}</h2>
+                    <p class="text-slate-500 text-sm mt-1"><i class="fa-solid fa-envelope mr-1"></i> {{ user.email }}</p>
+                    <p class="text-slate-400 text-xs mt-1">Member since {{ user.date_joined|date:"M Y" }}</p>
+                </div>
+                <a href="{% url 'logout' %}" class="bg-red-50 text-red-600 hover:bg-red-100 px-4 py-2 rounded-lg text-sm font-bold transition-colors">
+                    <i class="fa-solid fa-right-from-bracket mr-1"></i> Logout
+                </a>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 text-center">
+                <div class="w-12 h-12 bg-green-50 text-green-500 rounded-full flex items-center justify-center text-xl mx-auto mb-3">
+                    <i class="fa-solid fa-wallet"></i>
+                </div>
+                <p class="text-slate-500 text-sm">Wallet Balance</p>
+                <h3 class="text-2xl font-bold text-slate-800">₹{{ user.wallet_balance|floatformat:2 }}</h3>
+            </div>
+            
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 text-center">
+                <div class="w-12 h-12 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center text-xl mx-auto mb-3">
+                    <i class="fa-solid fa-chart-line"></i>
+                </div>
+                <p class="text-slate-500 text-sm">Total Spent</p>
+                <h3 class="text-2xl font-bold text-slate-800">₹{{ user.total_spent|floatformat:2 }}</h3>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 text-center">
+                <div class="w-12 h-12 bg-purple-50 text-purple-500 rounded-full flex items-center justify-center text-xl mx-auto mb-3">
+                    <i class="fa-solid fa-box"></i>
+                </div>
+                <p class="text-slate-500 text-sm">Total Orders</p>
+                <h3 class="text-2xl font-bold text-slate-800">{{ user_orders_count }}</h3>
+            </div>
+        </div>
+
+        <div class="bg-gradient-to-r from-slate-800 to-slate-900 rounded-2xl p-6 text-white shadow-lg flex items-center justify-between">
+            <div>
+                <h3 class="font-poppins font-bold text-lg mb-1">Need Help?</h3>
+                <p class="text-slate-300 text-sm">Contact our 24/7 support team.</p>
+            </div>
+            <a href="#" class="bg-white/10 hover:bg-white/20 border border-white/20 px-5 py-2.5 rounded-xl font-semibold transition-all">
+                <i class="fa-brands fa-telegram mr-1"></i> Support
+            </a>
+        </div>
+
+    </div>
+
+    <div class="md:hidden fixed bottom-0 left-0 w-full bg-white border-t border-slate-200 px-6 py-3 flex justify-between items-center shadow-[0_-5px_15px_rgba(0,0,0,0.05)] z-50 rounded-t-xl">
+        <a href="{% url 'home' %}" class="flex flex-col items-center text-slate-400 hover:text-blue-600 transition">
+            <i class="fa-solid fa-house text-xl mb-1"></i><span class="text-[10px] font-semibold">Home</span>
+        </a>
+        <a href="{% url 'services' %}" class="flex flex-col items-center text-slate-400 hover:text-blue-600 transition">
+            <i class="fa-solid fa-list-ul text-xl mb-1"></i><span class="text-[10px] font-semibold">Services</span>
+        </a>
+        
+        <a href="{% url 'new_order' %}" class="relative -top-5 bg-gradient-to-r from-blue-600 to-purple-600 text-white w-14 h-14 rounded-full flex items-center justify-center shadow-lg shadow-blue-500/30 hover:scale-105 transition-transform">
+            <i class="fa-solid fa-plus text-2xl"></i>
+        </a>
+        
+        <a href="{% url 'add_funds' %}" class="flex flex-col items-center text-slate-400 hover:text-slate-700 transition">
+            <i class="fa-solid fa-wallet text-xl mb-1"></i><span class="text-[10px] font-semibold">Funds</span>
+        </a>
+        
+        <a href="{% url 'account' %}" class="flex flex-col items-center text-blue-600">
+            <i class="fa-solid fa-user text-xl mb-1"></i><span class="text-[10px] font-semibold">Account</span>
+        </a>
+    </div>
+
+</body>
+  </html>
+  
