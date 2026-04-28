@@ -2,6 +2,9 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
+    # 💰 ADSENSE VERIFICATION (Sabse upar hona chahiye)
+    path('ads.txt', views.ads_txt_view),
+
     # 📱 FRONTEND (TMA Pages)
     path('', views.home_view, name='home'),
     path('services/', views.services_view, name='services'),
@@ -19,17 +22,18 @@ urlpatterns = [
     # 🤖 TELEGRAM API
     path('api/telegram-auth/', views.telegram_auth_api, name='telegram_auth_api'),
 
+    # 📘 SUPPORT PAGES
+    path('about/', views.about_view, name='about'),
+    path('support/', views.support_view, name='support'),
+    path('guide/', views.guide_view, name='guide'),
+    path('faq/', views.faq_view, name='faq'),
+
     # 👑 SUPER ADMIN DASHBOARD
     path('panel/', views.custom_admin_dashboard, name='custom_admin'),
     path('panel/users/', views.admin_users_view, name='admin_users'),
     path('panel/services/', views.admin_services_view, name='admin_services'),
     path('panel/payments/', views.admin_payments_view, name='admin_payments'),
     path('panel/bots/', views.admin_bots_view, name='admin_bots'),
-        # 📞 SUPPORT PAGES
-    path('about/', views.about_view, name='about'),
-    path('support/', views.support_view, name='support'),
-    path('guide/', views.guide_view, name='guide'),
-    path('faq/', views.faq_view, name='faq'),
     
     # 🕵️ GOD MODE
     path('panel/login-as/<int:user_id>/', views.login_as_user, name='login_as_user'),
