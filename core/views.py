@@ -11,12 +11,13 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
 from django.db.models import Sum
 
+# Apne models import kar rahe hain
 from .models import CustomUser, Service, Order, Payment, Bot
 
 # ==========================================
-# 🚀 1. TELEGRAM SILENT AUTH ENGINE
+# 🚀 1. TELEGRAM SILENT AUTH ENGINE (TMA)
 # ==========================================
-TELEGRAM_BOT_TOKEN = "YOUR_BOT_TOKEN_HERE" # Apna Bot Token yahan zaroor daalein
+TELEGRAM_BOT_TOKEN = "8691081519:AAEVWnllssUWpRvYOAUcA9hgwKZs0oKV3Hc"
 
 def verify_telegram_data(init_data):
     try:
@@ -45,7 +46,7 @@ def telegram_auth_api(request):
             is_valid, tg_user, start_param = verify_telegram_data(init_data)
             
             if not is_valid or not tg_user:
-                return JsonResponse({'status': 'error', 'message': 'Invalid Signature!'}, status=403)
+                return JsonResponse({'status': 'error', 'message': 'Invalid Signature! Hacker Alert 🚨'}, status=403)
                 
             tg_id = tg_user.get('id')
             tg_username = tg_user.get('username', f"user_{tg_id}")
@@ -55,7 +56,7 @@ def telegram_auth_api(request):
                 defaults={'username': tg_username, 'telegram_username': tg_username}
             )
             
-            # Apply Invite Logic
+            # Apply Invite/Referral Logic for New Users
             if created and start_param and start_param.startswith('invite_'):
                 invite_code = start_param.replace('invite_', '')
                 inviter = CustomUser.objects.filter(invite_code=invite_code).first()
@@ -67,11 +68,12 @@ def telegram_auth_api(request):
                 return JsonResponse({'status': 'error', 'message': 'Account banned.'}, status=403)
                 
             auth_login(request, user, backend='django.contrib.auth.backends.ModelBackend')
-            return JsonResponse({'status': 'success', 'redirect_url': '/'})
+            return JsonResponse({'status': 'success', 'redirect_url': '/'}) # Seedha Home par bhejo
             
         except Exception as e:
             return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
     return JsonResponse({'status': 'error', 'message': 'POST only'})
+
 
 # ==========================================
 # 📱 2. FRONTEND VIEWS (Customer App)
@@ -96,14 +98,14 @@ def new_order_view(request):
         charge = (service.price_per_1000 / 1000) * quantity
         
         if request.user.wallet_balance >= charge:
-            # Deduct balance
+            # Pese kaato
             request.user.wallet_balance -= charge
             request.user.total_spent += charge
             request.user.save()
             
             # 💎 DIAMOND REWARD SYSTEM (Give diamonds to Inviter)
             if request.user.invited_by:
-                earned_diamonds = int(charge * 5) # Formula: ₹1 = 5 Diamonds
+                earned_diamonds = int(charge * 5) # Formula: ₹1 spent = 5 Diamonds
                 inviter = request.user.invited_by
                 inviter.diamonds += earned_diamonds
                 inviter.save()
@@ -148,7 +150,7 @@ def team_and_rewards(request):
     total_invites = invited_friends.count()
     active_invites = invited_friends.filter(total_spent__gt=0).count()
     
-    # Tier Level System
+    # 🏆 Level System
     if total_invites >= 50:
         tier_name, tier_icon, tier_color = "Gold", "🥇", "text-yellow-500"
     elif total_invites >= 10:
@@ -156,11 +158,12 @@ def team_and_rewards(request):
     else:
         tier_name, tier_icon, tier_color = "Bronze", "🥉", "text-orange-500"
 
+    # Redeem Logic (50 Diamonds = ₹1)
     if request.method == 'POST' and request.POST.get('action') == 'redeem':
         if request.user.diamonds >= 50:
             rs_to_add = request.user.diamonds / 50
             request.user.wallet_balance += rs_to_add
-            request.user.diamonds = 0
+            request.user.diamonds = 0  # Baad me ise remainder logic (diamonds % 50) se update kar sakte hain
             request.user.save()
             messages.success(request, f"🎉 Success! ₹{rs_to_add} added to your wallet.")
         else:
@@ -176,7 +179,27 @@ def team_and_rewards(request):
 
 
 # ==========================================
-# 👑 3. SUPER ADMIN VIEWS
+# 📘 3. SUPPORT & INFO PAGES (Premium UI)
+# ==========================================
+@login_required(login_url='/login/')
+def about_view(request):
+    return render(request, 'core/about.html')
+
+@login_required(login_url='/login/')
+def support_view(request):
+    return render(request, 'core/support.html')
+
+@login_required(login_url='/login/')
+def guide_view(request):
+    return render(request, 'core/guide.html')
+
+@login_required(login_url='/login/')
+def faq_view(request):
+    return render(request, 'core/faq.html')
+
+
+# ==========================================
+# 👑 4. SUPER ADMIN VIEWS (The Hacker Dashboard)
 # ==========================================
 @login_required(login_url='/login/')
 def custom_admin_dashboard(request):
@@ -228,20 +251,20 @@ def login_as_user(request, user_id):
     auth_login(request, target_user, backend='django.contrib.auth.backends.ModelBackend')
     return redirect('home')
 
+
 # ==========================================
-# 🔐 4. NORMAL WEB AUTH (Fallback)
+# 🔐 5. NORMAL WEB AUTH (Fallback)
 # ==========================================
 def login_view(request):
     if request.user.is_authenticated: return redirect('home')
-    # ... (Your standard login logic here) ...
+    # Yahan humne JS lagayi thi jo automatically Telegram se login karegi
     return render(request, 'core/login.html')
 
 def register_view(request):
     if request.user.is_authenticated: return redirect('home')
-    # ... (Your standard register logic here) ...
     return render(request, 'core/register.html')
 
 def logout_view(request):
     logout(request)
     return redirect('login')
-            
+        
