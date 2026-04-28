@@ -7,10 +7,12 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4992650101483327" crossorigin="anonymous"></script>
+
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
         .font-poppins { font-family: 'Poppins', sans-serif; }
-        /* Telegram Loading Screen Hide/Show logic */
         #telegram-loader { display: none; }
         #normal-login { display: block; }
     </style>
@@ -31,14 +33,12 @@
                 <i class="fa-solid fa-bolt"></i>
             </div>
             <h2 class="text-2xl font-poppins font-black text-slate-800">NextGen Admin</h2>
-            <p class="text-sm text-slate-500 mt-1">Enter your credentials to access the panel</p>
+            <p class="text-sm text-slate-500 mt-1">Enter credentials to access the panel</p>
         </div>
 
         <form method="POST" action="{% url 'login' %}">
             {% csrf_token %}
-            
             <input type="hidden" name="next" value="{{ request.GET.next }}">
-
             <div class="space-y-4">
                 <div>
                     <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Username</label>
@@ -49,7 +49,6 @@
                     <input type="password" name="password" required class="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition">
                 </div>
             </div>
-
             <button type="submit" class="w-full bg-slate-900 text-white font-bold py-3.5 rounded-xl mt-6 hover:bg-black transition shadow-lg flex justify-center items-center gap-2">
                 Secure Login <i class="fa-solid fa-arrow-right"></i>
             </button>
@@ -61,12 +60,8 @@
         document.addEventListener("DOMContentLoaded", function() {
             try {
                 const tg = window.Telegram.WebApp;
-                
-                // Agar user Telegram ke andar se app khol raha hai
                 if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
                     tg.expand(); 
-                    
-                    // Normal form chhupao, Telegram loader dikhao
                     document.getElementById('normal-login').style.display = 'none';
                     document.getElementById('telegram-loader').style.display = 'block';
 
@@ -86,13 +81,11 @@
                         }
                     })
                     .catch(error => {
-                        console.error("Network Error");
                         document.getElementById('telegram-loader').style.display = 'none';
                         document.getElementById('normal-login').style.display = 'block';
                     });
                 }
             } catch (e) {
-                // Agar browser se khola hai, to kuch mat karo, normal login form dikhne do
                 console.log("Browser mode activated.");
             }
         });
