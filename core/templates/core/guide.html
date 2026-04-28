@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Use - NextGen</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; padding-bottom: 90px; }
+        .font-poppins { font-family: 'Poppins', sans-serif; }
+        .stagger-item { opacity: 0; transform: translateY(10px); animation: fadeUp 0.5s ease forwards; }
+        @keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="antialiased">
+    <header class="flex items-center px-6 py-4 bg-white/80 backdrop-blur-md sticky top-0 z-40 border-b border-slate-100">
+        <a href="{% url 'home' %}" class="w-8 h-8 flex items-center justify-center bg-slate-100 rounded-full text-slate-600 hover:bg-slate-200 transition active:scale-95"><i class="fa-solid fa-arrow-left"></i></a>
+        <h1 class="ml-4 font-poppins font-bold text-lg text-slate-800">Quick Guide</h1>
+    </header>
+
+    <div class="px-6 py-6">
+        <h2 class="text-xl font-poppins font-black text-slate-800 mb-6">How to use the panel? 🧭</h2>
+
+        <div class="space-y-4">
+            <div class="stagger-item bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex items-start gap-4" style="animation-delay: 0.1s;">
+                <div class="w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center font-bold flex-shrink-0">1</div>
+                <div>
+                    <h3 class="font-bold text-slate-800">Add Funds</h3>
+                    <p class="text-xs text-slate-500 mt-1">Go to Wallet section, scan the QR code via UPI, and submit your 12-digit UTR number.</p>
+                </div>
+            </div>
+            <div class="stagger-item bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex items-start gap-4" style="animation-delay: 0.2s;">
+                <div class="w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center font-bold flex-shrink-0">2</div>
+                <div>
+                    <h3 class="font-bold text-slate-800">Choose Service</h3>
+                    <p class="text-xs text-slate-500 mt-1">Navigate to Services tab, select YouTube/Instagram, and check the price per 1000.</p>
+                </div>
+            </div>
+            <div class="stagger-item bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex items-start gap-4" style="animation-delay: 0.3s;">
+                <div class="w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center font-bold flex-shrink-0">3</div>
+                <div>
+                    <h3 class="font-bold text-slate-800">Place Order</h3>
+                    <p class="text-xs text-slate-500 mt-1">Paste your public link, enter quantity, and click 'Boost Now'.</p>
+                </div>
+            </div>
+            <div class="stagger-item bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4 rounded-2xl shadow-md flex items-start gap-4" style="animation-delay: 0.4s;">
+                <div class="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center font-bold flex-shrink-0"><i class="fa-solid fa-check"></i></div>
+                <div>
+                    <h3 class="font-bold">Track & Earn</h3>
+                    <p class="text-xs text-blue-100 mt-1">Track status in 'My Orders' and invite friends to earn Free Diamonds! 💎</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+  </html>
+  
