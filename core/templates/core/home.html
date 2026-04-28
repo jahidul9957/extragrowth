@@ -1,111 +1,184 @@
-{% extends 'core/base.html' %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NextGen SMM - Boost Your Growth 🚀</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-{% block content %}
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.css" />
-
-<style>
-    @keyframes glow {
-        0% { box-shadow: 0 0 10px rgba(0, 255, 204, 0.2); }
-        50% { box-shadow: 0 0 20px rgba(0, 255, 204, 0.6); }
-        100% { box-shadow: 0 0 10px rgba(0, 255, 204, 0.2); }
-    }
-    .glass-card {
-        background: rgba(255, 255, 255, 0.03);
-        backdrop-filter: blur(16px);
-        -webkit-backdrop-filter: blur(16px);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        transition: transform 0.3s ease, border-color 0.3s ease;
-    }
-    .glass-card:hover {
-        transform: translateY(-5px);
-        border-color: rgba(0, 255, 204, 0.4);
-        animation: glow 2s infinite;
-    }
-</style>
-
-<div class="space-y-8 animate-fade-in mt-6 pb-12">
-
-    {% if messages %}
-        {% for message in messages %}
-            <div class="bg-black/50 border {% if 'success' in message.tags %}border-green-500 text-green-400{% else %}border-red-500 text-red-400{% endif %} rounded-xl p-3 mb-4 text-center font-semibold">
-                {{ message }}
-            </div>
-        {% endfor %}
-    {% endif %}
-
-    <div class="swiper mySwiper h-48 rounded-3xl overflow-hidden shadow-2xl border border-white/10">
-        <div class="swiper-wrapper">
-            <div class="swiper-slide flex flex-col items-center justify-center bg-gradient-to-r from-gray-900 via-blue-900 to-gray-900 relative">
-                <div class="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
-                <h2 class="text-3xl font-extrabold text-white z-10 tracking-widest text-shadow-lg">NEXTGEN <span class="text-[#00ffcc]">AI</span> DEV</h2>
-                <p class="text-gray-300 z-10 mt-2">Premium SMM Services at Your Fingertips</p>
-            </div>
-            <div class="swiper-slide flex items-center justify-center bg-gradient-to-r from-purple-800 to-blue-600">
-                <h2 class="text-2xl font-bold text-white tracking-wide">🎉 New Offer: High-Speed IG Followers Active!</h2>
-            </div>
-        </div>
-    </div>
-
-    {% if request.user.is_authenticated %}
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div class="glass-card rounded-2xl p-5 shadow-lg flex flex-col items-center justify-center relative overflow-hidden">
-                <div class="absolute top-0 right-0 w-16 h-16 bg-blue-500 rounded-full mix-blend-screen filter blur-3xl opacity-50"></div>
-                <p class="text-gray-400 text-sm mb-1">Wallet Balance</p>
-                <h3 class="text-2xl font-bold text-white">₹{{ request.user.wallet_balance }}</h3>
-            </div>
-            
-            <div class="glass-card rounded-2xl p-5 shadow-lg flex flex-col items-center justify-center relative overflow-hidden">
-                <div class="absolute top-0 right-0 w-16 h-16 bg-purple-500 rounded-full mix-blend-screen filter blur-3xl opacity-50"></div>
-                <p class="text-gray-400 text-sm mb-1">Total Spent</p>
-                <h3 class="text-2xl font-bold text-[#00ffcc]">₹{{ request.user.total_spent }}</h3>
-            </div>
-
-            <div class="glass-card rounded-2xl p-5 shadow-lg flex flex-col items-center justify-center">
-                <p class="text-gray-400 text-sm mb-1">My Orders</p>
-                <h3 class="text-2xl font-bold text-white">{{ user_orders_count }}</h3>
-            </div>
-
-            <div class="glass-card rounded-2xl p-5 shadow-lg flex flex-col items-center justify-center border-t border-[#00ffcc]/30">
-                <p class="text-gray-400 text-sm mb-1">Pending Orders</p>
-                <h3 class="text-xl font-bold text-yellow-400">{{ user_pending_orders }} ⏳</h3>
-            </div>
-        </div>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        h1, h2, h3, h4, .font-poppins { font-family: 'Poppins', sans-serif; }
         
-        <div class="text-center mt-8">
-            <a href="{% url 'new_order' %}" class="inline-block px-10 py-4 bg-gradient-to-r from-[#00d2ff] to-[#3a7bd5] text-white font-bold text-lg rounded-full hover:scale-105 transition-transform shadow-[0_0_20px_rgba(0,210,255,0.5)]">
-                + Place New Order
-            </a>
-        </div>
+        /* Smooth Scrolling */
+        html { scroll-behavior: smooth; }
+        
+        /* Mobile Bottom Nav Padding Fix */
+        body { padding-bottom: 70px; }
+        @media (min-width: 768px) { body { padding-bottom: 0; } }
+    </style>
+</head>
+<body class="text-slate-800 antialiased">
 
-    {% else %}
-        <div class="glass-card rounded-3xl p-10 text-center relative overflow-hidden">
-            <div class="absolute -top-10 -right-10 w-40 h-40 bg-blue-500 rounded-full mix-blend-screen filter blur-3xl opacity-20"></div>
-            <h2 class="text-3xl font-bold text-white mb-4">Welcome to the Ultimate Panel 🚀</h2>
-            <p class="text-gray-400 mb-8 max-w-xl mx-auto">Create an account or login to access your wallet, place orders, and track your social media growth in real-time.</p>
-            <div class="flex justify-center space-x-4">
-                <a href="{% url 'login' %}" class="px-8 py-3 bg-white/10 border border-[#00ffcc] text-[#00ffcc] font-bold rounded-full hover:bg-[#00ffcc] hover:text-black transition-all">
-                    Login
-                </a>
-                <a href="/register/" class="px-8 py-3 bg-gradient-to-r from-[#00d2ff] to-[#3a7bd5] text-white font-bold rounded-full hover:scale-105 transition-transform shadow-[0_0_15px_rgba(0,210,255,0.4)]">
-                    Create Account
-                </a>
+    <nav class="sticky top-0 z-50 bg-white/90 backdrop-blur-md shadow-sm border-b border-slate-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex-shrink-0 flex items-center gap-2 cursor-pointer">
+                    <i class="fa-solid fa-rocket text-blue-600 text-2xl"></i>
+                    <span class="font-poppins font-bold text-xl tracking-tight text-slate-900">NextGen<span class="text-blue-600">SMM</span></span>
+                </div>
+                
+                <div class="hidden md:flex space-x-8 items-center font-medium text-slate-600">
+                    <a href="{% url 'home' %}" class="text-blue-600 hover:text-blue-700 transition">Home</a>
+                    <a href="{% url 'services' %}" class="hover:text-blue-600 transition">Services</a>
+                    <a href="#" class="hover:text-blue-600 transition">API</a>
+                    
+                    {% if user.is_authenticated %}
+                        <div class="flex items-center gap-4 border-l pl-6 border-slate-200">
+                            <span class="text-sm bg-slate-100 py-1 px-3 rounded-full text-slate-700 font-semibold">₹ {{ user.wallet_balance|floatformat:2 }}</span>
+                            <a href="{% url 'logout' %}" class="text-red-500 hover:text-red-600 transition"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+                        </div>
+                    {% else %}
+                        <div class="flex items-center gap-4 border-l pl-6 border-slate-200">
+                            <a href="{% url 'login' %}" class="hover:text-blue-600 transition">Login</a>
+                            <a href="{% url 'register' %}" class="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 font-semibold">Sign Up</a>
+                        </div>
+                    {% endif %}
+                </div>
             </div>
         </div>
-    {% endif %}
+    </nav>
 
-    <div class="mt-8 flex justify-center space-x-6 z-10 relative">
-        <div class="bg-black/40 border border-white/5 rounded-full px-5 py-2 text-sm text-gray-400 shadow-md">
-            🌍 Total Users: <span class="text-white font-bold">{{ total_platform_users }}</span>
+    <section class="relative bg-gradient-to-br from-blue-700 via-blue-600 to-purple-700 text-white overflow-hidden">
+        <div class="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
+            <div class="absolute w-96 h-96 bg-white rounded-full blur-3xl -top-20 -left-20"></div>
+            <div class="absolute w-96 h-96 bg-purple-300 rounded-full blur-3xl bottom-10 right-10"></div>
         </div>
-        <div class="bg-black/40 border border-white/5 rounded-full px-5 py-2 text-sm text-gray-400 shadow-md">
-            🚀 Total Orders: <span class="text-[#00ffcc] font-bold">{{ total_platform_orders }}</span>
+
+        <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-28 text-center">
+            <span class="inline-block py-1 px-3 rounded-full bg-white/20 text-blue-100 text-sm font-semibold mb-6 backdrop-blur-sm border border-white/20">
+                ⭐ Trusted by 10,000+ Creators
+            </span>
+            <h1 class="text-4xl md:text-5xl lg:text-6xl font-poppins font-extrabold tracking-tight mb-6 leading-tight">
+                Boost Your YouTube <br class="hidden md:block" /> Subscribers <span class="text-yellow-300">Instantly 🚀</span>
+            </h1>
+            <p class="mt-4 text-lg md:text-xl text-blue-100 max-w-2xl mx-auto font-light">
+                Fast • Secure • Real Growth. Elevate your social media presence with our premium, high-speed automated services.
+            </p>
+            
+            <div class="mt-10 flex flex-col sm:flex-row justify-center gap-4">
+                {% if user.is_authenticated %}
+                    <a href="{% url 'new_order' %}" class="bg-white text-blue-700 px-8 py-4 rounded-xl font-bold text-lg hover:bg-slate-50 hover:shadow-xl hover:scale-105 transition-all duration-300">
+                        Create Order Now
+                    </a>
+                {% else %}
+                    <a href="{% url 'register' %}" class="bg-white text-blue-700 px-8 py-4 rounded-xl font-bold text-lg hover:bg-slate-50 hover:shadow-xl hover:scale-105 transition-all duration-300">
+                        Get Started Free
+                    </a>
+                {% endif %}
+                <a href="{% url 'services' %}" class="bg-blue-800/50 border border-blue-400/30 text-white px-8 py-4 rounded-xl font-semibold text-lg hover:bg-blue-800/70 backdrop-blur-sm transition-all duration-300">
+                    View Services
+                </a>
+            </div>
+
+            <div class="mt-16 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto border-t border-white/20 pt-8">
+                <div><h3 class="text-2xl font-bold">{{ total_platform_users }}</h3><p class="text-blue-200 text-sm">Happy Users</p></div>
+                <div><h3 class="text-2xl font-bold">{{ total_platform_orders }}</h3><p class="text-blue-200 text-sm">Orders Completed</p></div>
+                <div><h3 class="text-2xl font-bold">100%</h3><p class="text-blue-200 text-sm">Safe & Secure</p></div>
+                <div><h3 class="text-2xl font-bold">24/7</h3><p class="text-blue-200 text-sm">Automated</p></div>
+            </div>
         </div>
+    </section>
+
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8 -mt-24 relative z-10">
+            <div class="bg-white rounded-2xl p-6 shadow-lg shadow-slate-200/50 hover:shadow-xl hover:-translate-y-2 transition-all duration-300 border border-slate-100 flex flex-col items-center text-center cursor-pointer">
+                <div class="w-14 h-14 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-2xl mb-4">
+                    <i class="fa-solid fa-users"></i>
+                </div>
+                <h3 class="font-poppins font-bold text-slate-800">Our Team</h3>
+                <p class="text-xs text-slate-500 mt-2">Expert developers & support.</p>
+            </div>
+            <div class="bg-white rounded-2xl p-6 shadow-lg shadow-slate-200/50 hover:shadow-xl hover:-translate-y-2 transition-all duration-300 border border-slate-100 flex flex-col items-center text-center cursor-pointer">
+                <div class="w-14 h-14 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center text-2xl mb-4">
+                    <i class="fa-solid fa-book-open"></i>
+                </div>
+                <h3 class="font-poppins font-bold text-slate-800">About Us</h3>
+                <p class="text-xs text-slate-500 mt-2">Trusted panel since 2024.</p>
+            </div>
+            <div class="bg-white rounded-2xl p-6 shadow-lg shadow-slate-200/50 hover:shadow-xl hover:-translate-y-2 transition-all duration-300 border border-slate-100 flex flex-col items-center text-center cursor-pointer">
+                <div class="w-14 h-14 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-2xl mb-4">
+                    <i class="fa-solid fa-headset"></i>
+                </div>
+                <h3 class="font-poppins font-bold text-slate-800">Customer Care</h3>
+                <p class="text-xs text-slate-500 mt-2">24/7 Live ticket support.</p>
+            </div>
+            <div class="bg-white rounded-2xl p-6 shadow-lg shadow-slate-200/50 hover:shadow-xl hover:-translate-y-2 transition-all duration-300 border border-slate-100 flex flex-col items-center text-center cursor-pointer">
+                <div class="w-14 h-14 bg-orange-100 text-orange-600 rounded-full flex items-center justify-center text-2xl mb-4">
+                    <i class="fa-solid fa-circle-question"></i>
+                </div>
+                <h3 class="font-poppins font-bold text-slate-800">Help & FAQ</h3>
+                <p class="text-xs text-slate-500 mt-2">Learn how to use the panel.</p>
+            </div>
+        </div>
+    </section>
+
+    <footer class="bg-slate-900 text-slate-400 py-12 mt-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-4 gap-8">
+            <div class="md:col-span-2">
+                <span class="font-poppins font-bold text-xl text-white mb-4 block">NextGen<span class="text-blue-500">SMM</span></span>
+                <p class="text-sm max-w-sm">The fastest and most secure Social Media Marketing panel for creators and brands. Skyrocket your growth today.</p>
+            </div>
+            <div>
+                <h4 class="text-white font-semibold mb-4">Quick Links</h4>
+                <ul class="space-y-2 text-sm">
+                    <li><a href="#" class="hover:text-blue-400 transition">Services</a></li>
+                    <li><a href="#" class="hover:text-blue-400 transition">API Documentation</a></li>
+                    <li><a href="#" class="hover:text-blue-400 transition">Terms of Service</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="text-white font-semibold mb-4">Contact</h4>
+                <ul class="space-y-2 text-sm">
+                    <li><i class="fa-brands fa-telegram text-blue-400"></i> @NextGenSMM</li>
+                    <li><i class="fa-solid fa-envelope text-blue-400"></i> support@nextgen.com</li>
+                </ul>
+            </div>
+        </div>
+        <div class="border-t border-slate-800 mt-8 pt-8 text-center text-xs">
+            &copy; 2026 NextGen SMM. All rights reserved.
+        </div>
+    </footer>
+
+    <div class="md:hidden fixed bottom-0 left-0 w-full bg-white border-t border-slate-200 px-6 py-3 flex justify-between items-center shadow-[0_-5px_15px_rgba(0,0,0,0.05)] z-50 rounded-t-xl">
+        <a href="{% url 'home' %}" class="flex flex-col items-center text-blue-600">
+            <i class="fa-solid fa-house text-xl mb-1"></i>
+            <span class="text-[10px] font-semibold">Home</span>
+        </a>
+        <a href="{% url 'services' %}" class="flex flex-col items-center text-slate-400 hover:text-slate-700 transition">
+            <i class="fa-solid fa-list-ul text-xl mb-1"></i>
+            <span class="text-[10px] font-semibold">Services</span>
+        </a>
+        
+        <a href="{% if user.is_authenticated %}{% url 'new_order' %}{% else %}{% url 'login' %}{% endif %}" class="relative -top-5 bg-gradient-to-r from-blue-600 to-purple-600 text-white w-14 h-14 rounded-full flex items-center justify-center shadow-lg shadow-blue-500/30 hover:scale-105 transition-transform">
+            <i class="fa-solid fa-plus text-2xl"></i>
+        </a>
+        
+        <a href="#" class="flex flex-col items-center text-slate-400 hover:text-slate-700 transition">
+            <i class="fa-solid fa-wallet text-xl mb-1"></i>
+            <span class="text-[10px] font-semibold">Funds</span>
+        </a>
+        <a href="{% if user.is_authenticated %}{% url 'orders' %}{% else %}{% url 'login' %}{% endif %}" class="flex flex-col items-center text-slate-400 hover:text-slate-700 transition">
+            <i class="fa-solid fa-user text-xl mb-1"></i>
+            <span class="text-[10px] font-semibold">Account</span>
+        </a>
     </div>
 
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.js"></script>
-<script>
-    var swiper = new Swiper(".mySwiper", { autoplay: { delay: 3000, disableOnInteraction: false }, loop: true, effect: "fade" });
-</script>
-{% endblock %}
+</body>
+                    </html>
+    
