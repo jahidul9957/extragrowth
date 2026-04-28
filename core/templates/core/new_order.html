@@ -1,70 +1,203 @@
-{% extends 'core/base.html' %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Order - NextGen SMM</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-{% block content %}
-<style>
-    .glass-box {
-        background: rgba(255, 255, 255, 0.05);
-        backdrop-filter: blur(20px);
-        border: 1px solid rgba(0, 255, 204, 0.2);
-        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-    }
-    .neon-input {
-        background: rgba(0,0,0,0.3) !important;
-        border: 1px solid rgba(255,255,255,0.1) !important;
-        color: #00ffcc !important;
-    }
-    .neon-input:focus {
-        border-color: #00ffcc !important;
-        box-shadow: 0 0 10px rgba(0, 255, 204, 0.5) !important;
-        outline: none;
-    }
-    option { background: #161b22; color: #fff; }
-</style>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; padding-bottom: 70px; }
+        @media (min-width: 768px) { body { padding-bottom: 0; } }
+        h1, h2, h3, .font-poppins { font-family: 'Poppins', sans-serif; }
+    </style>
+</head>
+<body class="text-slate-800 antialiased">
 
-<div class="flex justify-center items-center pt-6 pb-20">
-    <div class="glass-box rounded-3xl p-6 md:p-8 max-w-lg w-full relative overflow-hidden">
-        
-        <div class="absolute -top-10 -right-10 w-32 h-32 bg-purple-600 rounded-full mix-blend-screen filter blur-3xl opacity-30"></div>
-        
-        <div class="flex justify-between items-center mb-6 z-10 relative">
-            <h2 class="text-2xl md:text-3xl font-extrabold text-white">Place <span class="text-[#00ffcc]">Order</span> 🚀</h2>
-            <div class="bg-black/50 border border-[#00ffcc]/30 px-3 py-1 rounded-lg">
-                <p class="text-[10px] text-gray-400">Balance</p>
-                <p class="text-[#00ffcc] font-bold text-sm">₹{{ request.user.wallet_balance }}</p>
+    <nav class="sticky top-0 z-50 bg-white/90 backdrop-blur-md shadow-sm border-b border-slate-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <a href="{% url 'home' %}" class="flex-shrink-0 flex items-center gap-2 cursor-pointer">
+                    <i class="fa-solid fa-rocket text-blue-600 text-2xl"></i>
+                    <span class="font-poppins font-bold text-xl tracking-tight text-slate-900">NextGen<span class="text-blue-600">SMM</span></span>
+                </a>
+                
+                <div class="hidden md:flex space-x-8 items-center font-medium text-slate-600">
+                    <a href="{% url 'home' %}" class="hover:text-blue-600 transition">Home</a>
+                    <a href="{% url 'services' %}" class="hover:text-blue-600 transition">Services</a>
+                    <a href="{% url 'orders' %}" class="hover:text-blue-600 transition">My Orders</a>
+                    
+                    <div class="flex items-center gap-4 border-l pl-6 border-slate-200">
+                        <span class="text-sm bg-slate-100 py-1 px-3 rounded-full text-slate-700 font-semibold">₹ {{ user.wallet_balance|floatformat:2 }}</span>
+                        <a href="{% url 'logout' %}" class="text-red-500 hover:text-red-600 transition" title="Logout"><i class="fa-solid fa-right-from-bracket"></i></a>
+                    </div>
+                </div>
             </div>
         </div>
+    </nav>
 
-        <form method="POST" class="space-y-5 z-10 relative">
-            {% csrf_token %}
-            
-            <div>
-                <label class="text-gray-300 text-sm font-semibold ml-1">Select Service</label>
-                <select name="service" required class="neon-input w-full mt-1 p-3 rounded-xl transition-all">
-                    <option value="" disabled {% if not request.GET.service %}selected{% endif %}>-- Choose a Service --</option>
-                    
-                    {% for service in services %}
-                        <option value="{{ service.id }}" {% if request.GET.service == service.id|stringformat:"s" %}selected{% endif %}>
-                            {{ service.name }} - ₹{{ service.price_per_1000 }}/1k
-                        </option>
-                    {% endfor %}
-                </select>
-            </div>
-
-            <div>
-                <label class="text-gray-300 text-sm font-semibold ml-1">Target Link</label>
-                <input type="url" name="link" required placeholder="Paste YouTube/Insta link here..." class="neon-input w-full mt-1 p-3 rounded-xl transition-all">
-            </div>
-
-            <div>
-                <label class="text-gray-300 text-sm font-semibold ml-1">Quantity</label>
-                <input type="number" name="quantity" required placeholder="E.g., 100" class="neon-input w-full mt-1 p-3 rounded-xl transition-all">
-            </div>
-
-            <button type="submit" class="w-full py-3 mt-4 bg-gradient-to-r from-[#00d2ff] to-[#3a7bd5] text-white font-bold rounded-xl hover:scale-105 transition-transform shadow-[0_0_15px_rgba(0,210,255,0.4)]">
-                Launch Bots 🚀
-            </button>
-        </form>
-
+    <div class="bg-slate-900 text-white py-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h1 class="text-2xl md:text-3xl font-poppins font-bold">Create New Order 🛒</h1>
+            <p class="text-slate-400 mt-2 text-sm">Boost your social media presence in just a few clicks.</p>
+        </div>
     </div>
-</div>
-{% endblock %}
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="p-4 mb-4 rounded-xl text-sm font-semibold shadow-sm {% if message.tags == 'error' %}bg-red-50 text-red-600 border border-red-200{% else %}bg-green-50 text-green-600 border border-green-200{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            <div class="lg:col-span-2">
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 md:p-8">
+                    <form method="POST" action="{% url 'new_order' %}">
+                        {% csrf_token %}
+                        
+                        <div class="mb-6">
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">Category & Service <span class="text-red-500">*</span></label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <i class="fa-solid fa-layer-group text-slate-400"></i>
+                                </div>
+                                <select name="service" id="serviceSelect" onchange="calculateCharge()" required class="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all appearance-none text-slate-700">
+                                    <option value="" data-price="0" disabled selected>-- Select a Premium Service --</option>
+                                    {% for service in services %}
+                                        <option value="{{ service.id }}" data-price="{{ service.price_per_1000 }}">
+                                            ID: {{ service.id }} - {{ service.name }} (₹{{ service.price_per_1000 }}/1000)
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                    <i class="fa-solid fa-chevron-down text-slate-400 text-sm"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-6">
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">Target Link <span class="text-red-500">*</span></label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <i class="fa-solid fa-link text-slate-400"></i>
+                                </div>
+                                <input type="url" name="link" placeholder="e.g. https://www.youtube.com/channel/UC..." required class="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all">
+                            </div>
+                            <p class="text-xs text-slate-500 mt-2"><i class="fa-solid fa-circle-info mr-1"></i> Make sure your account/post is public.</p>
+                        </div>
+
+                        <div class="mb-8">
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">Quantity <span class="text-red-500">*</span></label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <i class="fa-solid fa-hashtag text-slate-400"></i>
+                                </div>
+                                <input type="number" name="quantity" id="quantityInput" onkeyup="calculateCharge()" onchange="calculateCharge()" min="10" placeholder="Minimum: 10" required class="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all">
+                            </div>
+                        </div>
+
+                        <div class="bg-blue-50 rounded-xl p-6 mb-8 border border-blue-100 flex justify-between items-center">
+                            <div>
+                                <h3 class="text-sm font-bold text-blue-800 uppercase tracking-wider">Total Charge</h3>
+                                <p class="text-xs text-blue-600 mt-1">Calculated automatically</p>
+                            </div>
+                            <div class="text-3xl font-black text-blue-700" id="chargeDisplay">
+                                ₹ 0.00
+                            </div>
+                        </div>
+
+                        <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold text-lg py-4 rounded-xl hover:shadow-lg hover:shadow-blue-500/30 hover:-translate-y-0.5 transition-all duration-300">
+                            <i class="fa-solid fa-paper-plane mr-2"></i> Place Order
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="space-y-6">
+                <div class="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-6 text-white shadow-lg relative overflow-hidden">
+                    <div class="absolute top-0 right-0 p-4 opacity-10 text-6xl">
+                        <i class="fa-solid fa-wallet"></i>
+                    </div>
+                    <p class="text-slate-400 text-sm font-medium mb-1">Current Balance</p>
+                    <h2 class="text-3xl font-poppins font-bold mb-4">₹ {{ user.wallet_balance|floatformat:2 }}</h2>
+                    <a href="{% url 'add_funds' %}" class="block w-full text-center bg-white/10 hover:bg-white/20 border border-white/20 text-white font-semibold py-2.5 rounded-lg transition-colors text-sm backdrop-blur-sm">
+                        <i class="fa-solid fa-plus mr-1"></i> Add Funds
+                    </a>
+                </div>
+
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+                    <h3 class="font-poppins font-bold text-slate-800 mb-4 border-b border-slate-100 pb-3">📌 Order Guidelines</h3>
+                    <ul class="space-y-4 text-sm text-slate-600">
+                        <li class="flex items-start gap-3">
+                            <i class="fa-solid fa-unlock text-green-500 mt-1"></i>
+                            <span>Your account must be <strong>Public</strong>. Private accounts will not receive followers/likes.</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <i class="fa-solid fa-ban text-red-500 mt-1"></i>
+                            <span>Do not place two orders for the same link at the same time. Wait for the first to Complete.</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <i class="fa-solid fa-clock text-blue-500 mt-1"></i>
+                            <span>Orders usually start instantly but can take up to 24 hours depending on the server load.</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="md:hidden fixed bottom-0 left-0 w-full bg-white border-t border-slate-200 px-6 py-3 flex justify-between items-center shadow-[0_-5px_15px_rgba(0,0,0,0.05)] z-50 rounded-t-xl">
+        <a href="{% url 'home' %}" class="flex flex-col items-center text-slate-400 hover:text-blue-600 transition">
+            <i class="fa-solid fa-house text-xl mb-1"></i><span class="text-[10px] font-semibold">Home</span>
+        </a>
+        <a href="{% url 'services' %}" class="flex flex-col items-center text-slate-400 hover:text-blue-600 transition">
+            <i class="fa-solid fa-list-ul text-xl mb-1"></i><span class="text-[10px] font-semibold">Services</span>
+        </a>
+        
+        <a href="{% url 'new_order' %}" class="relative -top-5 bg-gradient-to-r from-blue-600 to-purple-600 text-white w-14 h-14 rounded-full flex items-center justify-center shadow-lg shadow-blue-500/30 hover:scale-105 transition-transform">
+            <i class="fa-solid fa-plus text-2xl"></i>
+        </a>
+        
+        <a href="{% url 'add_funds' %}" class="flex flex-col items-center text-slate-400 hover:text-slate-700 transition">
+            <i class="fa-solid fa-wallet text-xl mb-1"></i><span class="text-[10px] font-semibold">Funds</span>
+        </a>
+        <a href="{% url 'orders' %}" class="flex flex-col items-center text-slate-400 hover:text-slate-700 transition">
+            <i class="fa-solid fa-user text-xl mb-1"></i><span class="text-[10px] font-semibold">Account</span>
+        </a>
+    </div>
+
+    <script>
+        function calculateCharge() {
+            const selectElement = document.getElementById("serviceSelect");
+            const quantityInput = document.getElementById("quantityInput").value;
+            const chargeDisplay = document.getElementById("chargeDisplay");
+
+            // Get selected option
+            const selectedOption = selectElement.options[selectElement.selectedIndex];
+            
+            // Get price from data-price attribute
+            const pricePer1000 = parseFloat(selectedOption.getAttribute("data-price"));
+            const quantity = parseInt(quantityInput);
+
+            // Calculate total charge
+            if (!isNaN(pricePer1000) && !isNaN(quantity) && quantity > 0) {
+                const totalCharge = (pricePer1000 / 1000) * quantity;
+                chargeDisplay.innerHTML = "₹ " + totalCharge.toFixed(2);
+            } else {
+                chargeDisplay.innerHTML = "₹ 0.00";
+            }
+        }
+    </script>
+</body>
+                                                                                                        </html>
+                        
