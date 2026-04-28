@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FAQ - NextGen</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; padding-bottom: 90px; }
+        .font-poppins { font-family: 'Poppins', sans-serif; }
+        .faq-answer { transition: max-height 0.3s ease-out, padding 0.3s ease; max-height: 0; overflow: hidden; }
+        .faq-item.active .faq-answer { max-height: 200px; padding-top: 12px; }
+        .faq-item.active .faq-icon { transform: rotate(180deg); color: #2563eb; }
+        .faq-icon { transition: transform 0.3s ease, color 0.3s ease; }
+    </style>
+</head>
+<body class="antialiased">
+    <header class="flex items-center px-6 py-4 bg-white/80 backdrop-blur-md sticky top-0 z-40 border-b border-slate-100">
+        <a href="{% url 'home' %}" class="w-8 h-8 flex items-center justify-center bg-slate-100 rounded-full text-slate-600 hover:bg-slate-200 transition active:scale-95"><i class="fa-solid fa-arrow-left"></i></a>
+        <h1 class="ml-4 font-poppins font-bold text-lg text-slate-800">FAQ</h1>
+    </header>
+
+    <div class="px-6 py-6">
+        <div class="relative mb-6">
+            <i class="fa-solid fa-search absolute left-4 top-3.5 text-slate-400"></i>
+            <input type="text" id="faqSearch" onkeyup="filterFAQ()" placeholder="Search questions..." class="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-2xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
+        </div>
+
+        <div class="space-y-3" id="faqContainer">
+            <div class="faq-item bg-white rounded-2xl shadow-sm border border-slate-100 p-4 cursor-pointer" onclick="toggleFaq(this)">
+                <div class="flex justify-between items-center">
+                    <h3 class="font-bold text-sm text-slate-800 faq-question">How long does delivery take?</h3>
+                    <i class="fa-solid fa-chevron-down faq-icon text-slate-400 text-sm"></i>
+                </div>
+                <div class="faq-answer">
+                    <p class="text-xs text-slate-500">Most services start instantly. Full delivery usually takes between 5 to 30 minutes depending on the server load.</p>
+                </div>
+            </div>
+
+            <div class="faq-item bg-white rounded-2xl shadow-sm border border-slate-100 p-4 cursor-pointer" onclick="toggleFaq(this)">
+                <div class="flex justify-between items-center">
+                    <h3 class="font-bold text-sm text-slate-800 faq-question">Is it safe for my account?</h3>
+                    <i class="fa-solid fa-chevron-down faq-icon text-slate-400 text-sm"></i>
+                </div>
+                <div class="faq-answer">
+                    <p class="text-xs text-slate-500">Yes! It is 100% safe. We never ask for your password. We only need your public link to deliver the service.</p>
+                </div>
+            </div>
+
+            <div class="faq-item bg-white rounded-2xl shadow-sm border border-slate-100 p-4 cursor-pointer" onclick="toggleFaq(this)">
+                <div class="flex justify-between items-center">
+                    <h3 class="font-bold text-sm text-slate-800 faq-question">How do Diamonds work?</h3>
+                    <i class="fa-solid fa-chevron-down faq-icon text-slate-400 text-sm"></i>
+                </div>
+                <div class="faq-answer">
+                    <p class="text-xs text-slate-500">For every ₹1 spent by your referred friends, you get 5 💎. You can redeem 50 💎 for ₹1 real wallet balance!</p>
+                </div>
+            </div>
+            
+            <div class="faq-item bg-white rounded-2xl shadow-sm border border-slate-100 p-4 cursor-pointer" onclick="toggleFaq(this)">
+                <div class="flex justify-between items-center">
+                    <h3 class="font-bold text-sm text-slate-800 faq-question">My order is pending?</h3>
+                    <i class="fa-solid fa-chevron-down faq-icon text-slate-400 text-sm"></i>
+                </div>
+                <div class="faq-answer">
+                    <p class="text-xs text-slate-500">Do not worry. Sometimes servers are overloaded. If it stays pending for more than 24 hours, contact Support.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Accordion Animation
+        function toggleFaq(element) {
+            // Close all others first (Optional: if you want only 1 open at a time)
+            document.querySelectorAll('.faq-item').forEach(item => {
+                if(item !== element) item.classList.remove('active');
+            });
+            // Toggle current
+            element.classList.toggle('active');
+        }
+
+        // Live Search
+        function filterFAQ() {
+            let input = document.getElementById('faqSearch').value.toLowerCase();
+            let items = document.querySelectorAll('.faq-item');
+            
+            items.forEach(item => {
+                let question = item.querySelector('.faq-question').innerText.toLowerCase();
+                if (question.includes(input)) {
+                    item.style.display = "";
+                } else {
+                    item.style.display = "none";
+                }
+            });
+        }
+    </script>
+</body>
+  </html>
+      
