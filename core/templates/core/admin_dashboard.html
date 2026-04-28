@@ -3,174 +3,239 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Panel - NextGen SMM</title>
-    
+    <title>Admin Command Center</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
     <style>
-        body { font-family: 'Inter', sans-serif; }
-        /* Custom Scrollbar for Sidebar */
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 10px; }
+        body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; }
+        .font-poppins { font-family: 'Poppins', sans-serif; }
+        /* Smooth transition for sidebar */
+        .sidebar-transition { transition: transform 0.3s ease-in-out; }
     </style>
 </head>
-<body class="bg-slate-50 flex h-screen overflow-hidden antialiased">
+<body class="antialiased overflow-x-hidden">
 
-    <aside class="w-64 bg-slate-900 text-slate-300 flex flex-col shadow-2xl transition-all duration-300 z-20">
-        <div class="h-16 flex items-center px-6 border-b border-slate-800 bg-slate-950">
-            <i class="fa-solid fa-bolt text-blue-500 text-xl mr-3"></i>
-            <span class="text-white font-bold text-lg tracking-wide">NextGen Admin</span>
+    <div id="global-loader" class="fixed inset-0 bg-slate-900/90 backdrop-blur-sm z-[9999] hidden flex-col items-center justify-center">
+        <div class="relative w-20 h-20 flex items-center justify-center mb-4">
+            <div class="absolute inset-0 border-4 border-blue-500/20 rounded-full"></div>
+            <div class="absolute inset-0 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+            <i class="fa-solid fa-bolt text-blue-400 text-2xl animate-pulse"></i>
+        </div>
+        <h2 class="text-white font-poppins font-black text-xl tracking-widest animate-pulse">PROCESSING...</h2>
+        <p class="text-blue-300 text-xs mt-2">Connecting to secure server</p>
+    </div>
+
+    <div id="sidebar-overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black/50 z-40 hidden lg:hidden backdrop-blur-sm"></div>
+
+    <aside id="sidebar" class="fixed inset-y-0 left-0 w-64 bg-slate-900 text-slate-300 z-50 transform -translate-x-full lg:translate-x-0 sidebar-transition flex flex-col shadow-2xl">
+        <div class="flex items-center justify-between h-20 px-6 border-b border-white/10">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white"><i class="fa-solid fa-shield-halved"></i></div>
+                <span class="font-poppins font-bold text-lg text-white">Admin Panel</span>
+            </div>
+            <button onclick="toggleSidebar()" class="lg:hidden text-slate-400 hover:text-white text-xl active:scale-95 transition">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
         </div>
 
-        <nav class="flex-1 overflow-y-auto py-4 px-3 space-y-1">
-            <a href="#" class="flex items-center px-3 py-2.5 bg-blue-600/10 text-blue-500 rounded-lg font-semibold border-l-4 border-blue-500 transition-colors">
-                <i class="fa-solid fa-chart-pie w-6"></i> Dashboard
-            </a>
-            <a href="#" class="flex items-center px-3 py-2.5 hover:bg-slate-800 hover:text-white rounded-lg font-medium transition-colors">
-                <i class="fa-solid fa-users w-6"></i> Manage Users
-            </a>
-            <a href="#" class="flex items-center px-3 py-2.5 hover:bg-slate-800 hover:text-white rounded-lg font-medium transition-colors">
-                <i class="fa-solid fa-list-ul w-6"></i> Services
-            </a>
-            <a href="#" class="flex items-center px-3 py-2.5 hover:bg-slate-800 hover:text-white rounded-lg font-medium transition-colors">
-                <i class="fa-solid fa-robot w-6"></i> Bot Engines
-                <span class="ml-auto bg-blue-600 text-white text-[10px] px-2 py-0.5 rounded-full">{{ active_bots }}</span>
-            </a>
-            <a href="#" class="flex items-center px-3 py-2.5 hover:bg-slate-800 hover:text-white rounded-lg font-medium transition-colors">
-                <i class="fa-solid fa-wallet w-6"></i> Payments
+        <nav class="flex-1 overflow-y-auto py-6 px-4 space-y-2">
+            <a href="{% url 'custom_admin' %}" class="flex items-center gap-3 px-4 py-3 bg-blue-600 text-white rounded-xl shadow-lg shadow-blue-600/20 transition group loader-trigger">
+                <i class="fa-solid fa-chart-pie w-5 text-center"></i>
+                <span class="font-bold text-sm">Dashboard</span>
             </a>
             
-            <div class="pt-4 mt-4 border-t border-slate-800">
-                <p class="px-3 text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">System</p>
-                <a href="#" class="flex items-center px-3 py-2.5 hover:bg-slate-800 hover:text-white rounded-lg font-medium transition-colors">
-                    <i class="fa-solid fa-gear w-6"></i> Settings
-                </a>
-            </div>
+            <a href="{% url 'admin_users' %}" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 hover:text-white transition group loader-trigger">
+                <i class="fa-solid fa-users w-5 text-center text-slate-500 group-hover:text-blue-400 transition"></i>
+                <span class="font-bold text-sm">Manage Users</span>
+            </a>
+            <a href="{% url 'admin_services' %}" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 hover:text-white transition group loader-trigger">
+                <i class="fa-solid fa-box-open w-5 text-center text-slate-500 group-hover:text-purple-400 transition"></i>
+                <span class="font-bold text-sm">Services</span>
+            </a>
+            <a href="{% url 'admin_payments' %}" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 hover:text-white transition group loader-trigger">
+                <i class="fa-solid fa-wallet w-5 text-center text-slate-500 group-hover:text-green-400 transition"></i>
+                <span class="font-bold text-sm">Payments</span>
+            </a>
+            <a href="{% url 'admin_bots' %}" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 hover:text-white transition group loader-trigger">
+                <i class="fa-solid fa-robot w-5 text-center text-slate-500 group-hover:text-orange-400 transition"></i>
+                <span class="font-bold text-sm">Bot Engines</span>
+            </a>
         </nav>
-        
-        <div class="p-4 border-t border-slate-800 bg-slate-950 flex items-center gap-3">
-            <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold">A</div>
-            <div class="flex-1">
-                <p class="text-sm font-bold text-white">Admin</p>
-                <p class="text-xs text-slate-500">Superuser</p>
-            </div>
-            <a href="{% url 'logout' %}" class="text-slate-400 hover:text-red-400"><i class="fa-solid fa-right-from-bracket"></i></a>
+
+        <div class="p-4 border-t border-white/10 space-y-2">
+            <a href="#" onclick="alert('Settings page coming soon!')" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 hover:text-white transition">
+                <i class="fa-solid fa-gear w-5 text-center text-slate-500"></i>
+                <span class="font-bold text-sm">Settings</span>
+            </a>
+            <a href="{% url 'logout' %}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-red-400 hover:bg-red-500/10 transition loader-trigger">
+                <i class="fa-solid fa-right-from-bracket w-5 text-center"></i>
+                <span class="font-bold text-sm">Logout</span>
+            </a>
         </div>
     </aside>
 
-    <div class="flex-1 flex flex-col overflow-hidden">
+    <div class="lg:pl-64 flex flex-col min-h-screen transition-all duration-300">
         
-        <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 z-10">
-            <div class="relative w-96 hidden md:block">
-                <i class="fa-solid fa-search absolute left-3 top-2.5 text-slate-400 text-sm"></i>
-                <input type="text" placeholder="Search orders, users, or bots (Press '/')" class="w-full pl-9 pr-4 py-2 bg-slate-100 border-none rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition-all">
-            </div>
-
+        <header class="bg-white h-20 px-6 flex items-center justify-between shadow-sm sticky top-0 z-30">
             <div class="flex items-center gap-4">
-                <button class="relative text-slate-400 hover:text-slate-600 transition">
-                    <i class="fa-regular fa-bell text-xl"></i>
-                    <span class="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></span>
+                <button onclick="toggleSidebar()" class="lg:hidden w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center text-slate-600 hover:bg-slate-200 transition active:scale-95">
+                    <i class="fa-solid fa-bars text-lg"></i>
                 </button>
-                <button class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition shadow-sm shadow-blue-500/30 flex items-center gap-2">
-                    <i class="fa-solid fa-plus"></i> Quick Action
-                </button>
+                <h1 class="font-poppins font-bold text-xl text-slate-800">Overview</h1>
+            </div>
+            
+            <div class="flex items-center gap-3">
+                <div class="text-right hidden sm:block">
+                    <p class="text-xs font-bold text-slate-800">Admin_Root</p>
+                    <p class="text-[10px] text-green-500 font-bold uppercase tracking-widest"><i class="fa-solid fa-circle text-[8px]"></i> Online</p>
+                </div>
+                <div class="w-10 h-10 bg-slate-900 rounded-full flex items-center justify-center text-white border-2 border-white shadow-md">
+                    <i class="fa-solid fa-user-tie"></i>
+                </div>
             </div>
         </header>
 
-        <main class="flex-1 overflow-y-auto bg-slate-50 p-6 md:p-8">
+        <main class="flex-1 p-6">
             
-            <div class="flex justify-between items-end mb-6">
-                <div>
-                    <h1 class="text-2xl font-bold text-slate-800">Dashboard Overview</h1>
-                    <p class="text-sm text-slate-500 mt-1">Welcome back! Here is what's happening today.</p>
+            {% if messages %}
+                <div class="mb-6 space-y-3" id="alert-box">
+                    {% for message in messages %}
+                        <div class="px-5 py-4 rounded-2xl shadow-sm border flex justify-between items-center animate-bounce-short
+                            {% if message.tags == 'error' %}bg-red-50 text-red-600 border-red-100
+                            {% elif message.tags == 'success' %}bg-green-50 text-green-600 border-green-100
+                            {% else %}bg-blue-50 text-blue-600 border-blue-100{% endif %}">
+                            <div class="flex items-center gap-3">
+                                <i class="fa-solid {% if message.tags == 'error' %}fa-triangle-exclamation{% else %}fa-circle-check{% endif %} text-lg"></i>
+                                <span class="font-bold text-sm">{{ message }}</span>
+                            </div>
+                            <button onclick="this.parentElement.style.display='none'" class="opacity-50 hover:opacity-100 transition"><i class="fa-solid fa-xmark"></i></button>
+                        </div>
+                    {% endfor %}
                 </div>
-            </div>
+            {% endif %}
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                <div class="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all">
-                    <div class="flex justify-between items-start mb-4">
-                        <div class="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center text-lg"><i class="fa-solid fa-users"></i></div>
-                        <span class="text-xs font-bold text-green-500 bg-green-50 px-2 py-1 rounded-md">+12%</span>
+                <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex items-center gap-5 hover:-translate-y-1 transition duration-300">
+                    <div class="w-14 h-14 bg-blue-50 text-blue-500 rounded-2xl flex items-center justify-center text-2xl"><i class="fa-solid fa-users"></i></div>
+                    <div>
+                        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Users</p>
+                        <h3 class="text-2xl font-black font-poppins text-slate-800">{{ total_users }}</h3>
                     </div>
-                    <p class="text-slate-500 text-sm font-medium">Total Users</p>
-                    <h3 class="text-2xl font-bold text-slate-800 mt-1">{{ total_users }}</h3>
                 </div>
-                <div class="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all">
-                    <div class="flex justify-between items-start mb-4">
-                        <div class="w-10 h-10 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center text-lg"><i class="fa-solid fa-robot"></i></div>
-                        <span class="text-xs font-bold text-blue-500 bg-blue-50 px-2 py-1 rounded-md">Live</span>
+                <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex items-center gap-5 hover:-translate-y-1 transition duration-300">
+                    <div class="w-14 h-14 bg-green-50 text-green-500 rounded-2xl flex items-center justify-center text-2xl"><i class="fa-solid fa-money-bill-trend-up"></i></div>
+                    <div>
+                        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Revenue</p>
+                        <h3 class="text-2xl font-black font-poppins text-slate-800">₹{{ total_revenue|floatformat:2 }}</h3>
                     </div>
-                    <p class="text-slate-500 text-sm font-medium">Active Bots</p>
-                    <h3 class="text-2xl font-bold text-slate-800 mt-1">{{ active_bots }}</h3>
                 </div>
-                <div class="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all">
-                    <div class="flex justify-between items-start mb-4">
-                        <div class="w-10 h-10 bg-orange-50 text-orange-600 rounded-xl flex items-center justify-center text-lg"><i class="fa-solid fa-cart-shopping"></i></div>
+                <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex items-center gap-5 hover:-translate-y-1 transition duration-300">
+                    <div class="w-14 h-14 bg-purple-50 text-purple-500 rounded-2xl flex items-center justify-center text-2xl"><i class="fa-solid fa-cart-shopping"></i></div>
+                    <div>
+                        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Orders Today</p>
+                        <h3 class="text-2xl font-black font-poppins text-slate-800">{{ orders_today }}</h3>
                     </div>
-                    <p class="text-slate-500 text-sm font-medium">Orders Today</p>
-                    <h3 class="text-2xl font-bold text-slate-800 mt-1">{{ orders_today }}</h3>
                 </div>
-                <div class="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-6 shadow-lg shadow-slate-900/20 hover:-translate-y-1 transition-all text-white relative overflow-hidden">
-                    <div class="absolute -right-4 -bottom-4 opacity-10 text-7xl"><i class="fa-solid fa-chart-line"></i></div>
-                    <div class="flex justify-between items-start mb-4 relative z-10">
-                        <div class="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center text-lg"><i class="fa-solid fa-indian-rupee-sign"></i></div>
+                <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex items-center gap-5 hover:-translate-y-1 transition duration-300">
+                    <div class="w-14 h-14 bg-orange-50 text-orange-500 rounded-2xl flex items-center justify-center text-2xl"><i class="fa-solid fa-robot"></i></div>
+                    <div>
+                        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Active Bots</p>
+                        <h3 class="text-2xl font-black font-poppins text-slate-800">{{ active_bots }}</h3>
                     </div>
-                    <p class="text-slate-400 text-sm font-medium relative z-10">Total Revenue</p>
-                    <h3 class="text-2xl font-bold mt-1 relative z-10">₹{{ total_revenue|floatformat:2 }}</h3>
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                
-                <div class="lg:col-span-2 bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
-                    <h3 class="text-lg font-bold text-slate-800 mb-4">Growth Overview</h3>
-                    <div class="h-64 w-full bg-slate-50 rounded-xl border border-slate-100 border-dashed flex items-center justify-center text-slate-400 flex-col">
-                        <i class="fa-solid fa-chart-area text-4xl mb-2 text-slate-300"></i>
-                        <span class="text-sm">Chart.js Implementation goes here</span>
-                    </div>
+            <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
+                <div class="px-6 py-5 border-b border-slate-100 flex justify-between items-center">
+                    <h3 class="font-poppins font-bold text-slate-800">Recent Activity</h3>
+                    <button class="text-xs font-bold text-blue-600 hover:underline">View All</button>
                 </div>
-
-                <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-0 overflow-hidden flex flex-col">
-                    <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-white">
-                        <h3 class="text-lg font-bold text-slate-800">Recent Activity</h3>
-                        <a href="#" class="text-sm font-semibold text-blue-600 hover:underline">View All</a>
-                    </div>
-                    
-                    <div class="flex-1 overflow-y-auto">
-                        <ul class="divide-y divide-slate-100">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-50 text-slate-400 text-[10px] uppercase tracking-wider font-bold">
+                                <th class="px-6 py-4">ID</th>
+                                <th class="px-6 py-4">User</th>
+                                <th class="px-6 py-4">Service</th>
+                                <th class="px-6 py-4">Amount</th>
+                                <th class="px-6 py-4">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-sm font-medium text-slate-700">
                             {% for order in recent_orders %}
-                            <li class="p-4 hover:bg-slate-50 transition flex items-center gap-4">
-                                <div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 flex-shrink-0">
-                                    <i class="fa-solid fa-user"></i>
-                                </div>
-                                <div class="flex-1 min-w-0">
-                                    <p class="text-sm font-bold text-slate-800 truncate">{{ order.user.username }}</p>
-                                    <p class="text-xs text-slate-500 truncate">Ordered {{ order.service.name }}</p>
-                                </div>
-                                <div class="text-right">
-                                    <p class="text-sm font-bold text-slate-800">₹{{ order.charge|floatformat:0 }}</p>
-                                    {% if order.status == 'Pending' %}
-                                        <span class="text-[10px] font-bold text-yellow-600 bg-yellow-100 px-2 py-0.5 rounded-md">Pending</span>
-                                    {% elif order.status == 'Completed' %}
-                                        <span class="text-[10px] font-bold text-green-600 bg-green-100 px-2 py-0.5 rounded-md">Done</span>
+                            <tr class="border-b border-slate-50 hover:bg-slate-50/50 transition">
+                                <td class="px-6 py-4 text-slate-400">#{{ order.id }}</td>
+                                <td class="px-6 py-4 flex items-center gap-2">
+                                    <div class="w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-[10px]"><i class="fa-solid fa-user"></i></div>
+                                    @{{ order.user.username }}
+                                </td>
+                                <td class="px-6 py-4 truncate max-w-[150px]">{{ order.service.name }}</td>
+                                <td class="px-6 py-4 text-green-600 font-bold">₹{{ order.charge }}</td>
+                                <td class="px-6 py-4">
+                                    {% if order.status == 'Completed' %}
+                                        <span class="bg-green-100 text-green-600 px-2 py-1 rounded text-[10px] font-bold uppercase tracking-widest">Completed</span>
                                     {% else %}
-                                        <span class="text-[10px] font-bold text-blue-600 bg-blue-100 px-2 py-0.5 rounded-md">{{ order.status }}</span>
+                                        <span class="bg-yellow-100 text-yellow-600 px-2 py-1 rounded text-[10px] font-bold uppercase tracking-widest">Pending</span>
                                     {% endif %}
-                                </div>
-                            </li>
+                                </td>
+                            </tr>
                             {% empty %}
-                            <li class="p-8 text-center text-slate-400 text-sm">No recent activity.</li>
+                            <tr><td colspan="5" class="px-6 py-8 text-center text-slate-400">No recent orders found.</td></tr>
                             {% endfor %}
-                        </ul>
-                    </div>
+                        </tbody>
+                    </table>
                 </div>
-
             </div>
         </main>
     </div>
 
+    <script>
+        // 1. Sidebar Toggle Logic
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            
+            // Toggle translate class
+            if (sidebar.classList.contains('-translate-x-full')) {
+                sidebar.classList.remove('-translate-x-full');
+                overlay.classList.remove('hidden');
+            } else {
+                sidebar.classList.add('-translate-x-full');
+                overlay.classList.add('hidden');
+            }
+        }
+
+        // 2. Global Loading System (Shows when clicking menu links)
+        document.querySelectorAll('.loader-trigger').forEach(link => {
+            link.addEventListener('click', function(e) {
+                // Remove hidden, add flex to show the full-screen loader
+                document.getElementById('global-loader').classList.remove('hidden');
+                document.getElementById('global-loader').classList.add('flex');
+            });
+        });
+
+        // Fail-safe: Hide loader when page finishes loading (in case user clicks Back button)
+        window.addEventListener('pageshow', function() {
+            document.getElementById('global-loader').classList.add('hidden');
+            document.getElementById('global-loader').classList.remove('flex');
+        });
+
+        // 3. Auto-hide Alert Messages after 5 seconds
+        setTimeout(() => {
+            const alertBox = document.getElementById('alert-box');
+            if (alertBox) {
+                alertBox.style.opacity = '0';
+                alertBox.style.transition = 'opacity 0.5s ease';
+                setTimeout(() => alertBox.remove(), 500);
+            }
+        }, 5000);
+    </script>
+
+    <style>
+        .animate-bounce-short { animation: slideDown 0.4s ease-out; }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
 </body>
-              </html>
-              
+                                                                                                                                                                       </html>
+                        
