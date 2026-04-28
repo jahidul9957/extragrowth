@@ -1,21 +1,169 @@
-{% extends 'core/base.html' %}
-{% block content %}
-<div class="text-center mb-8">
-    <h2 class="text-3xl font-bold text-white">Our Services</h2>
-</div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Our Services - NextGen SMM</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-    {% for service in services %}
-    <div class="bg-white/5 backdrop-blur-md border border-[#00ffcc]/20 rounded-2xl p-5 shadow-lg relative overflow-hidden transition hover:scale-105 hover:border-[#00ffcc]">
-        <div class="absolute -top-5 -right-5 w-16 h-16 bg-blue-500 rounded-full mix-blend-screen filter blur-2xl opacity-40"></div>
-        <span class="bg-[#00ffcc]/20 text-[#00ffcc] text-xs font-bold px-2 py-1 rounded-md">{{ service.category }}</span>
-        <h3 class="text-lg font-bold text-white mt-3">{{ service.name }}</h3>
-        <p class="text-gray-400 text-sm mt-1">Min: {{ service.min_order }} | Max: {{ service.max_order }}</p>
-        <div class="mt-4 flex justify-between items-center">
-            <span class="text-xl font-extrabold text-[#00ffcc]">₹{{ service.price_per_1000 }}<span class="text-xs text-gray-400">/1k</span></span>
-            <a href="{% url 'new_order' %}?service={{ service.id }}" class="px-4 py-2 bg-gradient-to-r from-[#00d2ff] to-[#3a7bd5] rounded-lg text-white font-bold text-sm shadow-md">Order Now</a>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; padding-bottom: 70px; }
+        @media (min-width: 768px) { body { padding-bottom: 0; } }
+        h1, h2, h3, .font-poppins { font-family: 'Poppins', sans-serif; }
+    </style>
+</head>
+<body class="text-slate-800 antialiased">
+
+    <nav class="sticky top-0 z-50 bg-white/90 backdrop-blur-md shadow-sm border-b border-slate-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <a href="{% url 'home' %}" class="flex-shrink-0 flex items-center gap-2 cursor-pointer">
+                    <i class="fa-solid fa-rocket text-blue-600 text-2xl"></i>
+                    <span class="font-poppins font-bold text-xl tracking-tight text-slate-900">NextGen<span class="text-blue-600">SMM</span></span>
+                </a>
+                
+                <div class="hidden md:flex space-x-8 items-center font-medium text-slate-600">
+                    <a href="{% url 'home' %}" class="hover:text-blue-600 transition">Home</a>
+                    <a href="{% url 'services' %}" class="text-blue-600 transition">Services</a>
+                    
+                    {% if user.is_authenticated %}
+                        <div class="flex items-center gap-4 border-l pl-6 border-slate-200">
+                            <span class="text-sm bg-slate-100 py-1 px-3 rounded-full text-slate-700 font-semibold">₹ {{ user.wallet_balance|floatformat:2 }}</span>
+                            <a href="{% url 'logout' %}" class="text-red-500 hover:text-red-600 transition"><i class="fa-solid fa-right-from-bracket"></i></a>
+                        </div>
+                    {% else %}
+                        <div class="flex items-center gap-4 border-l pl-6 border-slate-200">
+                            <a href="{% url 'login' %}" class="hover:text-blue-600 transition">Login</a>
+                            <a href="{% url 'register' %}" class="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 transition">Sign Up</a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="bg-slate-900 text-white py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center md:text-left">
+            <h1 class="text-3xl md:text-4xl font-poppins font-bold mb-3">Premium Services 🔥</h1>
+            <p class="text-slate-400 max-w-2xl">High-quality, fast, and secure social media growth services. Choose the best package for your needs.</p>
         </div>
     </div>
-    {% endfor %}
-</div>
-{% endblock %}
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-6 relative z-10">
+        <div class="bg-white rounded-xl shadow-lg shadow-slate-200/50 p-4 flex flex-col md:flex-row gap-4 border border-slate-100 items-center">
+            
+            <div class="relative w-full md:w-1/2">
+                <i class="fa-solid fa-search absolute left-4 top-3.5 text-slate-400"></i>
+                <input type="text" id="searchInput" onkeyup="filterServices()" placeholder="Search for a service... (e.g. YouTube)" class="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all">
+            </div>
+
+            <div class="w-full md:w-1/4">
+                <select class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-600">
+                    <option value="all">All Platforms</option>
+                    <option value="youtube">▶️ YouTube</option>
+                    <option value="instagram">📸 Instagram</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="servicesGrid">
+            
+            {% for service in services %}
+            <div class="service-card bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden flex flex-col">
+                <div class="bg-slate-50 px-6 py-4 border-b border-slate-100 flex justify-between items-center">
+                    <span class="text-xs font-bold text-blue-600 bg-blue-100 px-2 py-1 rounded">ID: {{ service.id }}</span>
+                    <span class="text-[10px] uppercase font-bold tracking-wider text-green-700 bg-green-100 px-2 py-1 rounded-full"><i class="fa-solid fa-bolt text-yellow-500 mr-1"></i> High Quality</span>
+                </div>
+                
+                <div class="p-6 flex-grow">
+                    <h3 class="service-name text-lg font-poppins font-bold text-slate-800 mb-2 leading-tight">{{ service.name }}</h3>
+                    
+                    <div class="flex items-baseline gap-2 mb-4">
+                        <span class="text-2xl font-black text-slate-900">₹{{ service.price_per_1000|floatformat:2 }}</span>
+                        <span class="text-sm text-slate-500">per 1000</span>
+                    </div>
+
+                    <div class="space-y-2 text-sm text-slate-600 mb-6">
+                        <div class="flex justify-between border-b border-slate-50 pb-2">
+                            <span><i class="fa-solid fa-arrow-down-short-wide text-slate-400 mr-2"></i>Min Order:</span>
+                            <span class="font-medium text-slate-800">10</span>
+                        </div>
+                        <div class="flex justify-between border-b border-slate-50 pb-2">
+                            <span><i class="fa-solid fa-arrow-up-wide-short text-slate-400 mr-2"></i>Max Order:</span>
+                            <span class="font-medium text-slate-800">100,000</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span><i class="fa-solid fa-stopwatch text-slate-400 mr-2"></i>Speed:</span>
+                            <span class="font-medium text-slate-800">Instant / Fast</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-4 pt-0">
+                    <a href="{% if user.is_authenticated %}{% url 'new_order' %}?service_id={{ service.id }}{% else %}{% url 'login' %}{% endif %}" class="block w-full text-center bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl transition-colors shadow-md shadow-blue-500/30">
+                        Order Now
+                    </a>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-span-full text-center py-12">
+                <i class="fa-solid fa-box-open text-4xl text-slate-300 mb-4"></i>
+                <h3 class="text-xl font-poppins font-semibold text-slate-500">No Services Available Yet!</h3>
+            </div>
+            {% endfor %}
+
+        </div>
+    </div>
+
+    <footer class="bg-slate-900 text-slate-400 py-12 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-xs">
+            &copy; 2026 NextGen SMM. All rights reserved.
+        </div>
+    </footer>
+
+    <div class="md:hidden fixed bottom-0 left-0 w-full bg-white border-t border-slate-200 px-6 py-3 flex justify-between items-center shadow-[0_-5px_15px_rgba(0,0,0,0.05)] z-50 rounded-t-xl">
+        <a href="{% url 'home' %}" class="flex flex-col items-center text-slate-400 hover:text-blue-600 transition">
+            <i class="fa-solid fa-house text-xl mb-1"></i>
+            <span class="text-[10px] font-semibold">Home</span>
+        </a>
+        <a href="{% url 'services' %}" class="flex flex-col items-center text-blue-600">
+            <i class="fa-solid fa-list-ul text-xl mb-1"></i>
+            <span class="text-[10px] font-semibold">Services</span>
+        </a>
+        <a href="{% if user.is_authenticated %}{% url 'new_order' %}{% else %}{% url 'login' %}{% endif %}" class="relative -top-5 bg-gradient-to-r from-blue-600 to-purple-600 text-white w-14 h-14 rounded-full flex items-center justify-center shadow-lg shadow-blue-500/30 hover:scale-105 transition-transform">
+            <i class="fa-solid fa-plus text-2xl"></i>
+        </a>
+        <a href="#" class="flex flex-col items-center text-slate-400 hover:text-slate-700 transition">
+            <i class="fa-solid fa-wallet text-xl mb-1"></i>
+            <span class="text-[10px] font-semibold">Funds</span>
+        </a>
+        <a href="{% if user.is_authenticated %}{% url 'orders' %}{% else %}{% url 'login' %}{% endif %}" class="flex flex-col items-center text-slate-400 hover:text-slate-700 transition">
+            <i class="fa-solid fa-user text-xl mb-1"></i>
+            <span class="text-[10px] font-semibold">Account</span>
+        </a>
+    </div>
+
+    <script>
+        function filterServices() {
+            let input = document.getElementById('searchInput');
+            let filter = input.value.toLowerCase();
+            let cards = document.getElementsByClassName('service-card');
+
+            for (let i = 0; i < cards.length; i++) {
+                let name = cards[i].getElementsByClassName('service-name')[0];
+                if (name.innerText.toLowerCase().includes(filter)) {
+                    cards[i].style.display = ""; // Show
+                } else {
+                    cards[i].style.display = "none"; // Hide
+                }
+            }
+        }
+    </script>
+</body>
+    </html>
+    
