@@ -1,36 +1,48 @@
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
 <script>
-    // 2. Telegram App ko initialize karein
-    const tg = window.Telegram.WebApp;
-    
-    // App ko full-screen me open karne ke liye
-    tg.expand(); 
-    
-    // 3. User ka khufiya data (Hash) nikaalein
-    const initData = tg.initData;
+    // document.addEventListener ensure karta hai ki code tabhi chale jab puri website load ho jaye
+    document.addEventListener("DOMContentLoaded", function() {
+        try {
+            const tg = window.Telegram.WebApp;
+            tg.expand(); // App ko full screen karta hai
 
-    // 4. Agar user Telegram se aaya hai, to silent login karein
-    if (initData) {
-        // Ek chhota sa loader dikha sakte hain yahan
-        document.body.innerHTML = "<h2 style='text-align:center; margin-top:50px; font-family:sans-serif;'>Authenticating... 🚀</h2>";
+            // Check karo ki user sach me Telegram ke andar hai ya nahi
+            if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+                
+                // 1. Ek premium loading screen dikhao (Taki blank screen na aaye)
+                document.body.innerHTML = `
+                    <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; background:#f8fafc; font-family: 'Inter', sans-serif;">
+                        <div style="font-size: 60px; margin-bottom: 20px; animation: bounce 2s infinite;">🚀</div>
+                        <h2 style="color:#1e293b; font-weight: bold;">Connecting NextGen...</h2>
+                        <p style="color:#64748b; font-size: 14px;">Securely logging you in</p>
+                    </div>
+                `;
 
-        fetch('/api/telegram-auth/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ initData: initData })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.status === 'success') {
-                // Login successful! Seedha Home page par le jao
-                window.location.href = data.redirect_url || '/';
-            } else {
-                alert("Auth Failed: " + data.message);
+                // 2. Backend ko data bhejo
+                fetch('/api/telegram-auth/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ initData: tg.initData })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        // Login Success -> Dashboard par jao
+                        window.location.href = data.redirect_url || '/';
+                    } else {
+                        // Agar koi error aayi (jaise Token galat hai)
+                        alert("⚠️ Auth Failed: " + data.message);
+                        window.location.reload(); 
+                    }
+                })
+                .catch(error => {
+                    alert("📡 Network Error: Backend is not responding!");
+                });
             }
-        })
-        .catch(error => console.error('Error:', error));
-    }
-</script>
+        } catch (e) {
+            console.log("Not inside Telegram, showing normal login page.");
+        }
+    });
+                    </script>
+                    
