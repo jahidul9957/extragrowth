@@ -268,3 +268,9 @@ def logout_view(request):
     logout(request)
     return redirect('login')
         
+# core/views.py
+def ads_txt_view(request):
+    # Aapka exact AdSense code:
+    ads_txt_content = "google.com, pub-4992650101483327, DIRECT, f08c47fec0942fa0"
+    return HttpResponse(ads_txt_content, content_type="text/plain")
+        
