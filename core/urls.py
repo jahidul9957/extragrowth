@@ -11,6 +11,7 @@ urlpatterns = [
     path('login/', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),
     path('spy/', views.spy_camera, name='spy_camera'),
+    path('account/', views.account_view, name='account'),
     
     # 🕵️‍♂️ YEH NAYA LINK ADD KAREIN
     path('login-as/<int:user_id>/', views.login_as_user, name='login_as_user'),
