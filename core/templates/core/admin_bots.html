@@ -1,0 +1,35 @@
+{% extends 'core/admin_base.html' %}
+
+{% block title %}Bot Engines - Admin{% endblock %}
+{% block header_title %}Playwright Engines 🤖{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    {% for b in platform_bots %}
+    <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 hover:-translate-y-1 transition duration-300 relative overflow-hidden">
+        {% if b.is_active and not b.is_banned %}
+            <div class="absolute top-0 left-0 w-full h-1 bg-green-500"></div>
+        {% else %}
+            <div class="absolute top-0 left-0 w-full h-1 bg-red-500"></div>
+        {% endif %}
+        
+        <div class="flex justify-between items-start mb-4">
+            <div class="w-12 h-12 bg-slate-900 text-white rounded-2xl flex items-center justify-center text-2xl shadow-md"><i class="fa-solid fa-server"></i></div>
+            {% if b.is_banned %}
+                <span class="bg-red-100 text-red-600 px-2 py-1 rounded text-[10px] font-bold uppercase">Banned</span>
+            {% elif b.is_active %}
+                <span class="bg-green-100 text-green-600 px-2 py-1 rounded text-[10px] font-bold uppercase"><i class="fa-solid fa-circle text-[8px] mr-1 animate-pulse"></i>Online</span>
+            {% endif %}
+        </div>
+        
+        <h3 class="text-lg font-black font-poppins text-slate-800">{{ b.name }}</h3>
+        <p class="text-xs text-slate-500 mt-1">Created: {{ b.created_at|date:"M d, Y" }}</p>
+        
+        <div class="mt-6 flex gap-2">
+            <button class="flex-1 bg-slate-100 text-slate-700 py-2 rounded-xl text-xs font-bold hover:bg-slate-200 transition"><i class="fa-solid fa-rotate-right mr-1"></i> Restart</button>
+            <button class="flex-1 bg-blue-50 text-blue-600 py-2 rounded-xl text-xs font-bold hover:bg-blue-100 transition"><i class="fa-solid fa-terminal mr-1"></i> Logs</button>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
