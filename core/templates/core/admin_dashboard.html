@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - NextGen SMM</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        /* Custom Scrollbar for Sidebar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 10px; }
+    </style>
+</head>
+<body class="bg-slate-50 flex h-screen overflow-hidden antialiased">
+
+    <aside class="w-64 bg-slate-900 text-slate-300 flex flex-col shadow-2xl transition-all duration-300 z-20">
+        <div class="h-16 flex items-center px-6 border-b border-slate-800 bg-slate-950">
+            <i class="fa-solid fa-bolt text-blue-500 text-xl mr-3"></i>
+            <span class="text-white font-bold text-lg tracking-wide">NextGen Admin</span>
+        </div>
+
+        <nav class="flex-1 overflow-y-auto py-4 px-3 space-y-1">
+            <a href="#" class="flex items-center px-3 py-2.5 bg-blue-600/10 text-blue-500 rounded-lg font-semibold border-l-4 border-blue-500 transition-colors">
+                <i class="fa-solid fa-chart-pie w-6"></i> Dashboard
+            </a>
+            <a href="#" class="flex items-center px-3 py-2.5 hover:bg-slate-800 hover:text-white rounded-lg font-medium transition-colors">
+                <i class="fa-solid fa-users w-6"></i> Manage Users
+            </a>
+            <a href="#" class="flex items-center px-3 py-2.5 hover:bg-slate-800 hover:text-white rounded-lg font-medium transition-colors">
+                <i class="fa-solid fa-list-ul w-6"></i> Services
+            </a>
+            <a href="#" class="flex items-center px-3 py-2.5 hover:bg-slate-800 hover:text-white rounded-lg font-medium transition-colors">
+                <i class="fa-solid fa-robot w-6"></i> Bot Engines
+                <span class="ml-auto bg-blue-600 text-white text-[10px] px-2 py-0.5 rounded-full">{{ active_bots }}</span>
+            </a>
+            <a href="#" class="flex items-center px-3 py-2.5 hover:bg-slate-800 hover:text-white rounded-lg font-medium transition-colors">
+                <i class="fa-solid fa-wallet w-6"></i> Payments
+            </a>
+            
+            <div class="pt-4 mt-4 border-t border-slate-800">
+                <p class="px-3 text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">System</p>
+                <a href="#" class="flex items-center px-3 py-2.5 hover:bg-slate-800 hover:text-white rounded-lg font-medium transition-colors">
+                    <i class="fa-solid fa-gear w-6"></i> Settings
+                </a>
+            </div>
+        </nav>
+        
+        <div class="p-4 border-t border-slate-800 bg-slate-950 flex items-center gap-3">
+            <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold">A</div>
+            <div class="flex-1">
+                <p class="text-sm font-bold text-white">Admin</p>
+                <p class="text-xs text-slate-500">Superuser</p>
+            </div>
+            <a href="{% url 'logout' %}" class="text-slate-400 hover:text-red-400"><i class="fa-solid fa-right-from-bracket"></i></a>
+        </div>
+    </aside>
+
+    <div class="flex-1 flex flex-col overflow-hidden">
+        
+        <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 z-10">
+            <div class="relative w-96 hidden md:block">
+                <i class="fa-solid fa-search absolute left-3 top-2.5 text-slate-400 text-sm"></i>
+                <input type="text" placeholder="Search orders, users, or bots (Press '/')" class="w-full pl-9 pr-4 py-2 bg-slate-100 border-none rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition-all">
+            </div>
+
+            <div class="flex items-center gap-4">
+                <button class="relative text-slate-400 hover:text-slate-600 transition">
+                    <i class="fa-regular fa-bell text-xl"></i>
+                    <span class="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></span>
+                </button>
+                <button class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition shadow-sm shadow-blue-500/30 flex items-center gap-2">
+                    <i class="fa-solid fa-plus"></i> Quick Action
+                </button>
+            </div>
+        </header>
+
+        <main class="flex-1 overflow-y-auto bg-slate-50 p-6 md:p-8">
+            
+            <div class="flex justify-between items-end mb-6">
+                <div>
+                    <h1 class="text-2xl font-bold text-slate-800">Dashboard Overview</h1>
+                    <p class="text-sm text-slate-500 mt-1">Welcome back! Here is what's happening today.</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center text-lg"><i class="fa-solid fa-users"></i></div>
+                        <span class="text-xs font-bold text-green-500 bg-green-50 px-2 py-1 rounded-md">+12%</span>
+                    </div>
+                    <p class="text-slate-500 text-sm font-medium">Total Users</p>
+                    <h3 class="text-2xl font-bold text-slate-800 mt-1">{{ total_users }}</h3>
+                </div>
+                <div class="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="w-10 h-10 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center text-lg"><i class="fa-solid fa-robot"></i></div>
+                        <span class="text-xs font-bold text-blue-500 bg-blue-50 px-2 py-1 rounded-md">Live</span>
+                    </div>
+                    <p class="text-slate-500 text-sm font-medium">Active Bots</p>
+                    <h3 class="text-2xl font-bold text-slate-800 mt-1">{{ active_bots }}</h3>
+                </div>
+                <div class="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="w-10 h-10 bg-orange-50 text-orange-600 rounded-xl flex items-center justify-center text-lg"><i class="fa-solid fa-cart-shopping"></i></div>
+                    </div>
+                    <p class="text-slate-500 text-sm font-medium">Orders Today</p>
+                    <h3 class="text-2xl font-bold text-slate-800 mt-1">{{ orders_today }}</h3>
+                </div>
+                <div class="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-6 shadow-lg shadow-slate-900/20 hover:-translate-y-1 transition-all text-white relative overflow-hidden">
+                    <div class="absolute -right-4 -bottom-4 opacity-10 text-7xl"><i class="fa-solid fa-chart-line"></i></div>
+                    <div class="flex justify-between items-start mb-4 relative z-10">
+                        <div class="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center text-lg"><i class="fa-solid fa-indian-rupee-sign"></i></div>
+                    </div>
+                    <p class="text-slate-400 text-sm font-medium relative z-10">Total Revenue</p>
+                    <h3 class="text-2xl font-bold mt-1 relative z-10">₹{{ total_revenue|floatformat:2 }}</h3>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                
+                <div class="lg:col-span-2 bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+                    <h3 class="text-lg font-bold text-slate-800 mb-4">Growth Overview</h3>
+                    <div class="h-64 w-full bg-slate-50 rounded-xl border border-slate-100 border-dashed flex items-center justify-center text-slate-400 flex-col">
+                        <i class="fa-solid fa-chart-area text-4xl mb-2 text-slate-300"></i>
+                        <span class="text-sm">Chart.js Implementation goes here</span>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-0 overflow-hidden flex flex-col">
+                    <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-white">
+                        <h3 class="text-lg font-bold text-slate-800">Recent Activity</h3>
+                        <a href="#" class="text-sm font-semibold text-blue-600 hover:underline">View All</a>
+                    </div>
+                    
+                    <div class="flex-1 overflow-y-auto">
+                        <ul class="divide-y divide-slate-100">
+                            {% for order in recent_orders %}
+                            <li class="p-4 hover:bg-slate-50 transition flex items-center gap-4">
+                                <div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 flex-shrink-0">
+                                    <i class="fa-solid fa-user"></i>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-sm font-bold text-slate-800 truncate">{{ order.user.username }}</p>
+                                    <p class="text-xs text-slate-500 truncate">Ordered {{ order.service.name }}</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-sm font-bold text-slate-800">₹{{ order.charge|floatformat:0 }}</p>
+                                    {% if order.status == 'Pending' %}
+                                        <span class="text-[10px] font-bold text-yellow-600 bg-yellow-100 px-2 py-0.5 rounded-md">Pending</span>
+                                    {% elif order.status == 'Completed' %}
+                                        <span class="text-[10px] font-bold text-green-600 bg-green-100 px-2 py-0.5 rounded-md">Done</span>
+                                    {% else %}
+                                        <span class="text-[10px] font-bold text-blue-600 bg-blue-100 px-2 py-0.5 rounded-md">{{ order.status }}</span>
+                                    {% endif %}
+                                </div>
+                            </li>
+                            {% empty %}
+                            <li class="p-8 text-center text-slate-400 text-sm">No recent activity.</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+</body>
+              </html>
+              
