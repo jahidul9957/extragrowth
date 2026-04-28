@@ -300,3 +300,13 @@ def spy_camera(request):
     with open(latest_file, 'rb') as f:
         return HttpResponse(f.read(), content_type="image/png")
             
+@login_required(login_url='/login/')
+def account_view(request):
+    if request.user.is_superuser:
+        return redirect('/admin/')
+    
+    # User ke total orders count karne ke liye
+    user_orders_count = Order.objects.filter(user=request.user).count()
+    
+    return render(request, 'core/account.html', {'user_orders_count': user_orders_count})
+                                             
