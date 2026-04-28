@@ -1,48 +1,101 @@
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - NextGen SMM</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        .font-poppins { font-family: 'Poppins', sans-serif; }
+        /* Telegram Loading Screen Hide/Show logic */
+        #telegram-loader { display: none; }
+        #normal-login { display: block; }
+    </style>
+</head>
+<body class="antialiased flex items-center justify-center min-h-screen">
 
-<script>
-    // document.addEventListener ensure karta hai ki code tabhi chale jab puri website load ho jaye
-    document.addEventListener("DOMContentLoaded", function() {
-        try {
-            const tg = window.Telegram.WebApp;
-            tg.expand(); // App ko full screen karta hai
+    <div id="telegram-loader" class="text-center w-full max-w-md px-6">
+        <div class="w-24 h-24 bg-gradient-to-br from-blue-500 to-purple-600 rounded-3xl mx-auto flex items-center justify-center text-white text-4xl shadow-lg shadow-blue-500/30 mb-6 animate-bounce">
+            <i class="fa-solid fa-rocket"></i>
+        </div>
+        <h2 class="text-2xl font-poppins font-black text-slate-800">Connecting...</h2>
+        <p class="text-sm text-slate-500 mt-2">Securely logging you in via Telegram</p>
+    </div>
 
-            // Check karo ki user sach me Telegram ke andar hai ya nahi
-            if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+    <div id="normal-login" class="w-full max-w-md px-6">
+        <div class="text-center mb-8">
+            <div class="w-16 h-16 bg-slate-900 rounded-2xl mx-auto flex items-center justify-center text-white text-2xl shadow-lg mb-4">
+                <i class="fa-solid fa-bolt"></i>
+            </div>
+            <h2 class="text-2xl font-poppins font-black text-slate-800">NextGen Admin</h2>
+            <p class="text-sm text-slate-500 mt-1">Enter your credentials to access the panel</p>
+        </div>
+
+        <form method="POST" action="{% url 'login' %}">
+            {% csrf_token %}
+            
+            <input type="hidden" name="next" value="{{ request.GET.next }}">
+
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Username</label>
+                    <input type="text" name="username" required class="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Password</label>
+                    <input type="password" name="password" required class="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition">
+                </div>
+            </div>
+
+            <button type="submit" class="w-full bg-slate-900 text-white font-bold py-3.5 rounded-xl mt-6 hover:bg-black transition shadow-lg flex justify-center items-center gap-2">
+                Secure Login <i class="fa-solid fa-arrow-right"></i>
+            </button>
+        </form>
+    </div>
+
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            try {
+                const tg = window.Telegram.WebApp;
                 
-                // 1. Ek premium loading screen dikhao (Taki blank screen na aaye)
-                document.body.innerHTML = `
-                    <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; background:#f8fafc; font-family: 'Inter', sans-serif;">
-                        <div style="font-size: 60px; margin-bottom: 20px; animation: bounce 2s infinite;">🚀</div>
-                        <h2 style="color:#1e293b; font-weight: bold;">Connecting NextGen...</h2>
-                        <p style="color:#64748b; font-size: 14px;">Securely logging you in</p>
-                    </div>
-                `;
-
-                // 2. Backend ko data bhejo
-                fetch('/api/telegram-auth/', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ initData: tg.initData })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status === 'success') {
-                        // Login Success -> Dashboard par jao
-                        window.location.href = data.redirect_url || '/';
-                    } else {
-                        // Agar koi error aayi (jaise Token galat hai)
-                        alert("⚠️ Auth Failed: " + data.message);
-                        window.location.reload(); 
-                    }
-                })
-                .catch(error => {
-                    alert("📡 Network Error: Backend is not responding!");
-                });
-            }
-        } catch (e) {
-            console.log("Not inside Telegram, showing normal login page.");
-        }
-    });
-                    </script>
+                // Agar user Telegram ke andar se app khol raha hai
+                if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+                    tg.expand(); 
                     
+                    // Normal form chhupao, Telegram loader dikhao
+                    document.getElementById('normal-login').style.display = 'none';
+                    document.getElementById('telegram-loader').style.display = 'block';
+
+                    fetch('/api/telegram-auth/', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ initData: tg.initData })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            window.location.href = data.redirect_url || '/';
+                        } else {
+                            alert("Auth Failed: " + data.message);
+                            document.getElementById('telegram-loader').style.display = 'none';
+                            document.getElementById('normal-login').style.display = 'block';
+                        }
+                    })
+                    .catch(error => {
+                        console.error("Network Error");
+                        document.getElementById('telegram-loader').style.display = 'none';
+                        document.getElementById('normal-login').style.display = 'block';
+                    });
+                }
+            } catch (e) {
+                // Agar browser se khola hai, to kuch mat karo, normal login form dikhne do
+                console.log("Browser mode activated.");
+            }
+        });
+    </script>
+</body>
+</html>
