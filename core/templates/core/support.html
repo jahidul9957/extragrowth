@@ -7,61 +7,53 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4992650101483327" crossorigin="anonymous"></script>
+
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f8fafc; padding-bottom: 90px; }
         .font-poppins { font-family: 'Poppins', sans-serif; }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
     </style>
 </head>
 <body class="antialiased">
-    <header class="flex items-center px-6 py-4 bg-white/80 backdrop-blur-md sticky top-0 z-40 border-b border-slate-100">
+    <header class="flex items-center px-6 py-4 bg-white/90 backdrop-blur-md sticky top-0 z-40 border-b border-slate-100">
         <a href="{% url 'home' %}" class="w-8 h-8 flex items-center justify-center bg-slate-100 rounded-full text-slate-600 hover:bg-slate-200 transition active:scale-95"><i class="fa-solid fa-arrow-left"></i></a>
         <h1 class="ml-4 font-poppins font-bold text-lg text-slate-800">Customer Care</h1>
     </header>
 
-    <div class="px-6 py-8">
-        <div class="text-center mb-8">
-            <img src="https://cdn-icons-png.flaticon.com/512/4144/4144806.png" class="w-24 h-24 mx-auto mb-4 opacity-90" alt="Support">
-            <h2 class="text-2xl font-poppins font-black text-slate-800">Need Help?</h2>
-            <p class="text-sm text-slate-500 mt-2">We're here for you 24/7. Choose an option below to connect with our team.</p>
-        </div>
+    <div class="px-4 py-3 bg-white border-b border-slate-100 flex gap-2 overflow-x-auto scrollbar-hide shadow-sm">
+        <a href="{% url 'about' %}" class="px-5 py-2 bg-slate-100 text-slate-600 rounded-xl text-xs font-bold whitespace-nowrap hover:bg-slate-200 transition"><i class="fa-solid fa-circle-info mr-1"></i> About</a>
+        <a href="{% url 'guide' %}" class="px-5 py-2 bg-slate-100 text-slate-600 rounded-xl text-xs font-bold whitespace-nowrap hover:bg-slate-200 transition"><i class="fa-solid fa-book-open mr-1"></i> Guide</a>
+        <a href="{% url 'faq' %}" class="px-5 py-2 bg-slate-100 text-slate-600 rounded-xl text-xs font-bold whitespace-nowrap hover:bg-slate-200 transition"><i class="fa-solid fa-clipboard-question mr-1"></i> FAQ</a>
+        <a href="{% url 'support' %}" class="px-5 py-2 bg-blue-600 text-white rounded-xl text-xs font-bold whitespace-nowrap shadow-md hover:scale-105 transition"><i class="fa-solid fa-headset mr-1"></i> Support</a>
+    </div>
 
-        <div class="space-y-4">
-            <a href="https://t.me/YourSupportBot" target="_blank" class="block w-full bg-blue-500 text-white p-5 rounded-2xl shadow-lg shadow-blue-500/30 flex items-center justify-between active:scale-95 hover:-translate-y-1 transition duration-300">
-                <div class="flex items-center gap-4">
-                    <i class="fa-brands fa-telegram text-3xl"></i>
-                    <div class="text-left">
-                        <h3 class="font-bold text-lg">Telegram Support</h3>
-                        <p class="text-xs text-blue-100">Fastest response time (1-5 min)</p>
-                    </div>
-                </div>
+    <div class="px-6 py-6">
+        <div class="space-y-4 mb-8">
+            <a href="https://t.me/YourSupportBot" target="_blank" class="block w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white p-5 rounded-2xl shadow-lg shadow-blue-500/30 flex items-center justify-between active:scale-95 transition duration-300">
+                <div class="flex items-center gap-4"><i class="fa-brands fa-telegram text-3xl"></i><div><h3 class="font-bold text-lg">Telegram Support</h3><p class="text-xs text-blue-100">Fastest response (1-5 min)</p></div></div>
                 <i class="fa-solid fa-chevron-right opacity-70"></i>
             </a>
-
-            <a href="mailto:support@nextgen.com" class="block w-full bg-white text-slate-800 p-5 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between active:scale-95 hover:-translate-y-1 hover:border-slate-300 transition duration-300">
-                <div class="flex items-center gap-4">
-                    <div class="w-10 h-10 bg-slate-100 text-slate-600 rounded-full flex items-center justify-center text-lg"><i class="fa-solid fa-envelope"></i></div>
-                    <div class="text-left">
-                        <h3 class="font-bold">Email Us</h3>
-                        <p class="text-xs text-slate-500">support@nextgen.com</p>
-                    </div>
-                </div>
+            <a href="mailto:support@nextgen.com" class="block w-full bg-white text-slate-800 p-5 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between active:scale-95 transition duration-300">
+                <div class="flex items-center gap-4"><div class="w-10 h-10 bg-slate-100 text-slate-600 rounded-full flex items-center justify-center text-lg"><i class="fa-solid fa-envelope"></i></div><div><h3 class="font-bold">Email Us</h3><p class="text-xs text-slate-500">support@nextgen.com</p></div></div>
             </a>
-                    <div class="mt-10 bg-white p-6 rounded-2xl shadow-sm border border-slate-100 text-slate-600 text-sm leading-relaxed">
-            <h3 class="text-lg font-poppins font-bold text-slate-800 mb-3">Dedicated to Your Digital Success</h3>
-            <p class="mb-4">At NextGen, we recognize that exceptional customer support is the backbone of any reliable digital service. Our dedicated support team is trained to handle a wide array of technical and account-related inquiries with precision and empathy. Whether you need assistance configuring a complex campaign, understanding your wallet balance, or troubleshooting an order, we are committed to providing swift and effective resolutions.</p>
-            
-            <h3 class="text-md font-bold text-slate-800 mb-2">Proactive Problem Solving</h3>
-            <p>We don't just react to issues; we anticipate them. By analyzing user feedback and monitoring system performance, we continuously refine our platform to minimize friction. We encourage our users to utilize our comprehensive Guide and FAQ sections for immediate answers. However, when personalized intervention is required, our direct support channels ensure that you are never left in the dark. Your brand's reputation is invaluable, and we are here to protect it.</p>
-                    </div>
-            
-            <div class="block w-full bg-slate-50 text-slate-400 p-5 rounded-2xl border border-slate-100 flex items-center justify-between cursor-not-allowed">
-                <div class="flex items-center gap-4">
-                    <div class="w-10 h-10 bg-slate-200 text-slate-400 rounded-full flex items-center justify-center text-lg"><i class="fa-solid fa-comments"></i></div>
-                    <div class="text-left">
-                        <h3 class="font-bold">Live Chat</h3>
-                        <p class="text-xs">Coming soon...</p>
-                    </div>
-                </div>
+        </div>
+
+        <div class="bg-white p-2 rounded-2xl shadow-sm border border-slate-100 text-center overflow-hidden mb-8">
+            <span class="text-[9px] font-bold text-slate-300 uppercase tracking-widest block mb-2">Advertisement</span>
+            <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-4992650101483327" data-ad-slot="YOUR_AD_SLOT_HERE" data-ad-format="auto" data-full-width-responsive="true"></ins>
+            <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+        </div>
+
+        <div class="bg-white p-6 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 text-slate-600 text-sm leading-relaxed space-y-5">
+            <div>
+                <h3 class="text-lg font-poppins font-black text-slate-800 mb-2">Dedicated to Your Digital Success</h3>
+                <p>At NextGen, we recognize that exceptional customer support is the backbone of any reliable digital service. Our dedicated support team is trained to handle a wide array of technical and account-related inquiries with absolute precision and empathy. Whether you need assistance configuring a complex campaign or understanding your wallet balance, we are committed to providing swift resolutions.</p>
+            </div>
+            <div>
+                <h3 class="text-md font-bold text-slate-800 mb-2">Proactive Problem Solving</h3>
+                <p>We do not just react to issues; we anticipate them. By analyzing user feedback and monitoring system performance, we continuously refine our platform to minimize friction. We encourage our users to utilize our comprehensive Guide and FAQ sections for immediate answers. However, when personalized intervention is required, our direct channels ensure that you are never left in the dark.</p>
             </div>
         </div>
     </div>
