@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NextGen SMM - Home</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4992650101483327" crossorigin="anonymous"></script>
+
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; padding-bottom: 20px; }
+        .font-poppins { font-family: 'Poppins', sans-serif; }
+        .hero-gradient { background: linear-gradient(135deg, #1e40af 0%, #7e22ce 100%); }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+    </style>
+</head>
+<body class="antialiased">
+
+    <div class="px-4 py-3 bg-white border-b border-slate-100 flex gap-2 overflow-x-auto scrollbar-hide sticky top-0 z-50 shadow-sm">
+        <a href="{% url 'index' %}" class="px-5 py-2 bg-blue-600 text-white rounded-xl text-xs font-bold whitespace-nowrap shadow-md hover:scale-105 transition"><i class="fa-solid fa-house mr-1"></i> Home</a>
+        <a href="{% url 'about' %}" class="px-5 py-2 bg-slate-100 text-slate-600 rounded-xl text-xs font-bold whitespace-nowrap hover:bg-slate-200 transition">About</a>
+        <a href="{% url 'guide' %}" class="px-5 py-2 bg-slate-100 text-slate-600 rounded-xl text-xs font-bold whitespace-nowrap hover:bg-slate-200 transition">Guide</a>
+        <a href="{% url 'faq' %}" class="px-5 py-2 bg-slate-100 text-slate-600 rounded-xl text-xs font-bold whitespace-nowrap hover:bg-slate-200 transition">FAQ</a>
+        <a href="{% url 'support' %}" class="px-5 py-2 bg-slate-100 text-slate-600 rounded-xl text-xs font-bold whitespace-nowrap hover:bg-slate-200 transition">Support</a>
+    </div>
+
+    <div class="hero-gradient text-white px-6 py-16 text-center rounded-b-[40px] shadow-2xl relative overflow-hidden">
+        <div class="absolute -right-10 -top-10 text-white/10 text-9xl"><i class="fa-solid fa-rocket"></i></div>
+        <h1 class="text-4xl font-poppins font-black mb-4">Grow Your Social Presence Fast ⚡</h1>
+        <p class="text-blue-100 text-sm mb-8 leading-relaxed">The #1 Trusted Platform for SMM Services, Automated Growth, and Diamond Rewards. Join the NextGen revolution.</p>
+        <div class="flex gap-3 justify-center">
+            <a href="https://t.me/NextGenSmmBot" class="bg-white text-blue-700 px-6 py-3 rounded-2xl font-bold text-sm shadow-lg hover:scale-105 transition">Open App</a>
+            <a href="{% url 'login' %}" class="bg-white/20 backdrop-blur-md text-white border border-white/30 px-6 py-3 rounded-2xl font-bold text-sm hover:bg-white/30 transition">Login</a>
+        </div>
+    </div>
+
+    <div class="px-6 mt-8">
+        <div class="bg-white p-2 rounded-2xl shadow-sm border border-slate-100 text-center overflow-hidden">
+            <span class="text-[9px] font-bold text-slate-300 uppercase tracking-widest block mb-2">Advertisement</span>
+            <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-4992650101483327" data-ad-slot="YOUR_AD_SLOT_HERE" data-ad-format="auto" data-full-width-responsive="true"></ins>
+            <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+        </div>
+    </div>
+
+    <div class="px-6 py-10 space-y-12">
+        <section>
+            <h2 class="text-2xl font-poppins font-black text-slate-800 mb-4">About NextGen SMM</h2>
+            <p class="text-slate-600 text-sm leading-relaxed mb-4">NextGen is a cutting-edge Social Media Marketing platform designed for influencers and creators. We utilize advanced cloud infrastructure to deliver high-quality engagement instantly. Our mission is to provide safe, secure, and transparent digital growth solutions for everyone.</p>
+            <a href="{% url 'about' %}" class="text-blue-600 font-bold text-sm flex items-center gap-1">Read Full Story <i class="fa-solid fa-arrow-right text-[10px]"></i></a>
+        </section>
+
+        <section class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+            <h2 class="text-xl font-poppins font-black text-slate-800 mb-6">How It Works?</h2>
+            <div class="space-y-6">
+                <div class="flex items-start gap-4">
+                    <div class="w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center font-bold flex-shrink-0">1</div>
+                    <div><h3 class="font-bold text-slate-800">Register</h3><p class="text-xs text-slate-500 mt-1">Join via Telegram or Web login to access your personal dashboard.</p></div>
+                </div>
+                <div class="flex items-start gap-4">
+                    <div class="w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center font-bold flex-shrink-0">2</div>
+                    <div><h3 class="font-bold">Choose Service</h3><p class="text-xs text-slate-500 mt-1">Select from our wide range of services including YouTube, Instagram, and more.</p></div>
+                </div>
+            </div>
+            <a href="{% url 'guide' %}" class="mt-6 block text-center bg-slate-50 text-slate-600 py-3 rounded-2xl text-xs font-bold hover:bg-slate-100 transition">View Full Guide</a>
+        </section>
+    </div>
+
+    <footer class="bg-slate-900 text-white px-6 py-10 rounded-t-[40px]">
+        <div class="text-center mb-6">
+            <h3 class="font-poppins font-bold text-xl">Need Support?</h3>
+            <p class="text-slate-400 text-xs mt-2">Our team is available 24/7 to help you.</p>
+        </div>
+        <p class="text-[10px] text-slate-500 text-center mt-10">© 2026 NextGen SMM. All Rights Reserved.</p>
+    </footer>
+</body>
+  </html>
+              
