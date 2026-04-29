@@ -179,22 +179,19 @@ def team_and_rewards(request):
 
 
 # ==========================================
-# 📘 3. SUPPORT & INFO PAGES (Premium UI)
+# 📘 3. SUPPORT & INFO PAGES (Public For AdSense Bot)
 # ==========================================
-@login_required(login_url='/login/')
-def about_view(request):
+# INSE @login_required HATA DIYA GAYA HAI!
+def about_view(request): 
     return render(request, 'core/about.html')
 
-@login_required(login_url='/login/')
-def support_view(request):
+def support_view(request): 
     return render(request, 'core/support.html')
 
-@login_required(login_url='/login/')
-def guide_view(request):
+def guide_view(request): 
     return render(request, 'core/guide.html')
 
-@login_required(login_url='/login/')
-def faq_view(request):
+def faq_view(request): 
     return render(request, 'core/faq.html')
 
 
