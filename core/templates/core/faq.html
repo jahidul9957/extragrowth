@@ -7,20 +7,30 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4992650101483327" crossorigin="anonymous"></script>
+
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f8fafc; padding-bottom: 90px; }
         .font-poppins { font-family: 'Poppins', sans-serif; }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
         .faq-answer { transition: max-height 0.3s ease-out, padding 0.3s ease; max-height: 0; overflow: hidden; }
-        .faq-item.active .faq-answer { max-height: 200px; padding-top: 12px; }
+        .faq-item.active .faq-answer { max-height: 250px; padding-top: 12px; }
         .faq-item.active .faq-icon { transform: rotate(180deg); color: #2563eb; }
-        .faq-icon { transition: transform 0.3s ease, color 0.3s ease; }
     </style>
 </head>
 <body class="antialiased">
-    <header class="flex items-center px-6 py-4 bg-white/80 backdrop-blur-md sticky top-0 z-40 border-b border-slate-100">
+    <header class="flex items-center px-6 py-4 bg-white/90 backdrop-blur-md sticky top-0 z-40 border-b border-slate-100">
         <a href="{% url 'home' %}" class="w-8 h-8 flex items-center justify-center bg-slate-100 rounded-full text-slate-600 hover:bg-slate-200 transition active:scale-95"><i class="fa-solid fa-arrow-left"></i></a>
-        <h1 class="ml-4 font-poppins font-bold text-lg text-slate-800">FAQ</h1>
+        <h1 class="ml-4 font-poppins font-bold text-lg text-slate-800">Frequently Asked Questions</h1>
     </header>
+
+    <div class="px-4 py-3 bg-white border-b border-slate-100 flex gap-2 overflow-x-auto scrollbar-hide shadow-sm">
+        <a href="{% url 'about' %}" class="px-5 py-2 bg-slate-100 text-slate-600 rounded-xl text-xs font-bold whitespace-nowrap hover:bg-slate-200 transition"><i class="fa-solid fa-circle-info mr-1"></i> About</a>
+        <a href="{% url 'guide' %}" class="px-5 py-2 bg-slate-100 text-slate-600 rounded-xl text-xs font-bold whitespace-nowrap hover:bg-slate-200 transition"><i class="fa-solid fa-book-open mr-1"></i> Guide</a>
+        <a href="{% url 'faq' %}" class="px-5 py-2 bg-blue-600 text-white rounded-xl text-xs font-bold whitespace-nowrap shadow-md hover:scale-105 transition"><i class="fa-solid fa-clipboard-question mr-1"></i> FAQ</a>
+        <a href="{% url 'support' %}" class="px-5 py-2 bg-slate-100 text-slate-600 rounded-xl text-xs font-bold whitespace-nowrap hover:bg-slate-200 transition"><i class="fa-solid fa-headset mr-1"></i> Support</a>
+    </div>
 
     <div class="px-6 py-6">
         <div class="relative mb-6">
@@ -28,82 +38,43 @@
             <input type="text" id="faqSearch" onkeyup="filterFAQ()" placeholder="Search questions..." class="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-2xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
         </div>
 
-        <div class="space-y-3" id="faqContainer">
+        <div class="space-y-3 mb-8" id="faqContainer">
             <div class="faq-item bg-white rounded-2xl shadow-sm border border-slate-100 p-4 cursor-pointer" onclick="toggleFaq(this)">
-                <div class="flex justify-between items-center">
-                    <h3 class="font-bold text-sm text-slate-800 faq-question">How long does delivery take?</h3>
-                    <i class="fa-solid fa-chevron-down faq-icon text-slate-400 text-sm"></i>
-                </div>
-                <div class="faq-answer">
-                    <p class="text-xs text-slate-500">Most services start instantly. Full delivery usually takes between 5 to 30 minutes depending on the server load.</p>
-                </div>
+                <div class="flex justify-between items-center"><h3 class="font-bold text-sm text-slate-800 faq-question">How long does delivery take?</h3><i class="fa-solid fa-chevron-down faq-icon text-slate-400 text-sm"></i></div>
+                <div class="faq-answer"><p class="text-xs text-slate-500">Most services start instantly. Full delivery usually takes between 5 to 30 minutes depending on the server load.</p></div>
             </div>
-        <div class="mt-10 bg-white p-6 rounded-2xl shadow-sm border border-slate-100 text-slate-600 text-sm leading-relaxed">
-            <h3 class="text-lg font-poppins font-bold text-slate-800 mb-3">Understanding Social Media Automation</h3>
-            <p class="mb-4">As the digital marketing landscape evolves, questions naturally arise regarding the efficacy and safety of automated growth tools. Our Frequently Asked Questions section is meticulously curated to address the most common inquiries from our community. We believe that an informed user is an empowered user, which is why we prioritize complete transparency regarding our service delivery timelines, security protocols, and reward mechanisms.</p>
-            
-            <h3 class="text-md font-bold text-slate-800 mb-2">Commitment to Service Excellence</h3>
-            <p>We continuously monitor server loads and API integrations to ensure that our services operate at peak efficiency. Should you encounter any discrepancies or delays, our robust infrastructure is designed to automatically flag and resolve issues. For complex queries that fall outside the scope of this FAQ, our dedicated support channels remain open 24/7, providing personalized assistance to safeguard your digital marketing investments.</p>
+            <div class="faq-item bg-white rounded-2xl shadow-sm border border-slate-100 p-4 cursor-pointer" onclick="toggleFaq(this)">
+                <div class="flex justify-between items-center"><h3 class="font-bold text-sm text-slate-800 faq-question">Is it safe for my account?</h3><i class="fa-solid fa-chevron-down faq-icon text-slate-400 text-sm"></i></div>
+                <div class="faq-answer"><p class="text-xs text-slate-500">Yes! It is 100% safe. We never ask for your password. We only need your public link to deliver the service safely.</p></div>
+            </div>
+            <div class="faq-item bg-white rounded-2xl shadow-sm border border-slate-100 p-4 cursor-pointer" onclick="toggleFaq(this)">
+                <div class="flex justify-between items-center"><h3 class="font-bold text-sm text-slate-800 faq-question">How do Diamonds work?</h3><i class="fa-solid fa-chevron-down faq-icon text-slate-400 text-sm"></i></div>
+                <div class="faq-answer"><p class="text-xs text-slate-500">For every ₹1 spent by your referred friends, you get 5 💎. You can redeem 50 💎 for ₹1 real wallet balance!</p></div>
+            </div>
         </div>
-            
-            <div class="faq-item bg-white rounded-2xl shadow-sm border border-slate-100 p-4 cursor-pointer" onclick="toggleFaq(this)">
-                <div class="flex justify-between items-center">
-                    <h3 class="font-bold text-sm text-slate-800 faq-question">Is it safe for my account?</h3>
-                    <i class="fa-solid fa-chevron-down faq-icon text-slate-400 text-sm"></i>
-                </div>
-                <div class="faq-answer">
-                    <p class="text-xs text-slate-500">Yes! It is 100% safe. We never ask for your password. We only need your public link to deliver the service.</p>
-                </div>
-            </div>
 
-            <div class="faq-item bg-white rounded-2xl shadow-sm border border-slate-100 p-4 cursor-pointer" onclick="toggleFaq(this)">
-                <div class="flex justify-between items-center">
-                    <h3 class="font-bold text-sm text-slate-800 faq-question">How do Diamonds work?</h3>
-                    <i class="fa-solid fa-chevron-down faq-icon text-slate-400 text-sm"></i>
-                </div>
-                <div class="faq-answer">
-                    <p class="text-xs text-slate-500">For every ₹1 spent by your referred friends, you get 5 💎. You can redeem 50 💎 for ₹1 real wallet balance!</p>
-                </div>
+        <div class="bg-white p-2 rounded-2xl shadow-sm border border-slate-100 text-center overflow-hidden mb-8">
+            <span class="text-[9px] font-bold text-slate-300 uppercase tracking-widest block mb-2">Advertisement</span>
+            <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-4992650101483327" data-ad-slot="YOUR_AD_SLOT_HERE" data-ad-format="auto" data-full-width-responsive="true"></ins>
+            <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+        </div>
+
+        <div class="bg-white p-6 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 text-slate-600 text-sm leading-relaxed space-y-5">
+            <div>
+                <h3 class="text-lg font-poppins font-black text-slate-800 mb-2">Understanding Social Media Automation</h3>
+                <p>As the digital marketing landscape evolves, questions naturally arise regarding the efficacy and safety of automated growth tools. Our platform is meticulously curated to address the most complex dynamics of modern social media algorithms. We believe that an informed user is an empowered user, which is why we prioritize complete transparency regarding our service delivery timelines.</p>
             </div>
-            
-            <div class="faq-item bg-white rounded-2xl shadow-sm border border-slate-100 p-4 cursor-pointer" onclick="toggleFaq(this)">
-                <div class="flex justify-between items-center">
-                    <h3 class="font-bold text-sm text-slate-800 faq-question">My order is pending?</h3>
-                    <i class="fa-solid fa-chevron-down faq-icon text-slate-400 text-sm"></i>
-                </div>
-                <div class="faq-answer">
-                    <p class="text-xs text-slate-500">Do not worry. Sometimes servers are overloaded. If it stays pending for more than 24 hours, contact Support.</p>
-                </div>
+            <div>
+                <h3 class="text-md font-bold text-slate-800 mb-2">Maximizing Your ROI</h3>
+                <p>We continuously monitor server loads, API integrations, and backend metrics to ensure that our services operate at peak efficiency. Our pricing structure and Diamond Reward systems are uniquely calibrated to provide users with the maximum Return on Investment (ROI). Should you encounter any discrepancies, our robust infrastructure automatically flags and resolves delays, ensuring a seamless experience.</p>
             </div>
         </div>
     </div>
 
     <script>
-        // Accordion Animation
-        function toggleFaq(element) {
-            // Close all others first (Optional: if you want only 1 open at a time)
-            document.querySelectorAll('.faq-item').forEach(item => {
-                if(item !== element) item.classList.remove('active');
-            });
-            // Toggle current
-            element.classList.toggle('active');
-        }
-
-        // Live Search
-        function filterFAQ() {
-            let input = document.getElementById('faqSearch').value.toLowerCase();
-            let items = document.querySelectorAll('.faq-item');
-            
-            items.forEach(item => {
-                let question = item.querySelector('.faq-question').innerText.toLowerCase();
-                if (question.includes(input)) {
-                    item.style.display = "";
-                } else {
-                    item.style.display = "none";
-                }
-            });
-        }
+        function toggleFaq(el) { document.querySelectorAll('.faq-item').forEach(i => { if(i !== el) i.classList.remove('active'); }); el.classList.toggle('active'); }
+        function filterFAQ() { let input = document.getElementById('faqSearch').value.toLowerCase(); document.querySelectorAll('.faq-item').forEach(i => { i.style.display = i.querySelector('.faq-question').innerText.toLowerCase().includes(input) ? "" : "none"; }); }
     </script>
 </body>
-  </html>
-      
+    </html>
+    
