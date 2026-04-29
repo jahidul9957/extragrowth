@@ -11,11 +11,27 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
 from django.db.models import Sum
 
-# Apne models import kar rahe hain
 from .models import CustomUser, Service, Order, Payment, Bot
 
 # ==========================================
-# 🚀 1. TELEGRAM SILENT AUTH ENGINE (TMA)
+# 💰 0. GOOGLE ADSENSE VERIFICATION
+# ==========================================
+def ads_txt_view(request):
+    ads_txt_content = "google.com, pub-4992650101483327, DIRECT, f08c47fec0942fa0"
+    return HttpResponse(ads_txt_content, content_type="text/plain")
+
+# ==========================================
+# 🌍 1. PUBLIC LANDING PAGE (Index)
+# ==========================================
+def index_view(request):
+    if request.user.is_authenticated:
+        if request.user.is_superuser:
+            return redirect('custom_admin')
+        return redirect('home')
+    return render(request, 'core/index.html')
+
+# ==========================================
+# 🚀 2. TELEGRAM SILENT AUTH ENGINE
 # ==========================================
 TELEGRAM_BOT_TOKEN = "8691081519:AAEVWnllssUWpRvYOAUcA9hgwKZs0oKV3Hc"
 
@@ -46,7 +62,7 @@ def telegram_auth_api(request):
             is_valid, tg_user, start_param = verify_telegram_data(init_data)
             
             if not is_valid or not tg_user:
-                return JsonResponse({'status': 'error', 'message': 'Invalid Signature! Hacker Alert 🚨'}, status=403)
+                return JsonResponse({'status': 'error', 'message': 'Invalid Signature!'}, status=403)
                 
             tg_id = tg_user.get('id')
             tg_username = tg_user.get('username', f"user_{tg_id}")
@@ -56,7 +72,6 @@ def telegram_auth_api(request):
                 defaults={'username': tg_username, 'telegram_username': tg_username}
             )
             
-            # Apply Invite/Referral Logic for New Users
             if created and start_param and start_param.startswith('invite_'):
                 invite_code = start_param.replace('invite_', '')
                 inviter = CustomUser.objects.filter(invite_code=invite_code).first()
@@ -68,7 +83,8 @@ def telegram_auth_api(request):
                 return JsonResponse({'status': 'error', 'message': 'Account banned.'}, status=403)
                 
             auth_login(request, user, backend='django.contrib.auth.backends.ModelBackend')
-            return JsonResponse({'status': 'success', 'redirect_url': '/'}) # Seedha Home par bhejo
+            # Login hone ke baad sidha /dashboard/ par bhejna hai
+            return JsonResponse({'status': 'success', 'redirect_url': '/dashboard/'})
             
         except Exception as e:
             return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
@@ -76,7 +92,7 @@ def telegram_auth_api(request):
 
 
 # ==========================================
-# 📱 2. FRONTEND VIEWS (Customer App)
+# 📱 3. FRONTEND VIEWS (Customer App Dashboard)
 # ==========================================
 @login_required(login_url='/login/')
 def home_view(request):
@@ -98,14 +114,12 @@ def new_order_view(request):
         charge = (service.price_per_1000 / 1000) * quantity
         
         if request.user.wallet_balance >= charge:
-            # Pese kaato
             request.user.wallet_balance -= charge
             request.user.total_spent += charge
             request.user.save()
             
-            # 💎 DIAMOND REWARD SYSTEM (Give diamonds to Inviter)
             if request.user.invited_by:
-                earned_diamonds = int(charge * 5) # Formula: ₹1 spent = 5 Diamonds
+                earned_diamonds = int(charge * 5)
                 inviter = request.user.invited_by
                 inviter.diamonds += earned_diamonds
                 inviter.save()
@@ -150,7 +164,6 @@ def team_and_rewards(request):
     total_invites = invited_friends.count()
     active_invites = invited_friends.filter(total_spent__gt=0).count()
     
-    # 🏆 Level System
     if total_invites >= 50:
         tier_name, tier_icon, tier_color = "Gold", "🥇", "text-yellow-500"
     elif total_invites >= 10:
@@ -158,12 +171,11 @@ def team_and_rewards(request):
     else:
         tier_name, tier_icon, tier_color = "Bronze", "🥉", "text-orange-500"
 
-    # Redeem Logic (50 Diamonds = ₹1)
     if request.method == 'POST' and request.POST.get('action') == 'redeem':
         if request.user.diamonds >= 50:
             rs_to_add = request.user.diamonds / 50
             request.user.wallet_balance += rs_to_add
-            request.user.diamonds = 0  # Baad me ise remainder logic (diamonds % 50) se update kar sakte hain
+            request.user.diamonds = 0
             request.user.save()
             messages.success(request, f"🎉 Success! ₹{rs_to_add} added to your wallet.")
         else:
@@ -179,29 +191,20 @@ def team_and_rewards(request):
 
 
 # ==========================================
-# 📘 3. SUPPORT & INFO PAGES (Public For AdSense Bot)
+# 📘 4. SUPPORT & INFO PAGES (AdSense Public)
 # ==========================================
-# INSE @login_required HATA DIYA GAYA HAI!
-def about_view(request): 
-    return render(request, 'core/about.html')
-
-def support_view(request): 
-    return render(request, 'core/support.html')
-
-def guide_view(request): 
-    return render(request, 'core/guide.html')
-
-def faq_view(request): 
-    return render(request, 'core/faq.html')
+def about_view(request): return render(request, 'core/about.html')
+def support_view(request): return render(request, 'core/support.html')
+def guide_view(request): return render(request, 'core/guide.html')
+def faq_view(request): return render(request, 'core/faq.html')
 
 
 # ==========================================
-# 👑 4. SUPER ADMIN VIEWS (The Hacker Dashboard)
+# 👑 5. SUPER ADMIN VIEWS
 # ==========================================
 @login_required(login_url='/login/')
 def custom_admin_dashboard(request):
     if not request.user.is_superuser: return redirect('home')
-    
     context = {
         'total_users': CustomUser.objects.count(),
         'active_bots': Bot.objects.filter(is_active=True).count(),
@@ -250,37 +253,25 @@ def login_as_user(request, user_id):
 
 
 # ==========================================
-# 🔐 5. NORMAL WEB AUTH (Login Form)
+# 🔐 6. NORMAL WEB AUTH
 # ==========================================
 def login_view(request):
-    # Agar user pehle se login hai
     if request.user.is_authenticated:
-        if request.user.is_superuser:
-            return redirect('custom_admin')
+        if request.user.is_superuser: return redirect('custom_admin')
         return redirect('home')
 
     if request.method == 'POST':
         u = request.POST.get('username')
         p = request.POST.get('password')
-        next_url = request.POST.get('next') # Capture the redirect link
-        
+        next_url = request.POST.get('next')
         user = authenticate(request, username=u, password=p)
-        
         if user is not None:
             auth_login(request, user)
-            
-            # Agar URL me ?next=/panel/ tha, toh wahi bhej do
-            if next_url:
-                return redirect(next_url)
-                
-            # Warna Admin ko panel par aur Normal user ko home par
-            if user.is_superuser:
-                return redirect('custom_admin')
-            else:
-                return redirect('home')
+            if next_url: return redirect(next_url)
+            if user.is_superuser: return redirect('custom_admin')
+            return redirect('home')
         else:
             messages.error(request, "❌ Invalid Username or Password")
-            
     return render(request, 'core/login.html')
 
 def register_view(request):
@@ -290,10 +281,4 @@ def register_view(request):
 def logout_view(request):
     logout(request)
     return redirect('login')
-
-# core/views.py
-def ads_txt_view(request):
-    # Aapka exact AdSense code:
-    ads_txt_content = "google.com, pub-4992650101483327, DIRECT, f08c47fec0942fa0"
-    return HttpResponse(ads_txt_content, content_type="text/plain")
         
