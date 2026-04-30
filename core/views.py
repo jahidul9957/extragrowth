@@ -420,17 +420,25 @@ def admin_bot_action(request):
         action = request.POST.get('action')
         
         if action == 'add':
-            Bot.objects.create(name=request.POST.get('name'))
-            messages.success(request, "New Bot Engine Deployed!")
+            # 🤖 Auto-Generate Bot Name (jaise Node-01, Node-02)
+            bot_count = Bot.objects.count() + 1
+            auto_name = f"Worker-Node-{bot_count:02d}"
+            
+            # Cookies input se lena
+            cookies_data = request.POST.get('cookies', '')
+            
+            Bot.objects.create(name=auto_name, cookies=cookies_data)
+            messages.success(request, f"🚀 {auto_name} Deployed Successfully with Cookies!")
+            
         else:
             bot = get_object_or_404(Bot, id=request.POST.get('bot_id'))
             if action == 'toggle':
                 bot.is_active = not bot.is_active
                 bot.save()
-                messages.success(request, "Bot power state changed!")
+                messages.success(request, f"{bot.name} power state changed!")
             elif action == 'delete':
                 bot.delete()
-                messages.success(request, "Bot deleted.")
+                messages.success(request, "Bot Engine Terminated.")
                 
     return redirect('admin_bots')
-    
+                
