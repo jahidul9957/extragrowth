@@ -2,21 +2,19 @@
 Django==4.2.7
 asgiref==3.11.1
 sqlparse==0.5.5
-Pillow
+Pillow>=10.0.0
 
 # 🚀 Server & Database
 gunicorn==21.2.0
 psycopg2-binary==2.9.9
 whitenoise==6.5.0
+dj-database-url==2.1.0
 
 # 🤖 Bot Automation & Network
 playwright==1.42.0
 requests==2.31.0
 playwright-stealth==1.0.6
 
-
 # 🛠️ Dependencies
 packaging==26.0
 typing_extensions==4.15.0
-dj-database-url==2.1.0
-psycopg2-binary==2.9.9
