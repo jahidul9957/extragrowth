@@ -46,7 +46,10 @@ urlpatterns = [
     path('panel/payments/', views.admin_payments, name='admin_payments'),
     path('panel/bots/', views.admin_bots, name='admin_bots'),
     path('panel/settings/', views.admin_settings_view, name='admin_settings'),
-    
+        path('panel/service-action/', views.admin_service_action, name='admin_service_action'),
+    path('panel/payment-action/', views.admin_payment_action, name='admin_payment_action'),
+    path('panel/bot-action/', views.admin_bot_action, name='admin_bot_action'),
+
     # 👇 YAHAN HAIN WO DONO NAYE URLs JINKE BINA ERROR AA RAHA HAI 👇
     path('panel/tasks/', views.admin_tasks, name='admin_tasks'),
     path('panel/logs/', views.admin_logs_view, name='admin_logs'), 
