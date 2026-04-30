@@ -165,3 +165,11 @@ class SiteSetting(models.Model):
     def __str__(self):
         return "Platform Global Settings"
     
+class UserTask(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    task = models.ForeignKey(Task, on_delete=models.CASCADE)
+    completed_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'task') # Ek user 1 task ko 1 hi baar karega
+    
