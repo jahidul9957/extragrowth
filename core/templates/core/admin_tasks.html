@@ -1,42 +1,127 @@
 {% extends 'core/admin_base.html' %}
+
+{% block title %}Manage Tasks - AdminPanel{% endblock %}
+
 {% block content %}
 <div class="space-y-6">
     <div class="flex justify-between items-end">
         <div>
             <h1 class="text-2xl font-poppins font-black text-slate-800 tracking-tight">Reward Tasks</h1>
-            <p class="text-sm text-slate-500 mt-1">Manage user tasks and diamond rewards.</p>
+            <p class="text-sm text-slate-500 mt-1">Manage daily missions, social links, and diamond rewards.</p>
         </div>
-        <button onclick="openSlideOver('Create New Task', 'Task form coming...')" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold shadow-sm btn-press transition flex items-center gap-2">
-            <i class="fa-solid fa-plus"></i> New Task
+        <button onclick="openAddTask()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold shadow-sm btn-press transition flex items-center gap-2">
+            <i class="fa-solid fa-plus"></i> Create Task
         </button>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {% for task in tasks %}
-        <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm hover-lift group">
+        {% for t in tasks %}
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 hover:shadow-md transition relative group flex flex-col">
+            
             <div class="flex justify-between items-start mb-4">
-                <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center text-2xl shadow-sm">
-                    <i class="{{ task.icon_class }}"></i>
+                <div class="w-12 h-12 rounded-xl flex items-center justify-center text-2xl shadow-sm {% if 'youtube' in t.icon_class %}bg-rose-50 text-rose-600{% elif 'telegram' in t.icon_class %}bg-blue-50 text-blue-500{% elif 'instagram' in t.icon_class %}bg-fuchsia-50 text-fuchsia-600{% else %}bg-amber-50 text-amber-500{% endif %}">
+                    <i class="{{ t.icon_class }}"></i>
                 </div>
-                <div class="flex gap-2">
-                    <button class="text-slate-400 hover:text-blue-600 transition"><i class="fa-solid fa-pen-to-square"></i></button>
-                    <button class="text-slate-400 hover:text-rose-600 transition"><i class="fa-solid fa-trash"></i></button>
+                
+                <div class="flex flex-col items-end gap-1">
+                    <span class="inline-flex items-center px-2 py-1 rounded text-[10px] font-bold {% if t.is_active %}bg-emerald-50 text-emerald-600{% else %}bg-slate-100 text-slate-500{% endif %} tracking-wide uppercase">
+                        {% if t.is_active %}Active{% else %}Hidden{% endif %}
+                    </span>
+                    <span class="text-[10px] font-bold text-slate-400 uppercase">{{ t.get_task_type_display }}</span>
                 </div>
             </div>
-            <h3 class="font-bold text-slate-800">{{ task.title }}</h3>
-            <div class="mt-2 flex items-center justify-between">
-                <span class="text-xs font-bold text-amber-500 bg-amber-50 px-2 py-1 rounded-md">
-                    <i class="fa-solid fa-gem mr-1"></i> +{{ task.reward_diamonds }}
-                </span>
-                <span class="text-[10px] uppercase font-black text-slate-400 tracking-widest">{{ task.task_type }}</span>
+            
+            <h3 class="text-lg font-bold font-poppins text-slate-800 flex-1">{{ t.title }}</h3>
+            
+            <div class="flex items-center gap-2 mb-4 mt-2 bg-slate-50 px-3 py-2 rounded-lg border border-slate-100">
+                <i class="fa-regular fa-gem text-blue-500"></i>
+                <span class="text-sm font-bold text-slate-700">+{{ t.reward_diamonds }} Diamonds</span>
             </div>
-            <div class="mt-4 pt-4 border-t border-slate-50 flex items-center justify-between">
-                <p class="text-[10px] text-slate-400">Status: <span class="text-emerald-500 font-bold">Live</span></p>
-                <button class="text-2xl text-emerald-500"><i class="fa-solid fa-toggle-on"></i></button>
+            
+            <div class="pt-4 border-t border-slate-100 flex gap-2">
+                <form method="POST" action="{% url 'admin_task_action' %}" class="flex-1">
+                    {% csrf_token %}
+                    <input type="hidden" name="task_id" value="{{ t.id }}">
+                    <input type="hidden" name="action" value="toggle">
+                    <button type="submit" class="w-full bg-slate-50 text-slate-600 border border-slate-200 py-2 rounded-lg text-xs font-semibold hover:bg-slate-100 transition btn-press">
+                        <i class="fa-solid fa-eye{% if t.is_active %}-slash{% endif %} mr-1"></i> {% if t.is_active %}Hide{% else %}Show{% endif %}
+                    </button>
+                </form>
+                <form method="POST" action="{% url 'admin_task_action' %}" class="flex-[0.5]" onsubmit="return confirm('Delete this Task?');">
+                    {% csrf_token %}
+                    <input type="hidden" name="task_id" value="{{ t.id }}">
+                    <input type="hidden" name="action" value="delete">
+                    <button type="submit" class="w-full bg-rose-50 text-rose-600 border border-rose-100 py-2 rounded-lg text-xs font-semibold hover:bg-rose-100 transition btn-press">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                </form>
             </div>
+        </div>
+        {% empty %}
+        <div class="col-span-full py-12 text-center bg-white rounded-2xl border border-slate-100 border-dashed">
+            <i class="fa-solid fa-list-check text-4xl text-slate-300 mb-3"></i>
+            <h3 class="text-lg font-bold text-slate-700">No Tasks Found</h3>
+            <p class="text-sm text-slate-500 mb-4">Create your first task to start rewarding users.</p>
+            <button onclick="openAddTask()" class="bg-blue-50 text-blue-600 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-100 transition">Create Task Now</button>
         </div>
         {% endfor %}
     </div>
 </div>
+
+<script>
+    function openAddTask() {
+        const csrfToken = document.querySelector('#csrf-token-container input').value;
+        const formHtml = `
+            <form method="POST" action="{% url 'admin_task_action' %}" class="space-y-4 fade-in">
+                <input type="hidden" name="csrfmiddlewaretoken" value="${csrfToken}">
+                <input type="hidden" name="action" value="add">
+                
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Task Title</label>
+                    <input type="text" name="title" placeholder="e.g. Subscribe to our YouTube Channel" required class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:border-blue-500">
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Task Type</label>
+                        <select name="task_type" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:border-blue-500">
+                            <option value="youtube">YouTube</option>
+                            <option value="telegram">Telegram</option>
+                            <option value="daily">Daily Login</option>
+                            <option value="custom">Custom Task</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Icon Class</label>
+                        <select name="icon_class" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:border-blue-500">
+                            <option value="fa-brands fa-youtube">YouTube Icon</option>
+                            <option value="fa-brands fa-telegram">Telegram Icon</option>
+                            <option value="fa-brands fa-instagram">Instagram Icon</option>
+                            <option value="fa-solid fa-calendar-check">Daily Calendar</option>
+                            <option value="fa-solid fa-gift">Gift Box</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Reward (Diamonds)</label>
+                    <input type="number" name="reward_diamonds" value="50" required class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:border-blue-500">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Target Link (URL)</label>
+                    <input type="url" name="link" placeholder="https://youtube.com/..." class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:border-blue-500">
+                </div>
+                
+                <div class="pt-4 mt-4 border-t border-slate-100">
+                    <button type="submit" class="w-full bg-blue-600 text-white rounded-lg py-2.5 text-sm font-bold shadow-sm btn-press transition hover:bg-blue-700">
+                        <i class="fa-solid fa-check mr-1"></i> Publish Task
+                    </button>
+                </div>
+            </form>
+        `;
+        openSlideOver('Create New Reward Task', formHtml);
+    }
+</script>
 {% endblock %}
-  
+    
