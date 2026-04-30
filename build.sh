@@ -1,24 +1,29 @@
 #!/usr/bin/env bash
-# exit on error
+# exit on error (अगर कोई एरर आया तो बिल्ड रुक जाएगा)
 set -o errexit
 
-# 1. Libraries install करना
+echo "📦 1. Installing Libraries..."
 pip install -r requirements.txt
+# (अगर requirements.txt में Pillow नहीं है, तो ये लाइन उसे इंस्टॉल कर देगी)
+pip install Pillow 
 
-# 2. Playwright सेटअप (अगर इस्तेमाल कर रहे हैं)
+echo "🌐 2. Setting up Playwright..."
 playwright install chromium
 
-# 3. Static files इकट्ठा करना
+echo "🎨 3. Collecting Static Files..."
 python manage.py collectstatic --no-input
-pip install Pillow
 
-# 🚀 4. डेटाबेस फिक्स (Free Users के लिए असली तरीका)
-# ये कमांड्स हर बार बिल्ड के दौरान चलेंगी और एरर खत्म कर देंगी
+echo "🗄️ 4. Making Migrations for CORE app..."
+# यह कमांड आपके डेटाबेस के लिए नई पर्ची (Migration File) बनाएगी
 python manage.py makemigrations core
 python manage.py makemigrations
+
+echo "🚀 5. Applying Migrations..."
+# यह कमांड उस पर्ची को Neon SQL में सेव कर देगी (जिससे profile_image वाला एरर खत्म होगा)
 python manage.py migrate --no-input
 
-# 5. Superuser बनाना (अगर पहली बार है)
-# अगर admin पहले से है, तो ये लाइन एरर नहीं देगी (|| true की वजह से)
+echo "👑 6. Creating Superuser (If not exists)..."
 export DJANGO_SUPERUSER_PASSWORD="adminpass"
-python manage.py createsuperuser --noinput --username admin --email admin@gmail.com || true
+python manage.py createsuperuser --noinput --username admin --email admin@nextgen.com || true
+
+echo "✅ ALL DONE SUCCESSFULLY!"
