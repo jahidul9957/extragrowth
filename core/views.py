@@ -334,3 +334,80 @@ def admin_settings_view(request):
 
     return render(request, 'core/admin_settings.html', {'setting': setting})
         
+# ==========================================
+# ⚡ SUPER ADMIN ACTION CONTROLLERS (Functional Logic)
+# ==========================================
+
+@login_required(login_url='/login/')
+def admin_service_action(request):
+    if not request.user.is_superuser: return redirect('home')
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        
+        if action == 'add':
+            Service.objects.create(
+                name=request.POST.get('name'),
+                platform=request.POST.get('platform'),
+                price_per_1000=request.POST.get('price_per_1000'),
+                min_order=request.POST.get('min_order', 10),
+                max_order=request.POST.get('max_order', 10000)
+            )
+            messages.success(request, "New Service added successfully!")
+            
+        else:
+            svc = get_object_or_404(Service, id=request.POST.get('service_id'))
+            if action == 'toggle':
+                svc.is_active = not svc.is_active
+                svc.save()
+                messages.success(request, "Service status updated!")
+            elif action == 'delete':
+                svc.delete()
+                messages.success(request, "Service deleted permanently!")
+                
+    return redirect('admin_services')
+
+
+@login_required(login_url='/login/')
+def admin_payment_action(request):
+    if not request.user.is_superuser: return redirect('home')
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        payment = get_object_or_404(Payment, id=request.POST.get('payment_id'))
+        
+        if action == 'approve' and payment.status == 'Pending':
+            payment.status = 'Completed'
+            # Paise user ke wallet me add karo!
+            payment.user.wallet_balance += payment.amount
+            payment.user.save()
+            payment.save()
+            messages.success(request, f"Payment Approved! ₹{payment.amount} added to @{payment.user.username}.")
+            
+        elif action == 'reject' and payment.status == 'Pending':
+            payment.status = 'Rejected'
+            payment.save()
+            messages.success(request, "Payment Rejected.")
+            
+    return redirect('admin_payments')
+
+
+@login_required(login_url='/login/')
+def admin_bot_action(request):
+    if not request.user.is_superuser: return redirect('home')
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        
+        if action == 'add':
+            Bot.objects.create(name=request.POST.get('name'))
+            messages.success(request, "New Bot Engine Deployed!")
+        else:
+            bot = get_object_or_404(Bot, id=request.POST.get('bot_id'))
+            if action == 'toggle':
+                bot.is_active = not bot.is_active
+                bot.save()
+                messages.success(request, "Bot power state changed!")
+            elif action == 'delete':
+                bot.delete()
+                messages.success(request, "Bot deleted.")
+                
+    return redirect('admin_bots')
+    
