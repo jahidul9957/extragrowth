@@ -10,6 +10,7 @@ playwright install chromium
 
 # 3. Static files इकट्ठा करना
 python manage.py collectstatic --no-input
+pip install Pillow
 
 # 🚀 4. डेटाबेस फिक्स (Free Users के लिए असली तरीका)
 # ये कमांड्स हर बार बिल्ड के दौरान चलेंगी और एरर खत्म कर देंगी
