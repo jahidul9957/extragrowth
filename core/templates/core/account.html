@@ -2,129 +2,227 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Account - NextGen SMM</title>
-    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>My Profile</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
+    
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; padding-bottom: 70px; }
-        @media (min-width: 768px) { body { padding-bottom: 0; } }
-        h1, h2, h3, .font-poppins { font-family: 'Poppins', sans-serif; }
+        body { background-color: #f8fafc; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+        .font-poppins { font-family: 'Poppins', sans-serif; }
+        
+        /* Loader Animation */
+        .loader-ring { border: 3px solid #e2e8f0; border-top-color: #2563eb; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        /* Toast Animation */
+        .toast-enter { transform: translateY(-150%); opacity: 0; }
+        .toast-active { transform: translateY(0); opacity: 1; }
+        
+        /* Active Nav indicator dot */
+        .nav-active::after { content: ''; position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%); width: 4px; height: 4px; background-color: #2563eb; border-radius: 50%; }
+        
+        .btn-press:active { transform: scale(0.96); }
+        .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
     </style>
 </head>
-<body class="text-slate-800 antialiased">
+<body class="antialiased text-slate-800 pb-24">
 
-    <nav class="sticky top-0 z-50 bg-white/90 backdrop-blur-md shadow-sm border-b border-slate-200">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16 items-center">
-                <a href="{% url 'home' %}" class="flex-shrink-0 flex items-center gap-2 cursor-pointer">
-                    <i class="fa-solid fa-rocket text-blue-600 text-2xl"></i>
-                    <span class="font-poppins font-bold text-xl tracking-tight text-slate-900">NextGen<span class="text-blue-600">SMM</span></span>
-                </a>
-                
-                <div class="hidden md:flex space-x-8 items-center font-medium text-slate-600">
-                    <a href="{% url 'home' %}" class="hover:text-blue-600 transition">Home</a>
-                    <a href="{% url 'services' %}" class="hover:text-blue-600 transition">Services</a>
-                    <a href="{% url 'orders' %}" class="hover:text-blue-600 transition">My Orders</a>
-                    
-                    <div class="flex items-center gap-4 border-l pl-6 border-slate-200">
-                        <span class="text-sm bg-slate-100 py-1 px-3 rounded-full text-slate-700 font-semibold">₹ {{ user.wallet_balance|floatformat:2 }}</span>
-                        <a href="{% url 'logout' %}" class="text-red-500 hover:text-red-600 transition" title="Logout"><i class="fa-solid fa-right-from-bracket"></i></a>
-                    </div>
-                </div>
-            </div>
+    <div id="page-loader" class="fixed inset-0 z-[99999] bg-slate-50 flex items-center justify-center transition-opacity duration-500">
+        <div class="flex flex-col items-center">
+            <div class="loader-ring mb-4"></div>
+            <p class="text-xs font-bold text-slate-400 font-poppins tracking-widest uppercase animate-pulse">Loading Profile...</p>
         </div>
-    </nav>
+    </div>
 
-    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        
-        <h1 class="text-2xl md:text-3xl font-poppins font-bold text-slate-800 mb-6">My Profile 👤</h1>
+    <div id="toast-container" class="fixed top-4 left-1/2 transform -translate-x-1/2 z-[100] flex flex-col gap-2 w-11/12 max-w-sm pointer-events-none"></div>
+    <div id="csrf-token-container" class="hidden">{% csrf_token %}</div>
 
-        <div class="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden mb-8">
-            <div class="h-32 bg-gradient-to-r from-blue-600 to-purple-600 relative">
-                <div class="absolute -bottom-10 left-8">
-                    <div class="w-24 h-24 bg-white rounded-full p-1 shadow-lg">
-                        <div class="w-full h-full bg-slate-100 rounded-full flex items-center justify-center text-4xl text-slate-400">
-                            <i class="fa-solid fa-user"></i>
-                        </div>
+    <div class="max-w-md mx-auto relative h-full">
+
+        <div class="bg-white rounded-b-3xl shadow-sm border-b border-slate-100 p-6 pt-8 relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-full blur-2xl -mr-10 -mt-10"></div>
+            <div class="absolute bottom-0 left-0 w-24 h-24 bg-indigo-50 rounded-full blur-xl -ml-8 -mb-8"></div>
+            
+            <div class="relative z-10 flex items-center gap-4">
+                <div class="w-20 h-20 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 p-1 shadow-md">
+                    <div class="w-full h-full bg-white rounded-xl flex items-center justify-center overflow-hidden">
+                        {% if request.user.profile_image %}
+                            <img src="{{ request.user.profile_image.url }}" class="w-full h-full object-cover">
+                        {% else %}
+                            <i class="fa-solid fa-user-astronaut text-3xl text-blue-500"></i>
+                        {% endif %}
                     </div>
                 </div>
-            </div>
-            
-            <div class="pt-14 pb-8 px-8 flex justify-between items-start">
                 <div>
-                    <h2 class="text-2xl font-poppins font-bold text-slate-800">@{{ user.username }}</h2>
-                    <p class="text-slate-500 text-sm mt-1"><i class="fa-solid fa-envelope mr-1"></i> {{ user.email }}</p>
-                    <p class="text-slate-400 text-xs mt-1">Member since {{ user.date_joined|date:"M Y" }}</p>
+                    <h1 class="text-xl font-black font-poppins text-slate-800 tracking-tight">@{{ request.user.username }}</h1>
+                    <p class="text-xs text-slate-500 mt-0.5"><i class="fa-brands fa-telegram text-blue-400"></i> {{ request.user.telegram_username|default:"Not Linked" }}</p>
+                    <span class="inline-block mt-2 px-2.5 py-1 bg-slate-100 text-slate-500 text-[9px] font-bold uppercase tracking-wider rounded-md">
+                        Joined {{ request.user.date_joined|date:"M Y" }}
+                    </span>
                 </div>
-                <a href="{% url 'logout' %}" class="bg-red-50 text-red-600 hover:bg-red-100 px-4 py-2 rounded-lg text-sm font-bold transition-colors">
-                    <i class="fa-solid fa-right-from-bracket mr-1"></i> Logout
+            </div>
+        </div>
+
+        <div class="p-5 grid grid-cols-2 gap-4">
+            <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 relative overflow-hidden">
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Wallet Balance</p>
+                <h3 class="text-2xl font-black text-slate-800 mb-3">₹{{ request.user.wallet_balance }}</h3>
+                <a href="{% url 'add_funds' %}" class="w-full block text-center bg-blue-50 hover:bg-blue-100 text-blue-600 py-2 rounded-xl text-xs font-bold transition btn-press">
+                    <i class="fa-solid fa-plus mr-1"></i> Add Funds
+                </a>
+            </div>
+            
+            <div class="bg-gradient-to-br from-indigo-500 to-blue-600 p-4 rounded-2xl shadow-sm text-white relative overflow-hidden">
+                <i class="fa-regular fa-gem absolute -right-2 -bottom-2 text-5xl opacity-20"></i>
+                <p class="text-[10px] font-bold text-indigo-100 uppercase tracking-widest mb-1 relative z-10">Diamonds</p>
+                <h3 class="text-2xl font-black text-white mb-3 relative z-10">{{ request.user.diamonds }}</h3>
+                <a href="{% url 'team_rewards' %}" class="w-full block text-center bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white py-2 rounded-xl text-xs font-bold transition btn-press relative z-10">
+                    Redeem <i class="fa-solid fa-arrow-right ml-1"></i>
                 </a>
             </div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 text-center">
-                <div class="w-12 h-12 bg-green-50 text-green-500 rounded-full flex items-center justify-center text-xl mx-auto mb-3">
-                    <i class="fa-solid fa-wallet"></i>
-                </div>
-                <p class="text-slate-500 text-sm">Wallet Balance</p>
-                <h3 class="text-2xl font-bold text-slate-800">₹{{ user.wallet_balance|floatformat:2 }}</h3>
-            </div>
+        <div class="px-5 space-y-3 mb-6">
+            <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 px-1">Account Options</h4>
             
-            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 text-center">
-                <div class="w-12 h-12 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center text-xl mx-auto mb-3">
-                    <i class="fa-solid fa-chart-line"></i>
+            <a href="{% url 'orders' %}" class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between hover:bg-slate-50 transition btn-press group">
+                <div class="flex items-center gap-4">
+                    <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-500 flex items-center justify-center text-lg group-hover:scale-110 transition"><i class="fa-solid fa-box-open"></i></div>
+                    <div>
+                        <p class="font-bold text-slate-700 text-sm">My Orders</p>
+                        <p class="text-[10px] text-slate-400">Total {{ user_orders_count }} orders placed</p>
+                    </div>
                 </div>
-                <p class="text-slate-500 text-sm">Total Spent</p>
-                <h3 class="text-2xl font-bold text-slate-800">₹{{ user.total_spent|floatformat:2 }}</h3>
-            </div>
+                <i class="fa-solid fa-chevron-right text-slate-300 text-xs"></i>
+            </a>
 
-            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 text-center">
-                <div class="w-12 h-12 bg-purple-50 text-purple-500 rounded-full flex items-center justify-center text-xl mx-auto mb-3">
-                    <i class="fa-solid fa-box"></i>
+            <a href="{% url 'team_rewards' %}" class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between hover:bg-slate-50 transition btn-press group">
+                <div class="flex items-center gap-4">
+                    <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-500 flex items-center justify-center text-lg group-hover:scale-110 transition"><i class="fa-solid fa-user-group"></i></div>
+                    <div>
+                        <p class="font-bold text-slate-700 text-sm">Refer & Earn</p>
+                        <p class="text-[10px] text-slate-400">Invite friends, earn diamonds</p>
+                    </div>
                 </div>
-                <p class="text-slate-500 text-sm">Total Orders</p>
-                <h3 class="text-2xl font-bold text-slate-800">{{ user_orders_count }}</h3>
-            </div>
-        </div>
+                <i class="fa-solid fa-chevron-right text-slate-300 text-xs"></i>
+            </a>
 
-        <div class="bg-gradient-to-r from-slate-800 to-slate-900 rounded-2xl p-6 text-white shadow-lg flex items-center justify-between">
-            <div>
-                <h3 class="font-poppins font-bold text-lg mb-1">Need Help?</h3>
-                <p class="text-slate-300 text-sm">Contact our 24/7 support team.</p>
-            </div>
-            <a href="#" class="bg-white/10 hover:bg-white/20 border border-white/20 px-5 py-2.5 rounded-xl font-semibold transition-all">
-                <i class="fa-brands fa-telegram mr-1"></i> Support
+            <a href="{% url 'support' %}" class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between hover:bg-slate-50 transition btn-press group">
+                <div class="flex items-center gap-4">
+                    <div class="w-10 h-10 rounded-xl bg-purple-50 text-purple-500 flex items-center justify-center text-lg group-hover:scale-110 transition"><i class="fa-solid fa-headset"></i></div>
+                    <div>
+                        <p class="font-bold text-slate-700 text-sm">Help & Support</p>
+                        <p class="text-[10px] text-slate-400">Contact admin for issues</p>
+                    </div>
+                </div>
+                <i class="fa-solid fa-chevron-right text-slate-300 text-xs"></i>
+            </a>
+            
+            {% if request.user.is_superuser %}
+            <a href="{% url 'custom_admin' %}" class="bg-slate-800 p-4 rounded-2xl shadow-sm flex items-center justify-between btn-press group mt-2">
+                <div class="flex items-center gap-4">
+                    <div class="w-10 h-10 rounded-xl bg-slate-700 text-emerald-400 flex items-center justify-center text-lg group-hover:rotate-90 transition duration-300"><i class="fa-solid fa-gear"></i></div>
+                    <div>
+                        <p class="font-bold text-white text-sm">Admin Panel</p>
+                        <p class="text-[10px] text-slate-400">Manage entire system</p>
+                    </div>
+                </div>
+                <i class="fa-solid fa-chevron-right text-slate-500 text-xs"></i>
+            </a>
+            {% endif %}
+
+            <a href="{% url 'logout' %}" class="mt-4 block w-full py-4 text-center text-sm font-bold text-rose-500 bg-rose-50 hover:bg-rose-100 rounded-2xl transition btn-press border border-rose-100">
+                <i class="fa-solid fa-arrow-right-from-bracket mr-1"></i> Secure Logout
             </a>
         </div>
 
     </div>
 
-    <div class="md:hidden fixed bottom-0 left-0 w-full bg-white border-t border-slate-200 px-6 py-3 flex justify-between items-center shadow-[0_-5px_15px_rgba(0,0,0,0.05)] z-50 rounded-t-xl">
-        <a href="{% url 'home' %}" class="flex flex-col items-center text-slate-400 hover:text-blue-600 transition">
-            <i class="fa-solid fa-house text-xl mb-1"></i><span class="text-[10px] font-semibold">Home</span>
-        </a>
-        <a href="{% url 'services' %}" class="flex flex-col items-center text-slate-400 hover:text-blue-600 transition">
-            <i class="fa-solid fa-list-ul text-xl mb-1"></i><span class="text-[10px] font-semibold">Services</span>
-        </a>
-        
-        <a href="{% url 'new_order' %}" class="relative -top-5 bg-gradient-to-r from-blue-600 to-purple-600 text-white w-14 h-14 rounded-full flex items-center justify-center shadow-lg shadow-blue-500/30 hover:scale-105 transition-transform">
-            <i class="fa-solid fa-plus text-2xl"></i>
-        </a>
-        
-        <a href="{% url 'add_funds' %}" class="flex flex-col items-center text-slate-400 hover:text-slate-700 transition">
-            <i class="fa-solid fa-wallet text-xl mb-1"></i><span class="text-[10px] font-semibold">Funds</span>
-        </a>
-        
-        <a href="{% url 'account' %}" class="flex flex-col items-center text-blue-600">
-            <i class="fa-solid fa-user text-xl mb-1"></i><span class="text-[10px] font-semibold">Account</span>
-        </a>
-    </div>
+    <nav class="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-lg border-t border-slate-200 z-50 pb-safe shadow-[0_-4px_20px_rgba(0,0,0,0.03)]">
+        <div class="max-w-md mx-auto flex justify-between items-center px-6 py-2.5">
+            
+            <a href="{% url 'home' %}" class="flex flex-col items-center text-slate-400 hover:text-blue-600 transition btn-press w-16">
+                <i class="fa-solid fa-house text-xl mb-1 transition-transform group-hover:-translate-y-1"></i>
+                <span class="text-[10px] font-bold">Home</span>
+            </a>
+            
+            <a href="{% url 'orders' %}" class="flex flex-col items-center text-slate-400 hover:text-blue-600 transition btn-press w-16">
+                <i class="fa-solid fa-receipt text-xl mb-1"></i>
+                <span class="text-[10px] font-bold">Orders</span>
+            </a>
+            
+            <a href="{% url 'team_rewards' %}" class="flex flex-col items-center text-slate-400 hover:text-blue-600 transition btn-press w-16">
+                <i class="fa-solid fa-users text-xl mb-1"></i>
+                <span class="text-[10px] font-bold">Team</span>
+            </a>
+            
+            <a href="{% url 'account' %}" class="flex flex-col items-center text-blue-600 relative nav-active transition btn-press w-16">
+                <i class="fa-solid fa-user text-xl mb-1 animate-bounce-short"></i>
+                <span class="text-[10px] font-black">Profile</span>
+            </a>
+            
+        </div>
+    </nav>
 
+    <script>
+        // 1. Premium Loading Screen Fade Out
+        window.addEventListener('load', function() {
+            const loader = document.getElementById('page-loader');
+            setTimeout(() => {
+                loader.style.opacity = '0';
+                setTimeout(() => {
+                    loader.style.display = 'none';
+                }, 500); 
+            }, 300); 
+        });
+
+        // 2. Custom Toast Alert System
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            
+            // UI setup based on type
+            let icon = 'fa-circle-check', bg = 'bg-white', border = 'border-emerald-200', text = 'text-emerald-600', iconBg = 'bg-emerald-50';
+            if (type === 'error') { icon = 'fa-circle-exclamation'; border = 'border-rose-200'; text = 'text-rose-600'; iconBg = 'bg-rose-50'; }
+            if (type === 'info') { icon = 'fa-circle-info'; border = 'border-blue-200'; text = 'text-blue-600'; iconBg = 'bg-blue-50'; }
+
+            toast.className = `flex items-center p-3 rounded-2xl shadow-lg border ${border} ${bg} toast-enter transition-all duration-500 pointer-events-auto`;
+            toast.innerHTML = `
+                <div class="${iconBg} ${text} w-8 h-8 rounded-full flex items-center justify-center shrink-0"><i class="fa-solid ${icon} text-sm"></i></div>
+                <p class="ml-3 text-xs font-bold text-slate-700 flex-1">${message}</p>
+                <button onclick="this.parentElement.remove()" class="ml-2 text-slate-400 hover:text-slate-600 p-1"><i class="fa-solid fa-xmark"></i></button>
+            `;
+            
+            container.appendChild(toast);
+            
+            // Trigger animation
+            requestAnimationFrame(() => {
+                toast.classList.remove('toast-enter');
+                toast.classList.add('toast-active');
+            });
+
+            // Auto remove after 3.5 seconds
+            setTimeout(() => {
+                toast.classList.remove('toast-active');
+                toast.classList.add('toast-enter');
+                setTimeout(() => toast.remove(), 500);
+            }, 3500);
+        }
+
+        // 3. Catch Django Backend Messages and show via Toast
+        document.addEventListener("DOMContentLoaded", () => {
+            {% if messages %}
+                {% for message in messages %}
+                    {% if message.tags == 'error' %} showToast("{{ message|escapejs }}", "error");
+                    {% elif message.tags == 'success' %} showToast("{{ message|escapejs }}", "success");
+                    {% else %} showToast("{{ message|escapejs }}", "info");
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
+        });
+    </script>
 </body>
-  </html>
-  
+                            </html>
+    
