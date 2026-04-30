@@ -2,6 +2,7 @@
 Django==4.2.7
 asgiref==3.11.1
 sqlparse==0.5.5
+Pillow
 
 # 🚀 Server & Database
 gunicorn==21.2.0
