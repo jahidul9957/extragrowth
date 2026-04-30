@@ -1,148 +1,150 @@
 {% extends 'core/admin_base.html' %}
-{% block title %}Dashboard - Control Center{% endblock %}
+
+{% block title %}Dashboard - AdminPanel{% endblock %}
 
 {% block content %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-<div class="space-y-6 pb-8">
+<div class="space-y-6">
     
-    <div>
-        <h1 class="text-2xl font-bold text-white tracking-wide">Overview</h1>
-        <p class="text-slate-400 text-sm mt-1">Real-time data and system performance.</p>
+    <div class="flex justify-between items-end">
+        <div>
+            <h1 class="text-2xl font-poppins font-black text-slate-800 tracking-tight">Overview</h1>
+            <p class="text-sm text-slate-500 mt-1">Real-time metrics and system status.</p>
+        </div>
+        <button class="bg-white border border-slate-200 text-slate-600 px-4 py-2 rounded-lg text-sm font-semibold shadow-sm hover:bg-slate-50 transition btn-press flex items-center gap-2" onclick="showToast('Reports generated successfully', 'success')">
+            <i class="fa-solid fa-download"></i> Export
+        </button>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         
-        <div class="bg-surface border border-slate-700/50 rounded-xl p-5 hover:-translate-y-1 hover:shadow-lg hover:shadow-primary/10 transition-all duration-300">
-            <div class="flex justify-between items-start">
+        <div class="bg-white rounded-2xl p-6 border border-slate-100 hover-lift relative overflow-hidden group">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-50 to-blue-100 rounded-full blur-3xl -mr-10 -mt-10 transition group-hover:bg-blue-100"></div>
+            <div class="relative flex justify-between items-start">
                 <div>
-                    <p class="text-slate-400 text-sm font-medium">Total Users</p>
-                    <h3 class="text-2xl font-bold text-white mt-1">4,289</h3>
+                    <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Users</p>
+                    <h3 class="text-3xl font-black font-poppins text-slate-800 mt-2">{{ total_users }}</h3>
                 </div>
-                <div class="p-2 bg-blue-500/10 rounded-lg text-blue-400">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
-                </div>
+                <div class="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center shadow-sm border border-blue-100"><i class="fa-solid fa-users text-lg"></i></div>
             </div>
-            <div class="mt-4 flex items-center text-sm">
-                <span class="text-green-400 flex items-center font-medium"><svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path></svg> 12%</span>
-                <span class="text-slate-500 ml-2">vs last month</span>
-            </div>
+            <div class="relative mt-4 flex items-center text-xs text-green-600 font-semibold"><i class="fa-solid fa-arrow-trend-up mr-1"></i> +12% this week</div>
         </div>
 
-        <div class="bg-surface border border-slate-700/50 rounded-xl p-5 hover:-translate-y-1 hover:shadow-lg hover:shadow-green-500/10 transition-all duration-300">
-            <div class="flex justify-between items-start">
+        <div class="bg-white rounded-2xl p-6 border border-slate-100 hover-lift relative overflow-hidden group">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-full blur-3xl -mr-10 -mt-10 transition group-hover:bg-indigo-100"></div>
+            <div class="relative flex justify-between items-start">
                 <div>
-                    <p class="text-slate-400 text-sm font-medium">Revenue Today</p>
-                    <h3 class="text-2xl font-bold text-white mt-1">₹12,450</h3>
+                    <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Revenue Today</p>
+                    <h3 class="text-3xl font-black font-poppins text-slate-800 mt-2">₹{{ total_revenue|floatformat:2 }}</h3>
                 </div>
-                <div class="p-2 bg-green-500/10 rounded-lg text-green-400">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                </div>
+                <div class="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center shadow-sm border border-indigo-100"><i class="fa-solid fa-indian-rupee-sign text-lg"></i></div>
             </div>
-            <div class="mt-4 flex items-center text-sm">
-                <span class="text-green-400 flex items-center font-medium"><svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path></svg> 8.5%</span>
-                <span class="text-slate-500 ml-2">vs yesterday</span>
-            </div>
+            <div class="relative mt-4 flex items-center text-xs text-green-600 font-semibold"><i class="fa-solid fa-arrow-trend-up mr-1"></i> +8.4% today</div>
         </div>
 
-        <div class="bg-surface border border-slate-700/50 rounded-xl p-5 hover:-translate-y-1 hover:shadow-lg hover:shadow-purple-500/10 transition-all duration-300">
-            <div class="flex justify-between items-start">
+        <div class="bg-white rounded-2xl p-6 border border-slate-100 hover-lift relative overflow-hidden group">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-purple-50 to-purple-100 rounded-full blur-3xl -mr-10 -mt-10 transition group-hover:bg-purple-100"></div>
+            <div class="relative flex justify-between items-start">
                 <div>
-                    <p class="text-slate-400 text-sm font-medium">Active Orders</p>
-                    <h3 class="text-2xl font-bold text-white mt-1">342</h3>
+                    <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Active Orders</p>
+                    <h3 class="text-3xl font-black font-poppins text-slate-800 mt-2">{{ orders_today }}</h3>
                 </div>
-                <div class="p-2 bg-purple-500/10 rounded-lg text-purple-400">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
-                </div>
+                <div class="w-10 h-10 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center shadow-sm border border-purple-100"><i class="fa-solid fa-cart-shopping text-lg"></i></div>
             </div>
-            <div class="mt-4 flex items-center text-sm">
-                <span class="text-slate-400 font-medium">Processing instantly</span>
-            </div>
+            <div class="relative mt-4 flex items-center text-xs text-slate-500 font-medium">Processing globally</div>
         </div>
 
-        <div class="bg-surface border border-slate-700/50 rounded-xl p-5 hover:-translate-y-1 hover:shadow-lg hover:shadow-orange-500/10 transition-all duration-300">
-            <div class="flex justify-between items-start">
+        <div class="bg-white rounded-2xl p-6 border border-slate-100 hover-lift relative overflow-hidden group">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-full blur-3xl -mr-10 -mt-10 transition group-hover:bg-emerald-100"></div>
+            <div class="relative flex justify-between items-start">
                 <div>
-                    <p class="text-slate-400 text-sm font-medium">Active Bots</p>
-                    <h3 class="text-2xl font-bold text-white mt-1">12 / 15</h3>
+                    <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Active Bots</p>
+                    <h3 class="text-3xl font-black font-poppins text-slate-800 mt-2">{{ active_bots }}</h3>
                 </div>
-                <div class="p-2 bg-orange-500/10 rounded-lg text-orange-400">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
-                </div>
+                <div class="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center shadow-sm border border-emerald-100"><i class="fa-solid fa-robot text-lg"></i></div>
             </div>
-            <div class="mt-4 flex items-center text-sm">
-                <span class="text-red-400 flex items-center font-medium"><svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg> 3 Stopped</span>
-                <span class="text-slate-500 ml-2">Needs attention</span>
-            </div>
+            <div class="relative mt-4 flex items-center text-xs text-emerald-600 font-semibold"><i class="fa-solid fa-circle text-[8px] mr-1 animate-pulse"></i> Systems healthy</div>
         </div>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-6">
-        <div class="bg-surface border border-slate-700/50 rounded-xl p-5">
-            <h3 class="text-white font-medium mb-4">Revenue Overview</h3>
-            <div class="h-64 relative w-full">
-                <canvas id="revenueChart"></canvas>
-            </div>
+    <div class="bg-white rounded-2xl border border-slate-100 p-6 shadow-sm">
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="font-poppins font-bold text-slate-800">Revenue Analytics</h3>
+            <select class="bg-slate-50 border border-slate-200 text-slate-600 text-xs rounded-lg px-3 py-1.5 focus:outline-none focus:border-blue-500">
+                <option>Last 7 Days</option>
+                <option>This Month</option>
+            </select>
+        </div>
+        <div class="w-full h-64 relative">
+            <canvas id="revenueChart"></canvas>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+        <div class="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+            <h3 class="font-poppins font-bold text-slate-800">Recent Activity</h3>
+            <a href="{% url 'admin_payments' %}" class="text-xs font-semibold text-blue-600 hover:text-blue-800 transition">View All Activity</a>
         </div>
         
-        <div class="bg-surface border border-slate-700/50 rounded-xl p-5">
-            <h3 class="text-white font-medium mb-4">Orders Fulfillment</h3>
-            <div class="h-64 relative w-full">
-                <canvas id="ordersChart"></canvas>
-            </div>
-        </div>
-    </div>
-
-    <div class="mt-6 bg-surface border border-slate-700/50 rounded-xl overflow-hidden">
-        <div class="px-5 py-4 border-b border-slate-700/50 flex justify-between items-center">
-            <h3 class="text-white font-medium">Recent Activity</h3>
-            <button class="text-primary hover:text-indigo-400 text-sm font-medium transition-colors">View All</button>
-        </div>
         <div class="overflow-x-auto">
-            <table class="w-full text-left text-sm text-slate-400">
-                <thead class="text-xs uppercase bg-slate-800/50 text-slate-500">
-                    <tr>
-                        <th scope="col" class="px-5 py-3 font-medium">Order ID</th>
-                        <th scope="col" class="px-5 py-3 font-medium">User</th>
-                        <th scope="col" class="px-5 py-3 font-medium">Service</th>
-                        <th scope="col" class="px-5 py-3 font-medium">Amount</th>
-                        <th scope="col" class="px-5 py-3 font-medium">Status</th>
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-white text-slate-400 text-[10px] uppercase tracking-wider font-bold border-b border-slate-100">
+                        <th class="px-6 py-4 font-semibold">Order ID</th>
+                        <th class="px-6 py-4 font-semibold">User</th>
+                        <th class="px-6 py-4 font-semibold">Service Details</th>
+                        <th class="px-6 py-4 font-semibold">Amount</th>
+                        <th class="px-6 py-4 font-semibold">Status</th>
+                        <th class="px-6 py-4 text-right">Action</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-700/50">
-                    <tr class="hover:bg-slate-800/30 transition-colors">
-                        <td class="px-5 py-4 font-medium text-slate-300">#ORD-9012</td>
-                        <td class="px-5 py-4">@rahul_dev</td>
-                        <td class="px-5 py-4">Instagram Followers [Server 1]</td>
-                        <td class="px-5 py-4">₹450</td>
-                        <td class="px-5 py-4">
-                            <span class="inline-flex items-center gap-1.5 py-1 px-2.5 rounded-md text-xs font-medium bg-green-500/10 text-green-400">
-                                <span class="w-1.5 h-1.5 rounded-full bg-green-400"></span> Completed
-                            </span>
+                <tbody class="text-sm font-medium text-slate-700">
+                    {% for order in recent_orders %}
+                    <tr class="border-b border-slate-50 hover:bg-slate-50/80 transition group">
+                        <td class="px-6 py-4 text-slate-400 font-mono text-xs">#{{ order.id }}</td>
+                        <td class="px-6 py-4 flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center font-bold text-xs shadow-sm">
+                                {{ order.user.username|make_list|first|upper }}
+                            </div>
+                            <div>
+                                <p class="text-slate-800 font-semibold group-hover:text-blue-600 transition cursor-pointer" onclick="openUserDetails('{{ order.user.username }}')">{{ order.user.username }}</p>
+                                <p class="text-[10px] text-slate-400 font-normal">ID: {{ order.user.telegram_id|default:"Web" }}</p>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <p class="text-slate-800 truncate max-w-[200px]">{{ order.service.name }}</p>
+                        </td>
+                        <td class="px-6 py-4 font-semibold text-slate-800">₹{{ order.charge }}</td>
+                        <td class="px-6 py-4">
+                            {% if order.status == 'Completed' %}
+                                <span class="inline-flex items-center px-2.5 py-1 rounded-md text-[10px] font-bold bg-emerald-50 text-emerald-600 border border-emerald-100">
+                                    <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full mr-1.5"></span> Success
+                                </span>
+                            {% elif order.status == 'Pending' %}
+                                <span class="inline-flex items-center px-2.5 py-1 rounded-md text-[10px] font-bold bg-amber-50 text-amber-600 border border-amber-100">
+                                    <span class="w-1.5 h-1.5 bg-amber-500 rounded-full mr-1.5 animate-pulse"></span> Pending
+                                </span>
+                            {% else %}
+                                <span class="inline-flex items-center px-2.5 py-1 rounded-md text-[10px] font-bold bg-rose-50 text-rose-600 border border-rose-100">
+                                    <span class="w-1.5 h-1.5 bg-rose-500 rounded-full mr-1.5"></span> Failed
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 text-right">
+                            <button class="text-slate-400 hover:text-blue-600 transition p-2 rounded-lg hover:bg-blue-50 btn-press" onclick="showToast('Fetching order details...', 'info')">
+                                <i class="fa-solid fa-ellipsis-vertical"></i>
+                            </button>
                         </td>
                     </tr>
-                    <tr class="hover:bg-slate-800/30 transition-colors">
-                        <td class="px-5 py-4 font-medium text-slate-300">#ORD-9011</td>
-                        <td class="px-5 py-4">@neha_vlogs</td>
-                        <td class="px-5 py-4">YouTube Views [High Retention]</td>
-                        <td class="px-5 py-4">₹1,200</td>
-                        <td class="px-5 py-4">
-                            <span class="inline-flex items-center gap-1.5 py-1 px-2.5 rounded-md text-xs font-medium bg-yellow-500/10 text-yellow-400">
-                                <span class="w-1.5 h-1.5 rounded-full bg-yellow-400 animate-pulse"></span> Processing
-                            </span>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="px-6 py-12 text-center text-slate-400">
+                            <div class="flex flex-col items-center justify-center">
+                                <i class="fa-solid fa-inbox text-3xl mb-3 opacity-50"></i>
+                                <p class="text-sm font-semibold">No recent activity found.</p>
+                            </div>
                         </td>
                     </tr>
-                    <tr class="hover:bg-slate-800/30 transition-colors">
-                        <td class="px-5 py-4 font-medium text-slate-300">#PAY-8820</td>
-                        <td class="px-5 py-4">@gaming_pro</td>
-                        <td class="px-5 py-4">Add Funds (UPI)</td>
-                        <td class="px-5 py-4">₹500</td>
-                        <td class="px-5 py-4">
-                            <span class="inline-flex items-center gap-1.5 py-1 px-2.5 rounded-md text-xs font-medium bg-red-500/10 text-red-400">
-                                <span class="w-1.5 h-1.5 rounded-full bg-red-400"></span> Failed
-                            </span>
-                        </td>
-                    </tr>
+                    {% endfor %}
                 </tbody>
             </table>
         </div>
@@ -150,33 +152,71 @@
 </div>
 
 <script>
+    // Example: Triggering the Slide-Over for User Details (No Page Reload)
+    function openUserDetails(username) {
+        // Open empty shell with skeleton loader immediately for snappy UX
+        openSlideOver(`User: @${username}`, `
+            <div class="space-y-4 fade-in">
+                <div class="flex items-center gap-4 border-b border-slate-100 pb-4">
+                    <div class="w-12 h-12 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xl shadow-inner"><i class="fa-solid fa-user"></i></div>
+                    <div>
+                        <h4 class="font-bold text-slate-800">${username}</h4>
+                        <span class="px-2 py-0.5 bg-green-100 text-green-700 text-[10px] font-bold rounded">Active Account</span>
+                    </div>
+                </div>
+                
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                    <p class="text-xs text-slate-500 font-semibold mb-1">Wallet Balance</p>
+                    <p class="text-xl font-black text-slate-800">Fetching...</p>
+                </div>
+
+                <div class="mt-6 flex flex-col gap-2">
+                    <button class="w-full py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold shadow-sm hover:bg-blue-700 btn-press transition">Add Funds</button>
+                    <button class="w-full py-2 bg-white border border-rose-200 text-rose-600 rounded-lg text-sm font-semibold hover:bg-rose-50 btn-press transition" onclick="triggerBanModal('${username}')">Suspend Account</button>
+                </div>
+            </div>
+        `);
+        
+        // In a real scenario, you would perform a fetch() call here to your Django API
+        // fetch(`/api/users/${username}`).then(res => res.json()).then(data => { ... update slide content ... });
+    }
+
+    // Example: Triggering the Confirmation Modal
+    function triggerBanModal(username) {
+        openModal(
+            'Suspend User', 
+            `Are you sure you want to suspend @${username}? They will lose access to the panel immediately.`,
+            () => {
+                showToast(`@${username} has been suspended successfully.`, 'success');
+                closeSlideOver();
+            },
+            true // True means it's a danger action (red button)
+        );
+    }
+
+    // Example Chart Setup (Smooth draw animation)
     document.addEventListener("DOMContentLoaded", function() {
-        // Common styling for charts
-        Chart.defaults.color = '#94a3b8';
-        Chart.defaults.font.family = "'Poppins', sans-serif";
+        const ctx = document.getElementById('revenueChart').getContext('2d');
         
-        // 1. Revenue Line Chart
-        const ctxRev = document.getElementById('revenueChart').getContext('2d');
-        
-        // Create gradient for line chart
-        let gradient = ctxRev.createLinearGradient(0, 0, 0, 300);
-        gradient.addColorStop(0, 'rgba(99, 102, 241, 0.2)'); // Primary color faded
-        gradient.addColorStop(1, 'rgba(99, 102, 241, 0)');
-        
-        new Chart(ctxRev, {
+        // Create Gradient
+        let gradient = ctx.createLinearGradient(0, 0, 0, 400);
+        gradient.addColorStop(0, 'rgba(37, 99, 235, 0.2)'); // Blue
+        gradient.addColorStop(1, 'rgba(37, 99, 235, 0)');
+
+        new Chart(ctx, {
             type: 'line',
             data: {
                 labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
                 datasets: [{
                     label: 'Revenue (₹)',
-                    data: [8500, 9200, 11000, 10500, 13000, 12450, 14200],
-                    borderColor: '#6366f1', // Primary color
+                    data: [1200, 1900, 1500, 2200, 1800, 2800, 2400],
+                    borderColor: '#2563eb',
                     backgroundColor: gradient,
-                    borderWidth: 2,
+                    borderWidth: 3,
                     tension: 0.4, // Smooth curves
                     fill: true,
-                    pointBackgroundColor: '#1e293b',
-                    pointBorderColor: '#6366f1',
+                    pointBackgroundColor: '#ffffff',
+                    pointBorderColor: '#2563eb',
                     pointBorderWidth: 2,
                     pointRadius: 4,
                     pointHoverRadius: 6
@@ -185,41 +225,15 @@
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                animation: { duration: 1500, easing: 'easeOutQuart' },
                 plugins: { legend: { display: false } },
                 scales: {
-                    y: { beginAtZero: true, grid: { color: 'rgba(51, 65, 85, 0.4)' }, border: { display: false } },
-                    x: { grid: { display: false }, border: { display: false } }
-                },
-                animation: { duration: 1500, easing: 'easeOutQuart' } // Smooth draw effect
-            }
-        });
-
-        // 2. Orders Bar Chart
-        const ctxOrd = document.getElementById('ordersChart').getContext('2d');
-        new Chart(ctxOrd, {
-            type: 'bar',
-            data: {
-                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-                datasets: [{
-                    label: 'Orders Completed',
-                    data: [120, 150, 180, 140, 210, 250, 230],
-                    backgroundColor: '#10b981', // Emerald color
-                    borderRadius: 4,
-                    barPercentage: 0.5
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
-                scales: {
-                    y: { beginAtZero: true, grid: { color: 'rgba(51, 65, 85, 0.4)' }, border: { display: false } },
-                    x: { grid: { display: false }, border: { display: false } }
-                },
-                animation: { duration: 1500, easing: 'easeOutQuart' }
+                    y: { beginAtZero: true, grid: { borderDash: [4, 4], color: '#e2e8f0', drawBorder: false } },
+                    x: { grid: { display: false, drawBorder: false } }
+                }
             }
         });
     });
 </script>
 {% endblock %}
-    
+                                        
