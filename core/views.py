@@ -21,13 +21,11 @@ def ads_txt_view(request):
     return HttpResponse(ads_txt_content, content_type="text/plain")
 
 # ==========================================
-# 🌍 1. PUBLIC LANDING PAGE (Index)
+# 🌍 1. PUBLIC LANDING PAGE (Index for Chrome & AdSense)
 # ==========================================
 def index_view(request):
-    if request.user.is_authenticated:
-        if request.user.is_superuser:
-            return redirect('custom_admin')
-        return redirect('home')
+    # Ab chahe admin ho ya normal user, agar wo browser me / daalega 
+    # toh use sirf aapka Blog/AdSense page (index.html) hi dikhega!
     return render(request, 'core/index.html')
 
 # ==========================================
@@ -253,26 +251,33 @@ def login_as_user(request, user_id):
 
 
 # ==========================================
-# 🔐 6. NORMAL WEB AUTH
+# 🔐 6. NORMAL WEB AUTH (Login Form for Admin)
 # ==========================================
 def login_view(request):
+    # Agar user pehle se login hai
     if request.user.is_authenticated:
-        if request.user.is_superuser: return redirect('custom_admin')
-        return redirect('home')
+        if request.user.is_superuser: 
+            return redirect('custom_admin') # Admin ko panel par
+        return redirect('home') # Normal user ko dashboard par
 
     if request.method == 'POST':
         u = request.POST.get('username')
         p = request.POST.get('password')
         next_url = request.POST.get('next')
+        
         user = authenticate(request, username=u, password=p)
         if user is not None:
             auth_login(request, user)
-            if next_url: return redirect(next_url)
-            if user.is_superuser: return redirect('custom_admin')
+            if next_url: 
+                return redirect(next_url)
+            if user.is_superuser: 
+                return redirect('custom_admin')
             return redirect('home')
         else:
             messages.error(request, "❌ Invalid Username or Password")
+            
     return render(request, 'core/login.html')
+
 
 def register_view(request):
     if request.user.is_authenticated: return redirect('home')
