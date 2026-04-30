@@ -442,3 +442,11 @@ def admin_bot_action(request):
                 
     return redirect('admin_bots')
                 
+# 👇 YEH FUNCTION MISSING THA 👇
+@login_required(login_url='/login/')
+def admin_tasks(request):
+    if not request.user.is_superuser: return redirect('home')
+    # Aapke model ke hisaab se order by '-created_at' rakha hai
+    tasks = Task.objects.all().order_by('-created_at')
+    return render(request, 'core/admin_tasks.html', {'tasks': tasks})
+    
