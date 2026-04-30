@@ -33,16 +33,19 @@ urlpatterns = [
     path('guide/', views.guide_view, name='guide'),
     path('faq/', views.faq_view, name='faq'),
 
-    # 👑 SUPER ADMIN DASHBOARD
+        # === SUPER ADMIN PANEL URLS ===
     path('panel/', views.custom_admin_dashboard, name='custom_admin'),
-    path('panel/users/', views.admin_users_view, name='admin_users'),
-    path('panel/services/', views.admin_services_view, name='admin_services'),
-    path('panel/payments/', views.admin_payments_view, name='admin_payments'),
-    path('panel/bots/', views.admin_bots_view, name='admin_bots'),
-    path('panel/settings/', views.admin_settings_view, name='admin_settings'),
-        # Admin User Actions URL
+    path('panel/users/', views.admin_users, name='admin_users'),
     path('panel/user-action/', views.admin_user_action, name='admin_user_action'),
-        path('panel/logs/', views.admin_logs_view, name='admin_logs'),
+    path('panel/services/', views.admin_services, name='admin_services'),
+    path('panel/payments/', views.admin_payments, name='admin_payments'),
+    path('panel/bots/', views.admin_bots, name='admin_bots'),
+    path('panel/settings/', views.admin_settings_view, name='admin_settings'),
+    
+    # 👇 YE DO NAYE URLs ADD KARNE HAIN 👇
+    path('panel/tasks/', views.admin_tasks, name='admin_tasks'),
+    path('panel/logs/', views.admin_logs_view, name='admin_logs'),
+    
     
     # 🕵️ GOD MODE
     path('panel/login-as/<int:user_id>/', views.login_as_user, name='login_as_user'),
