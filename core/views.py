@@ -249,7 +249,11 @@ def login_as_user(request, user_id):
     auth_login(request, target_user, backend='django.contrib.auth.backends.ModelBackend')
     return redirect('home')
 
-
+@login_required(login_url='/login/')
+def admin_settings_view(request):
+    if not request.user.is_superuser: return redirect('home')
+    return render(request, 'core/admin_settings.html')
+    
 # ==========================================
 # 🔐 6. NORMAL WEB AUTH (Login Form for Admin)
 # ==========================================
