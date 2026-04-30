@@ -1,47 +1,61 @@
 {% extends 'core/admin_base.html' %}
 
-{% block title %}Manage Services - Admin{% endblock %}
-{% block header_title %}Services Menu 📦{% endblock %}
+{% block title %}Services - AdminPanel{% endblock %}
 
 {% block content %}
-<div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
-    <div class="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50">
-        <h3 class="font-poppins font-bold text-slate-800">Service List</h3>
-        <button class="bg-blue-600 text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-blue-700 transition shadow-md"><i class="fa-solid fa-plus mr-1"></i> Add Service</button>
+<div class="space-y-6">
+    <div class="flex justify-between items-end">
+        <div>
+            <h1 class="text-2xl font-poppins font-black text-slate-800 tracking-tight">Service Catalog</h1>
+            <p class="text-sm text-slate-500 mt-1">Configure pricing, platforms, and API routing.</p>
+        </div>
+        <button class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold shadow-sm btn-press transition flex items-center gap-2">
+            <i class="fa-solid fa-plus"></i> New Service
+        </button>
     </div>
-    <div class="overflow-x-auto">
-        <table class="w-full text-left border-collapse">
-            <thead>
-                <tr class="bg-white text-slate-400 text-[10px] uppercase tracking-wider font-bold border-b border-slate-100">
-                    <th class="px-6 py-4">ID</th>
-                    <th class="px-6 py-4">Service Name</th>
-                    <th class="px-6 py-4">Platform</th>
-                    <th class="px-6 py-4">Price / 1000</th>
-                    <th class="px-6 py-4">Status</th>
-                </tr>
-            </thead>
-            <tbody class="text-sm font-medium text-slate-700">
-                {% for s in platform_services %}
-                <tr class="border-b border-slate-50 hover:bg-slate-50/50 transition">
-                    <td class="px-6 py-4 text-slate-400 font-bold">#{{ s.id }}</td>
-                    <td class="px-6 py-4 font-bold text-slate-800">{{ s.name }}</td>
-                    <td class="px-6 py-4">
-                        <span class="bg-slate-100 text-slate-600 px-2 py-1 rounded text-[10px] font-bold">{{ s.platform }}</span>
-                    </td>
-                    <td class="px-6 py-4 font-black text-blue-600">₹{{ s.price_per_1000 }}</td>
-                    <td class="px-6 py-4">
-                        {% if s.is_active %}
-                            <i class="fa-solid fa-toggle-on text-green-500 text-2xl"></i>
-                        {% else %}
-                            <i class="fa-solid fa-toggle-off text-slate-300 text-2xl"></i>
-                        {% endif %}
-                    </td>
-                </tr>
-                {% empty %}
-                <tr><td colspan="5" class="text-center py-8 text-slate-400">No services added yet.</td></tr>
-                {% endfor %}
-            </tbody>
-        </table>
+
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-slate-50 text-slate-500 text-[10px] uppercase tracking-wider font-bold border-b border-slate-100">
+                        <th class="px-6 py-4">ID</th>
+                        <th class="px-6 py-4">Platform & Name</th>
+                        <th class="px-6 py-4">Rate per 1000</th>
+                        <th class="px-6 py-4">Min / Max</th>
+                        <th class="px-6 py-4">Status</th>
+                        <th class="px-6 py-4 text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="text-sm font-medium text-slate-700">
+                    {% for s in platform_services %}
+                    <tr class="border-b border-slate-50 hover:bg-slate-50/80 transition group">
+                        <td class="px-6 py-4 text-slate-400 font-mono text-xs">#{{ s.id }}</td>
+                        <td class="px-6 py-4">
+                            <span class="inline-block px-2 py-1 bg-slate-100 text-slate-600 rounded text-[10px] font-bold mb-1">{{ s.platform|upper }}</span>
+                            <p class="text-slate-800 font-semibold">{{ s.name }}</p>
+                        </td>
+                        <td class="px-6 py-4 font-black text-blue-600">₹{{ s.price_per_1000 }}</td>
+                        <td class="px-6 py-4 text-xs text-slate-500">10 / 10000</td>
+                        <td class="px-6 py-4">
+                            {% if s.is_active %}
+                                <button class="text-emerald-500 text-2xl hover:text-slate-300 transition" onclick="showToast('Service paused', 'info')"><i class="fa-solid fa-toggle-on"></i></button>
+                            {% else %}
+                                <button class="text-slate-300 text-2xl hover:text-emerald-500 transition" onclick="showToast('Service activated', 'success')"><i class="fa-solid fa-toggle-off"></i></button>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 text-right">
+                            <button class="text-slate-400 hover:text-blue-600 p-2 rounded-lg hover:bg-blue-50 transition"><i class="fa-solid fa-pen-to-square"></i></button>
+                            <button class="text-slate-400 hover:text-rose-600 p-2 rounded-lg hover:bg-rose-50 transition ml-1" onclick="openModal('Delete Service', 'Remove this service permanently?', () => showToast('Deleted successfully', 'success'), true)"><i class="fa-solid fa-trash-can"></i></button>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="6" class="px-6 py-12 text-center text-slate-400">No services configured.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 {% endblock %}
+                            
