@@ -21,13 +21,27 @@
         #slide-over { transition: transform 0.3s ease-in-out; }
         .translate-x-full { transform: translateX(100%); }
         
-        /* General Utilities */
+        /* Loading Bar Animation */
+        #top-loader { transition: width 0.3s ease, opacity 0.3s ease; }
+        
+        /* Bell Ringing Animation */
+        @keyframes ring {
+            0% { transform: rotate(0); }
+            25% { transform: rotate(15deg); }
+            50% { transform: rotate(-15deg); }
+            75% { transform: rotate(10deg); }
+            100% { transform: rotate(0); }
+        }
+        .hover-ring:hover { animation: ring 0.5s ease-in-out infinite; }
+
         .btn-press:active { transform: scale(0.95); }
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
     </style>
 </head>
 <body class="antialiased overflow-hidden flex h-screen">
+
+    <div id="top-loader" class="fixed top-0 left-0 h-1 bg-blue-600 z-[9999] w-0 opacity-0 shadow-[0_0_10px_rgba(37,99,235,0.8)]"></div>
 
     <div id="csrf-token-container" class="hidden">{% csrf_token %}</div>
     <div id="toast-container" class="fixed top-5 right-5 z-[9999] flex flex-col gap-2 pointer-events-none"></div>
@@ -49,6 +63,9 @@
             <a href="{% url 'admin_services' %}" class="flex items-center px-3 py-2.5 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-blue-600 transition"><i class="fa-solid fa-box-open w-6 text-center text-lg"></i><span class="ml-3 text-sm font-medium">Services</span></a>
             <a href="{% url 'admin_payments' %}" class="flex items-center px-3 py-2.5 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-blue-600 transition"><i class="fa-solid fa-wallet w-6 text-center text-lg"></i><span class="ml-3 text-sm font-medium">Payments</span></a>
             <a href="{% url 'admin_bots' %}" class="flex items-center px-3 py-2.5 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-blue-600 transition"><i class="fa-solid fa-robot w-6 text-center text-lg"></i><span class="ml-3 text-sm font-medium">Bots</span></a>
+            
+            <div class="pt-4 pb-2 px-3 text-xs font-bold text-slate-400 uppercase tracking-wider">System</div>
+            <a href="{% url 'admin_settings' %}" class="flex items-center px-3 py-2.5 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-blue-600 transition"><i class="fa-solid fa-gear w-6 text-center text-lg"></i><span class="ml-3 text-sm font-medium">Settings</span></a>
         </nav>
     </aside>
 
@@ -59,21 +76,25 @@
                 <button onclick="toggleSidebar()" class="w-10 h-10 flex items-center justify-center rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 transition btn-press">
                     <i class="fa-solid fa-bars text-lg"></i>
                 </button>
-                <div class="hidden md:flex items-center bg-slate-50 px-4 py-2 rounded-lg w-80 border border-slate-200 focus-within:border-blue-500 focus-within:bg-white transition">
-                    <i class="fa-solid fa-search text-slate-400 text-sm"></i>
-                    <input type="text" placeholder="Quick search..." class="bg-transparent border-none outline-none text-sm ml-3 w-full text-slate-700">
-                </div>
             </div>
 
-            <div class="flex items-center gap-4">
-                <button class="text-slate-500 hover:text-blue-600 transition relative"><i class="fa-regular fa-bell text-xl"></i></button>
+            <div class="flex items-center gap-5">
+                <a href="{% url 'admin_logs' %}" class="text-slate-500 hover:text-blue-600 transition relative group hover-ring" title="System Logs">
+                    <i class="fa-solid fa-bell text-xl"></i>
+                    <span class="absolute -top-1 -right-1 w-2.5 h-2.5 bg-rose-500 rounded-full border-2 border-white"></span>
+                </a>
+                
                 <div class="h-6 w-px bg-slate-200 mx-1"></div>
-                <div class="w-9 h-9 rounded-full bg-slate-900 text-white flex items-center justify-center shadow-sm"><i class="fa-solid fa-user-tie text-sm"></i></div>
+                
+                <a href="{% url 'admin_settings' %}" class="w-9 h-9 rounded-full bg-slate-100 text-slate-600 border border-slate-200 flex items-center justify-center shadow-sm overflow-hidden bg-cover bg-center transition hover:shadow-md"
+                   {% if request.user.profile_image %}style="background-image: url('{{ request.user.profile_image.url }}');"{% endif %}>
+                    {% if not request.user.profile_image %}<i class="fa-solid fa-user-tie text-sm"></i>{% endif %}
+                </a>
             </div>
         </header>
 
         <main class="flex-1 overflow-y-auto bg-slate-50 p-6">
-            <div class="max-w-7xl mx-auto">
+            <div class="max-w-7xl mx-auto fade-in">
                 {% block content %}{% endblock %}
             </div>
         </main>
@@ -82,13 +103,14 @@
     <div id="slide-over-overlay" class="fixed inset-0 bg-slate-900/20 backdrop-blur-sm z-[100] hidden" onclick="closeSlideOver()"></div>
     <div id="slide-over" class="fixed inset-y-0 right-0 w-full md:w-96 bg-white shadow-2xl z-[101] translate-x-full flex flex-col border-l border-slate-200">
         <div class="h-16 px-6 border-b border-slate-100 flex items-center justify-between shrink-0 bg-slate-50">
-            <h3 id="slide-title" class="font-poppins font-bold text-slate-800">User Details</h3>
+            <h3 id="slide-title" class="font-poppins font-bold text-slate-800">Details</h3>
             <button onclick="closeSlideOver()" class="text-slate-400 hover:text-slate-700 btn-press"><i class="fa-solid fa-xmark text-lg"></i></button>
         </div>
         <div id="slide-content" class="p-6 overflow-y-auto flex-1"></div>
     </div>
 
     <script>
+        // 1. Sidebar Logic
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
             const backdrop = document.getElementById('sidebar-backdrop');
@@ -100,6 +122,8 @@
                 backdrop.classList.add('hidden');
             }
         }
+
+        // 2. Slide Over Logic
         function openSlideOver(title, htmlContent) {
             document.getElementById('slide-title').innerText = title;
             document.getElementById('slide-content').innerHTML = htmlContent;
@@ -110,14 +134,61 @@
             document.getElementById('slide-over').classList.add('translate-x-full');
             setTimeout(() => document.getElementById('slide-over-overlay').classList.add('hidden'), 300);
         }
-        function showToast(msg, type = 'success') { /* Keeping your existing toast logic */ }
-        
-        {% if messages %}
-            {% for message in messages %}
-                alert("{{ message }}"); // Basic alert for Django messages
-            {% endfor %}
-        {% endif %}
+
+        // 3. Awesome Toast Notifications Logic
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            
+            let icon = 'fa-circle-check', color = 'bg-emerald-500';
+            if (type === 'error') { icon = 'fa-circle-exclamation'; color = 'bg-rose-500'; }
+            if (type === 'info') { icon = 'fa-circle-info'; color = 'bg-blue-500'; }
+
+            toast.className = `flex items-center p-4 rounded-xl shadow-lg border border-slate-100 bg-white transform translate-x-full transition-all duration-300 pointer-events-auto`;
+            toast.innerHTML = `
+                <div class="${color} w-8 h-8 rounded-full flex items-center justify-center text-white shrink-0"><i class="fa-solid ${icon} text-sm"></i></div>
+                <p class="ml-3 text-sm font-semibold text-slate-700">${message}</p>
+                <button onclick="this.parentElement.remove()" class="ml-4 text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
+            `;
+            
+            container.appendChild(toast);
+            requestAnimationFrame(() => toast.classList.remove('translate-x-full'));
+            setTimeout(() => {
+                toast.classList.add('translate-x-full');
+                setTimeout(() => toast.remove(), 300);
+            }, 4000);
+        }
+
+        // 4. Smooth Loading Bar Logic
+        document.addEventListener("DOMContentLoaded", () => {
+            const loader = document.getElementById('top-loader');
+            loader.style.width = '100%';
+            loader.style.opacity = '1';
+            setTimeout(() => { loader.style.opacity = '0'; }, 300);
+            setTimeout(() => { loader.style.width = '0'; }, 600);
+
+            // Django Backend Messages -> Convert to Toasts
+            {% if messages %}
+                {% for message in messages %}
+                    {% if message.tags == 'error' %} showToast("{{ message|escapejs }}", "error");
+                    {% elif message.tags == 'success' %} showToast("{{ message|escapejs }}", "success");
+                    {% else %} showToast("{{ message|escapejs }}", "info");
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
+        });
+
+        // Trigger loading bar on link clicks
+        document.querySelectorAll('a').forEach(link => {
+            link.addEventListener('click', function(e) {
+                if (this.hostname === window.location.hostname && !this.getAttribute('href').startsWith('#')) {
+                    const loader = document.getElementById('top-loader');
+                    loader.style.opacity = '1';
+                    loader.style.width = '40%';
+                }
+            });
+        });
     </script>
 </body>
     </html>
-    
+        
