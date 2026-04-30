@@ -253,6 +253,36 @@ def login_as_user(request, user_id):
 def admin_settings_view(request):
     if not request.user.is_superuser: return redirect('home')
     return render(request, 'core/admin_settings.html')
+
+@login_required(login_url='/login/')
+def admin_user_action(request):
+    if not request.user.is_superuser:
+        return redirect('home')
+        
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        user_id = request.POST.get('user_id')
+        target_user = get_object_or_404(CustomUser, id=user_id)
+        
+        if action == 'add_balance':
+            amount = float(request.POST.get('amount', 0))
+            target_user.wallet_balance += amount
+            target_user.save()
+            messages.success(request, f"Added ₹{amount} to {target_user.username}'s wallet.")
+            
+        elif action == 'add_diamonds':
+            amount = int(request.POST.get('amount', 0))
+            target_user.diamonds += amount
+            target_user.save()
+            messages.success(request, f"Added {amount} Diamonds to {target_user.username}.")
+            
+        elif action == 'toggle_ban':
+            target_user.is_banned = not target_user.is_banned
+            target_user.save()
+            status = "Banned" if target_user.is_banned else "Unbanned"
+            messages.success(request, f"User {target_user.username} has been {status}.")
+            
+    return redirect('admin_users')
     
 # ==========================================
 # 🔐 6. NORMAL WEB AUTH (Login Form for Admin)
