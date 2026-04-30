@@ -39,6 +39,7 @@ urlpatterns = [
     path('panel/services/', views.admin_services_view, name='admin_services'),
     path('panel/payments/', views.admin_payments_view, name='admin_payments'),
     path('panel/bots/', views.admin_bots_view, name='admin_bots'),
+    path('panel/settings/', views.admin_settings_view, name='admin_settings'),
     
     # 🕵️ GOD MODE
     path('panel/login-as/<int:user_id>/', views.login_as_user, name='login_as_user'),
