@@ -1,48 +1,57 @@
 {% extends 'core/admin_base.html' %}
 
-{% block title %}Payments - Admin{% endblock %}
-{% block header_title %}Fund Requests 💳{% endblock %}
+{% block title %}Payments - AdminPanel{% endblock %}
 
 {% block content %}
-<div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
-    <div class="px-6 py-5 border-b border-slate-100 flex justify-between items-center">
-        <h3 class="font-poppins font-bold text-slate-800">Pending & History</h3>
-        <span class="bg-yellow-100 text-yellow-600 px-3 py-1 rounded-full text-xs font-bold">{{ pending_count }} Pending</span>
+<div class="space-y-6">
+    <div class="flex justify-between items-end">
+        <div>
+            <h1 class="text-2xl font-poppins font-black text-slate-800 tracking-tight">Financial Transactions</h1>
+            <p class="text-sm text-slate-500 mt-1">Approve UTR requests and monitor revenue.</p>
+        </div>
+        <div class="bg-amber-100 text-amber-700 px-4 py-2 rounded-lg text-sm font-semibold shadow-sm flex items-center gap-2">
+            <i class="fa-solid fa-clock"></i> {{ pending_count }} Pending
+        </div>
     </div>
-    <div class="overflow-x-auto">
-        <table class="w-full text-left border-collapse">
-            <thead>
-                <tr class="bg-slate-50 text-slate-400 text-[10px] uppercase tracking-wider font-bold">
-                    <th class="px-6 py-4">Date</th>
-                    <th class="px-6 py-4">User</th>
-                    <th class="px-6 py-4">Amount</th>
-                    <th class="px-6 py-4">UTR Number</th>
-                    <th class="px-6 py-4">Status</th>
-                </tr>
-            </thead>
-            <tbody class="text-sm font-medium text-slate-700">
-                {% for p in platform_payments %}
-                <tr class="border-b border-slate-50 hover:bg-slate-50/50 transition">
-                    <td class="px-6 py-4 text-xs text-slate-500">{{ p.created_at|date:"M d, H:i" }}</td>
-                    <td class="px-6 py-4 font-bold text-slate-800">@{{ p.user.username }}</td>
-                    <td class="px-6 py-4 font-black text-green-600">₹{{ p.amount }}</td>
-                    <td class="px-6 py-4 font-mono text-xs bg-slate-100 px-2 py-1 rounded inline-block mt-3">{{ p.utr_number }}</td>
-                    <td class="px-6 py-4">
-                        {% if p.status == 'Pending' %}
-                            <div class="flex gap-2">
-                                <button class="bg-green-500 text-white w-8 h-8 rounded-lg hover:scale-105 transition shadow-md"><i class="fa-solid fa-check"></i></button>
-                                <button class="bg-red-500 text-white w-8 h-8 rounded-lg hover:scale-105 transition shadow-md"><i class="fa-solid fa-xmark"></i></button>
-                            </div>
-                        {% elif p.status == 'Completed' %}
-                            <span class="text-green-500 font-bold text-xs"><i class="fa-solid fa-check-circle mr-1"></i> Added</span>
-                        {% else %}
-                            <span class="text-red-500 font-bold text-xs"><i class="fa-solid fa-ban mr-1"></i> Rejected</span>
-                        {% endif %}
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-slate-50 text-slate-500 text-[10px] uppercase tracking-wider font-bold border-b border-slate-100">
+                        <th class="px-6 py-4">Date & Time</th>
+                        <th class="px-6 py-4">User</th>
+                        <th class="px-6 py-4">Amount</th>
+                        <th class="px-6 py-4">UTR Reference</th>
+                        <th class="px-6 py-4">Status & Action</th>
+                    </tr>
+                </thead>
+                <tbody class="text-sm font-medium text-slate-700">
+                    {% for p in platform_payments %}
+                    <tr class="border-b border-slate-50 hover:bg-slate-50/80 transition group">
+                        <td class="px-6 py-4 text-xs text-slate-500"><i class="fa-regular fa-calendar mr-1"></i>{{ p.created_at|date:"M d, Y H:i" }}</td>
+                        <td class="px-6 py-4 font-bold text-slate-800">@{{ p.user.username }}</td>
+                        <td class="px-6 py-4 font-black text-emerald-600">₹{{ p.amount }}</td>
+                        <td class="px-6 py-4">
+                            <span class="font-mono text-xs bg-slate-100 px-2.5 py-1 rounded-md text-slate-600 border border-slate-200">{{ p.utr_number }}</span>
+                        </td>
+                        <td class="px-6 py-4">
+                            {% if p.status == 'Pending' %}
+                                <div class="flex gap-2">
+                                    <button class="bg-emerald-50 text-emerald-600 border border-emerald-200 w-8 h-8 rounded-lg hover:bg-emerald-500 hover:text-white transition shadow-sm btn-press" onclick="showToast('Payment Approved', 'success')"><i class="fa-solid fa-check"></i></button>
+                                    <button class="bg-rose-50 text-rose-600 border border-rose-200 w-8 h-8 rounded-lg hover:bg-rose-500 hover:text-white transition shadow-sm btn-press" onclick="openModal('Reject Payment', 'Are you sure you want to reject UTR {{ p.utr_number }}?', () => showToast('Payment Rejected', 'error'), true)"><i class="fa-solid fa-xmark"></i></button>
+                                </div>
+                            {% elif p.status == 'Completed' %}
+                                <span class="text-emerald-500 font-bold text-xs"><i class="fa-solid fa-circle-check mr-1"></i> Approved</span>
+                            {% else %}
+                                <span class="text-rose-500 font-bold text-xs"><i class="fa-solid fa-circle-xmark mr-1"></i> Rejected</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 {% endblock %}
