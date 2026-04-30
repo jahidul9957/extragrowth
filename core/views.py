@@ -10,7 +10,9 @@ from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
 from django.db.models import Sum
-
+from django.utils import timezone
+from datetime import timedelta
+from .models import UserTask # Upar imports me ise add zaroor karein
 from .models import CustomUser, Service, Order, Payment, Bot, SiteSetting, Task
 
 # ==========================================
@@ -129,14 +131,30 @@ def telegram_auth_api(request):
 @login_required(login_url='/login/')
 def home_view(request):
     if request.user.is_superuser: return redirect('custom_admin')
-    
     setting, _ = SiteSetting.objects.get_or_create(id=1)
-    # Backend se active tasks nikalo
-    tasks = Task.objects.filter(is_active=True).order_by('-created_at')
     
+    # 1. Sirf wahi Tasks bhejo jo user ne abhi tak complete NAHI kiye hain
+    completed_task_ids = UserTask.objects.filter(user=request.user).values_list('task_id', flat=True)
+    tasks = Task.objects.filter(is_active=True).exclude(id__in=completed_task_ids).order_by('-created_at')
+    
+    # 2. Daily Calendar Logic
+    today = timezone.now().date()
+    yesterday = today - timedelta(days=1)
+    
+    if request.user.last_daily_claim == today:
+        claimable_day = -1 # Aaj ka claim ho chuka hai
+        checked_days = request.user.login_streak
+    elif request.user.last_daily_claim == yesterday:
+        claimable_day = request.user.login_streak + 1
+        if claimable_day > 7: claimable_day = 1
+        checked_days = request.user.login_streak if claimable_day > 1 else 0
+    else:
+        claimable_day = 1 # Streak toot gayi, wapas Day 1
+        checked_days = 0
+        
     return render(request, 'core/home.html', {
-        'setting': setting, 
-        'tasks': tasks
+        'setting': setting, 'tasks': tasks,
+        'claimable_day': claimable_day, 'checked_days': checked_days
     })
     
 @login_required(login_url='/login/')
