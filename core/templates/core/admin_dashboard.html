@@ -1,241 +1,225 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Command Center</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; }
-        .font-poppins { font-family: 'Poppins', sans-serif; }
-        /* Smooth transition for sidebar */
-        .sidebar-transition { transition: transform 0.3s ease-in-out; }
-    </style>
-</head>
-<body class="antialiased overflow-x-hidden">
+{% extends 'base.html' %}
+{% block title %}Dashboard - Control Center{% endblock %}
 
-    <div id="global-loader" class="fixed inset-0 bg-slate-900/90 backdrop-blur-sm z-[9999] hidden flex-col items-center justify-center">
-        <div class="relative w-20 h-20 flex items-center justify-center mb-4">
-            <div class="absolute inset-0 border-4 border-blue-500/20 rounded-full"></div>
-            <div class="absolute inset-0 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-            <i class="fa-solid fa-bolt text-blue-400 text-2xl animate-pulse"></i>
-        </div>
-        <h2 class="text-white font-poppins font-black text-xl tracking-widest animate-pulse">PROCESSING...</h2>
-        <p class="text-blue-300 text-xs mt-2">Connecting to secure server</p>
+{% block content %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<div class="space-y-6 pb-8">
+    
+    <div>
+        <h1 class="text-2xl font-bold text-white tracking-wide">Overview</h1>
+        <p class="text-slate-400 text-sm mt-1">Real-time data and system performance.</p>
     </div>
 
-    <div id="sidebar-overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black/50 z-40 hidden lg:hidden backdrop-blur-sm"></div>
-
-    <aside id="sidebar" class="fixed inset-y-0 left-0 w-64 bg-slate-900 text-slate-300 z-50 transform -translate-x-full lg:translate-x-0 sidebar-transition flex flex-col shadow-2xl">
-        <div class="flex items-center justify-between h-20 px-6 border-b border-white/10">
-            <div class="flex items-center gap-3">
-                <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white"><i class="fa-solid fa-shield-halved"></i></div>
-                <span class="font-poppins font-bold text-lg text-white">Admin Panel</span>
-            </div>
-            <button onclick="toggleSidebar()" class="lg:hidden text-slate-400 hover:text-white text-xl active:scale-95 transition">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
-        </div>
-
-        <nav class="flex-1 overflow-y-auto py-6 px-4 space-y-2">
-            <a href="{% url 'custom_admin' %}" class="flex items-center gap-3 px-4 py-3 bg-blue-600 text-white rounded-xl shadow-lg shadow-blue-600/20 transition group loader-trigger">
-                <i class="fa-solid fa-chart-pie w-5 text-center"></i>
-                <span class="font-bold text-sm">Dashboard</span>
-            </a>
-            
-            <a href="{% url 'admin_users' %}" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 hover:text-white transition group loader-trigger">
-                <i class="fa-solid fa-users w-5 text-center text-slate-500 group-hover:text-blue-400 transition"></i>
-                <span class="font-bold text-sm">Manage Users</span>
-            </a>
-            <a href="{% url 'admin_services' %}" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 hover:text-white transition group loader-trigger">
-                <i class="fa-solid fa-box-open w-5 text-center text-slate-500 group-hover:text-purple-400 transition"></i>
-                <span class="font-bold text-sm">Services</span>
-            </a>
-            <a href="{% url 'admin_payments' %}" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 hover:text-white transition group loader-trigger">
-                <i class="fa-solid fa-wallet w-5 text-center text-slate-500 group-hover:text-green-400 transition"></i>
-                <span class="font-bold text-sm">Payments</span>
-            </a>
-            <a href="{% url 'admin_bots' %}" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 hover:text-white transition group loader-trigger">
-                <i class="fa-solid fa-robot w-5 text-center text-slate-500 group-hover:text-orange-400 transition"></i>
-                <span class="font-bold text-sm">Bot Engines</span>
-            </a>
-        </nav>
-
-        <div class="p-4 border-t border-white/10 space-y-2">
-            <a href="#" onclick="alert('Settings page coming soon!')" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 hover:text-white transition">
-                <i class="fa-solid fa-gear w-5 text-center text-slate-500"></i>
-                <span class="font-bold text-sm">Settings</span>
-            </a>
-            <a href="{% url 'logout' %}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-red-400 hover:bg-red-500/10 transition loader-trigger">
-                <i class="fa-solid fa-right-from-bracket w-5 text-center"></i>
-                <span class="font-bold text-sm">Logout</span>
-            </a>
-        </div>
-    </aside>
-
-    <div class="lg:pl-64 flex flex-col min-h-screen transition-all duration-300">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         
-        <header class="bg-white h-20 px-6 flex items-center justify-between shadow-sm sticky top-0 z-30">
-            <div class="flex items-center gap-4">
-                <button onclick="toggleSidebar()" class="lg:hidden w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center text-slate-600 hover:bg-slate-200 transition active:scale-95">
-                    <i class="fa-solid fa-bars text-lg"></i>
-                </button>
-                <h1 class="font-poppins font-bold text-xl text-slate-800">Overview</h1>
-            </div>
-            
-            <div class="flex items-center gap-3">
-                <div class="text-right hidden sm:block">
-                    <p class="text-xs font-bold text-slate-800">Admin_Root</p>
-                    <p class="text-[10px] text-green-500 font-bold uppercase tracking-widest"><i class="fa-solid fa-circle text-[8px]"></i> Online</p>
+        <div class="bg-surface border border-slate-700/50 rounded-xl p-5 hover:-translate-y-1 hover:shadow-lg hover:shadow-primary/10 transition-all duration-300">
+            <div class="flex justify-between items-start">
+                <div>
+                    <p class="text-slate-400 text-sm font-medium">Total Users</p>
+                    <h3 class="text-2xl font-bold text-white mt-1">4,289</h3>
                 </div>
-                <div class="w-10 h-10 bg-slate-900 rounded-full flex items-center justify-center text-white border-2 border-white shadow-md">
-                    <i class="fa-solid fa-user-tie"></i>
+                <div class="p-2 bg-blue-500/10 rounded-lg text-blue-400">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
                 </div>
             </div>
-        </header>
+            <div class="mt-4 flex items-center text-sm">
+                <span class="text-green-400 flex items-center font-medium"><svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path></svg> 12%</span>
+                <span class="text-slate-500 ml-2">vs last month</span>
+            </div>
+        </div>
 
-        <main class="flex-1 p-6">
-            
-            {% if messages %}
-                <div class="mb-6 space-y-3" id="alert-box">
-                    {% for message in messages %}
-                        <div class="px-5 py-4 rounded-2xl shadow-sm border flex justify-between items-center animate-bounce-short
-                            {% if message.tags == 'error' %}bg-red-50 text-red-600 border-red-100
-                            {% elif message.tags == 'success' %}bg-green-50 text-green-600 border-green-100
-                            {% else %}bg-blue-50 text-blue-600 border-blue-100{% endif %}">
-                            <div class="flex items-center gap-3">
-                                <i class="fa-solid {% if message.tags == 'error' %}fa-triangle-exclamation{% else %}fa-circle-check{% endif %} text-lg"></i>
-                                <span class="font-bold text-sm">{{ message }}</span>
-                            </div>
-                            <button onclick="this.parentElement.style.display='none'" class="opacity-50 hover:opacity-100 transition"><i class="fa-solid fa-xmark"></i></button>
-                        </div>
-                    {% endfor %}
+        <div class="bg-surface border border-slate-700/50 rounded-xl p-5 hover:-translate-y-1 hover:shadow-lg hover:shadow-green-500/10 transition-all duration-300">
+            <div class="flex justify-between items-start">
+                <div>
+                    <p class="text-slate-400 text-sm font-medium">Revenue Today</p>
+                    <h3 class="text-2xl font-bold text-white mt-1">₹12,450</h3>
                 </div>
-            {% endif %}
-
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex items-center gap-5 hover:-translate-y-1 transition duration-300">
-                    <div class="w-14 h-14 bg-blue-50 text-blue-500 rounded-2xl flex items-center justify-center text-2xl"><i class="fa-solid fa-users"></i></div>
-                    <div>
-                        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Users</p>
-                        <h3 class="text-2xl font-black font-poppins text-slate-800">{{ total_users }}</h3>
-                    </div>
-                </div>
-                <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex items-center gap-5 hover:-translate-y-1 transition duration-300">
-                    <div class="w-14 h-14 bg-green-50 text-green-500 rounded-2xl flex items-center justify-center text-2xl"><i class="fa-solid fa-money-bill-trend-up"></i></div>
-                    <div>
-                        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Revenue</p>
-                        <h3 class="text-2xl font-black font-poppins text-slate-800">₹{{ total_revenue|floatformat:2 }}</h3>
-                    </div>
-                </div>
-                <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex items-center gap-5 hover:-translate-y-1 transition duration-300">
-                    <div class="w-14 h-14 bg-purple-50 text-purple-500 rounded-2xl flex items-center justify-center text-2xl"><i class="fa-solid fa-cart-shopping"></i></div>
-                    <div>
-                        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Orders Today</p>
-                        <h3 class="text-2xl font-black font-poppins text-slate-800">{{ orders_today }}</h3>
-                    </div>
-                </div>
-                <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex items-center gap-5 hover:-translate-y-1 transition duration-300">
-                    <div class="w-14 h-14 bg-orange-50 text-orange-500 rounded-2xl flex items-center justify-center text-2xl"><i class="fa-solid fa-robot"></i></div>
-                    <div>
-                        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Active Bots</p>
-                        <h3 class="text-2xl font-black font-poppins text-slate-800">{{ active_bots }}</h3>
-                    </div>
+                <div class="p-2 bg-green-500/10 rounded-lg text-green-400">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                 </div>
             </div>
+            <div class="mt-4 flex items-center text-sm">
+                <span class="text-green-400 flex items-center font-medium"><svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path></svg> 8.5%</span>
+                <span class="text-slate-500 ml-2">vs yesterday</span>
+            </div>
+        </div>
 
-            <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
-                <div class="px-6 py-5 border-b border-slate-100 flex justify-between items-center">
-                    <h3 class="font-poppins font-bold text-slate-800">Recent Activity</h3>
-                    <button class="text-xs font-bold text-blue-600 hover:underline">View All</button>
+        <div class="bg-surface border border-slate-700/50 rounded-xl p-5 hover:-translate-y-1 hover:shadow-lg hover:shadow-purple-500/10 transition-all duration-300">
+            <div class="flex justify-between items-start">
+                <div>
+                    <p class="text-slate-400 text-sm font-medium">Active Orders</p>
+                    <h3 class="text-2xl font-bold text-white mt-1">342</h3>
                 </div>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse">
-                        <thead>
-                            <tr class="bg-slate-50 text-slate-400 text-[10px] uppercase tracking-wider font-bold">
-                                <th class="px-6 py-4">ID</th>
-                                <th class="px-6 py-4">User</th>
-                                <th class="px-6 py-4">Service</th>
-                                <th class="px-6 py-4">Amount</th>
-                                <th class="px-6 py-4">Status</th>
-                            </tr>
-                        </thead>
-                        <tbody class="text-sm font-medium text-slate-700">
-                            {% for order in recent_orders %}
-                            <tr class="border-b border-slate-50 hover:bg-slate-50/50 transition">
-                                <td class="px-6 py-4 text-slate-400">#{{ order.id }}</td>
-                                <td class="px-6 py-4 flex items-center gap-2">
-                                    <div class="w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-[10px]"><i class="fa-solid fa-user"></i></div>
-                                    @{{ order.user.username }}
-                                </td>
-                                <td class="px-6 py-4 truncate max-w-[150px]">{{ order.service.name }}</td>
-                                <td class="px-6 py-4 text-green-600 font-bold">₹{{ order.charge }}</td>
-                                <td class="px-6 py-4">
-                                    {% if order.status == 'Completed' %}
-                                        <span class="bg-green-100 text-green-600 px-2 py-1 rounded text-[10px] font-bold uppercase tracking-widest">Completed</span>
-                                    {% else %}
-                                        <span class="bg-yellow-100 text-yellow-600 px-2 py-1 rounded text-[10px] font-bold uppercase tracking-widest">Pending</span>
-                                    {% endif %}
-                                </td>
-                            </tr>
-                            {% empty %}
-                            <tr><td colspan="5" class="px-6 py-8 text-center text-slate-400">No recent orders found.</td></tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+                <div class="p-2 bg-purple-500/10 rounded-lg text-purple-400">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
                 </div>
             </div>
-        </main>
+            <div class="mt-4 flex items-center text-sm">
+                <span class="text-slate-400 font-medium">Processing instantly</span>
+            </div>
+        </div>
+
+        <div class="bg-surface border border-slate-700/50 rounded-xl p-5 hover:-translate-y-1 hover:shadow-lg hover:shadow-orange-500/10 transition-all duration-300">
+            <div class="flex justify-between items-start">
+                <div>
+                    <p class="text-slate-400 text-sm font-medium">Active Bots</p>
+                    <h3 class="text-2xl font-bold text-white mt-1">12 / 15</h3>
+                </div>
+                <div class="p-2 bg-orange-500/10 rounded-lg text-orange-400">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                </div>
+            </div>
+            <div class="mt-4 flex items-center text-sm">
+                <span class="text-red-400 flex items-center font-medium"><svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg> 3 Stopped</span>
+                <span class="text-slate-500 ml-2">Needs attention</span>
+            </div>
+        </div>
     </div>
 
-    <script>
-        // 1. Sidebar Toggle Logic
-        function toggleSidebar() {
-            const sidebar = document.getElementById('sidebar');
-            const overlay = document.getElementById('sidebar-overlay');
-            
-            // Toggle translate class
-            if (sidebar.classList.contains('-translate-x-full')) {
-                sidebar.classList.remove('-translate-x-full');
-                overlay.classList.remove('hidden');
-            } else {
-                sidebar.classList.add('-translate-x-full');
-                overlay.classList.add('hidden');
-            }
-        }
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-6">
+        <div class="bg-surface border border-slate-700/50 rounded-xl p-5">
+            <h3 class="text-white font-medium mb-4">Revenue Overview</h3>
+            <div class="h-64 relative w-full">
+                <canvas id="revenueChart"></canvas>
+            </div>
+        </div>
+        
+        <div class="bg-surface border border-slate-700/50 rounded-xl p-5">
+            <h3 class="text-white font-medium mb-4">Orders Fulfillment</h3>
+            <div class="h-64 relative w-full">
+                <canvas id="ordersChart"></canvas>
+            </div>
+        </div>
+    </div>
 
-        // 2. Global Loading System (Shows when clicking menu links)
-        document.querySelectorAll('.loader-trigger').forEach(link => {
-            link.addEventListener('click', function(e) {
-                // Remove hidden, add flex to show the full-screen loader
-                document.getElementById('global-loader').classList.remove('hidden');
-                document.getElementById('global-loader').classList.add('flex');
-            });
+    <div class="mt-6 bg-surface border border-slate-700/50 rounded-xl overflow-hidden">
+        <div class="px-5 py-4 border-b border-slate-700/50 flex justify-between items-center">
+            <h3 class="text-white font-medium">Recent Activity</h3>
+            <button class="text-primary hover:text-indigo-400 text-sm font-medium transition-colors">View All</button>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm text-slate-400">
+                <thead class="text-xs uppercase bg-slate-800/50 text-slate-500">
+                    <tr>
+                        <th scope="col" class="px-5 py-3 font-medium">Order ID</th>
+                        <th scope="col" class="px-5 py-3 font-medium">User</th>
+                        <th scope="col" class="px-5 py-3 font-medium">Service</th>
+                        <th scope="col" class="px-5 py-3 font-medium">Amount</th>
+                        <th scope="col" class="px-5 py-3 font-medium">Status</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-700/50">
+                    <tr class="hover:bg-slate-800/30 transition-colors">
+                        <td class="px-5 py-4 font-medium text-slate-300">#ORD-9012</td>
+                        <td class="px-5 py-4">@rahul_dev</td>
+                        <td class="px-5 py-4">Instagram Followers [Server 1]</td>
+                        <td class="px-5 py-4">₹450</td>
+                        <td class="px-5 py-4">
+                            <span class="inline-flex items-center gap-1.5 py-1 px-2.5 rounded-md text-xs font-medium bg-green-500/10 text-green-400">
+                                <span class="w-1.5 h-1.5 rounded-full bg-green-400"></span> Completed
+                            </span>
+                        </td>
+                    </tr>
+                    <tr class="hover:bg-slate-800/30 transition-colors">
+                        <td class="px-5 py-4 font-medium text-slate-300">#ORD-9011</td>
+                        <td class="px-5 py-4">@neha_vlogs</td>
+                        <td class="px-5 py-4">YouTube Views [High Retention]</td>
+                        <td class="px-5 py-4">₹1,200</td>
+                        <td class="px-5 py-4">
+                            <span class="inline-flex items-center gap-1.5 py-1 px-2.5 rounded-md text-xs font-medium bg-yellow-500/10 text-yellow-400">
+                                <span class="w-1.5 h-1.5 rounded-full bg-yellow-400 animate-pulse"></span> Processing
+                            </span>
+                        </td>
+                    </tr>
+                    <tr class="hover:bg-slate-800/30 transition-colors">
+                        <td class="px-5 py-4 font-medium text-slate-300">#PAY-8820</td>
+                        <td class="px-5 py-4">@gaming_pro</td>
+                        <td class="px-5 py-4">Add Funds (UPI)</td>
+                        <td class="px-5 py-4">₹500</td>
+                        <td class="px-5 py-4">
+                            <span class="inline-flex items-center gap-1.5 py-1 px-2.5 rounded-md text-xs font-medium bg-red-500/10 text-red-400">
+                                <span class="w-1.5 h-1.5 rounded-full bg-red-400"></span> Failed
+                            </span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // Common styling for charts
+        Chart.defaults.color = '#94a3b8';
+        Chart.defaults.font.family = "'Poppins', sans-serif";
+        
+        // 1. Revenue Line Chart
+        const ctxRev = document.getElementById('revenueChart').getContext('2d');
+        
+        // Create gradient for line chart
+        let gradient = ctxRev.createLinearGradient(0, 0, 0, 300);
+        gradient.addColorStop(0, 'rgba(99, 102, 241, 0.2)'); // Primary color faded
+        gradient.addColorStop(1, 'rgba(99, 102, 241, 0)');
+        
+        new Chart(ctxRev, {
+            type: 'line',
+            data: {
+                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                datasets: [{
+                    label: 'Revenue (₹)',
+                    data: [8500, 9200, 11000, 10500, 13000, 12450, 14200],
+                    borderColor: '#6366f1', // Primary color
+                    backgroundColor: gradient,
+                    borderWidth: 2,
+                    tension: 0.4, // Smooth curves
+                    fill: true,
+                    pointBackgroundColor: '#1e293b',
+                    pointBorderColor: '#6366f1',
+                    pointBorderWidth: 2,
+                    pointRadius: 4,
+                    pointHoverRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true, grid: { color: 'rgba(51, 65, 85, 0.4)' }, border: { display: false } },
+                    x: { grid: { display: false }, border: { display: false } }
+                },
+                animation: { duration: 1500, easing: 'easeOutQuart' } // Smooth draw effect
+            }
         });
 
-        // Fail-safe: Hide loader when page finishes loading (in case user clicks Back button)
-        window.addEventListener('pageshow', function() {
-            document.getElementById('global-loader').classList.add('hidden');
-            document.getElementById('global-loader').classList.remove('flex');
-        });
-
-        // 3. Auto-hide Alert Messages after 5 seconds
-        setTimeout(() => {
-            const alertBox = document.getElementById('alert-box');
-            if (alertBox) {
-                alertBox.style.opacity = '0';
-                alertBox.style.transition = 'opacity 0.5s ease';
-                setTimeout(() => alertBox.remove(), 500);
+        // 2. Orders Bar Chart
+        const ctxOrd = document.getElementById('ordersChart').getContext('2d');
+        new Chart(ctxOrd, {
+            type: 'bar',
+            data: {
+                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                datasets: [{
+                    label: 'Orders Completed',
+                    data: [120, 150, 180, 140, 210, 250, 230],
+                    backgroundColor: '#10b981', // Emerald color
+                    borderRadius: 4,
+                    barPercentage: 0.5
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true, grid: { color: 'rgba(51, 65, 85, 0.4)' }, border: { display: false } },
+                    x: { grid: { display: false }, border: { display: false } }
+                },
+                animation: { duration: 1500, easing: 'easeOutQuart' }
             }
-        }, 5000);
-    </script>
-
-    <style>
-        .animate-bounce-short { animation: slideDown 0.4s ease-out; }
-        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
-    </style>
-</body>
-                                                                                                                                                                       </html>
-                        
+        });
+    });
+</script>
+{% endblock %}
+    
