@@ -125,13 +125,17 @@ class Payment(models.Model):
 # 6. BOT ENGINE MODEL (Playwright automation)
 # ==========================================
 class Bot(models.Model):
-    name = models.CharField(max_length=100, unique=True)
-    is_active = models.BooleanField(default=True) 
+    name = models.CharField(max_length=100)
+    # 👇 Yeh nayi line add karein Cookies save karne ke liye
+    cookies = models.TextField(blank=True, null=True) 
+    
+    is_active = models.BooleanField(default=False)
     is_banned = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
-    
+
     def __str__(self):
         return self.name
+        
 
 
 # ==========================================
