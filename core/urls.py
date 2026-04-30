@@ -36,22 +36,19 @@ urlpatterns = [
     path('dashboard/account/', views.account_view, name='account'),
     path('dashboard/team/', views.team_and_rewards, name='team_rewards'),
     
-    # ==========================================
-    # 👑 SUPER ADMIN COMMAND CENTER
-    # ==========================================
+    # === SUPER ADMIN COMMAND CENTER ===
     path('panel/', views.custom_admin_dashboard, name='custom_admin'),
     path('panel/users/', views.admin_users, name='admin_users'),
     path('panel/user-action/', views.admin_user_action, name='admin_user_action'),
     path('panel/services/', views.admin_services, name='admin_services'),
+    path('panel/service-action/', views.admin_service_action, name='admin_service_action'),
     path('panel/payments/', views.admin_payments, name='admin_payments'),
-    path('panel/bots/', views.admin_bots, name='admin_bots'),
-    path('panel/settings/', views.admin_settings_view, name='admin_settings'),
-        path('panel/service-action/', views.admin_service_action, name='admin_service_action'),
     path('panel/payment-action/', views.admin_payment_action, name='admin_payment_action'),
+    path('panel/bots/', views.admin_bots, name='admin_bots'),
     path('panel/bot-action/', views.admin_bot_action, name='admin_bot_action'),
-    path('panel/task-action/', views.admin_task_action, name='admin_task_action'),
-
-    # 👇 YAHAN HAIN WO DONO NAYE URLs JINKE BINA ERROR AA RAHA HAI 👇
-    path('panel/tasks/', views.admin_tasks, name='admin_tasks'),
+    path('panel/settings/', views.admin_settings_view, name='admin_settings'),
     path('panel/logs/', views.admin_logs_view, name='admin_logs'), 
-]
+    
+    # 👇 YE DONO TASKS KE LIYE HAIN 👇
+    path('panel/tasks/', views.admin_tasks, name='admin_tasks'),
+    path('panel/task-action/', views.admin_task_action, name='admin_task_action'),
