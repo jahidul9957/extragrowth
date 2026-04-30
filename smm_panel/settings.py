@@ -59,7 +59,11 @@ DATABASES = {
 # ==========================================
 # 🛡️ THE IMMORTAL CLOUD DATABASE (PostgreSQL)
 # ==========================================
-db_from_env = dj_database_url.config(conn_max_age=500)
+# YAHAN KIYA HAI ASLI JADU! 🪄
+db_from_env = dj_database_url.config(
+    conn_max_age=0,              # Serverless DB ke liye humesha 0 rakhein
+    conn_health_checks=True      # Django check karega ki DB zinda hai ya nahi
+)
 if db_from_env:
     DATABASES['default'].update(db_from_env)
 
