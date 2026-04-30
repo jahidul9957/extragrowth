@@ -2,38 +2,43 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    # 💰 ADSENSE VERIFICATION
-    path('ads.txt', views.ads_txt_view),
-
-    # 🌍 PUBLIC LANDING PAGE (AdSense & New Users ke liye)
+    # ==========================================
+    # 🌍 PUBLIC & BLOG PAGES
+       # 🌍 PUBLIC & BLOG PAGES
     path('', views.index_view, name='index'),
-
-    # 📱 TMA MAIN DASHBOARD (Login ke baad yahan aayega)
-    path('dashboard/', views.home_view, name='home'),
-
-    # 📱 FRONTEND (TMA Pages)
-    path('services/', views.services_view, name='services'),
-    path('new-order/', views.new_order_view, name='new_order'),
-    path('orders/', views.orders_view, name='orders'),
-    path('add-funds/', views.add_funds_view, name='add_funds'),
-    path('account/', views.account_view, name='account'),
-    path('team/', views.team_and_rewards, name='team_rewards'),
-
-    # 🔐 AUTHENTICATION
-    path('login/', views.login_view, name='login'),
-    path('register/', views.register_view, name='register'),
-    path('logout/', views.logout_view, name='logout'),
     
-    # 🤖 TELEGRAM API
-    path('api/telegram-auth/', views.telegram_auth_api, name='telegram_auth_api'),
-
-    # 📘 SUPPORT PAGES (Bina login ke bhi khulenge AdSense ke liye)
+    # 💰 ADSENSE VERIFICATION (dhyan rakhein, aage '/' nahi lagana hai)
+    path('ads.txt', views.ads_txt_view, name='ads_txt'),
+    # ==========================================
+    path('', views.index_view, name='index'),
     path('about/', views.about_view, name='about'),
     path('support/', views.support_view, name='support'),
     path('guide/', views.guide_view, name='guide'),
     path('faq/', views.faq_view, name='faq'),
+    path('ads.txt', views.ads_txt_view, name='ads_txt'),
 
-        # === SUPER ADMIN PANEL URLS ===
+    # ==========================================
+    # 🔐 AUTHENTICATION
+    # ==========================================
+    path('login/', views.login_view, name='login'),
+    path('register/', views.register_view, name='register'),
+    path('logout/', views.logout_view, name='logout'),
+    path('api/telegram-auth/', views.telegram_auth_api, name='telegram_auth_api'),
+
+    # ==========================================
+    # 📱 CUSTOMER DASHBOARD
+    # ==========================================
+    path('dashboard/', views.home_view, name='home'),
+    path('dashboard/services/', views.services_view, name='services'),
+    path('dashboard/new-order/', views.new_order_view, name='new_order'),
+    path('dashboard/orders/', views.orders_view, name='orders'),
+    path('dashboard/add-funds/', views.add_funds_view, name='add_funds'),
+    path('dashboard/account/', views.account_view, name='account'),
+    path('dashboard/team/', views.team_and_rewards, name='team_rewards'),
+
+    # ==========================================
+    # 👑 SUPER ADMIN COMMAND CENTER
+    # ==========================================
     path('panel/', views.custom_admin_dashboard, name='custom_admin'),
     path('panel/users/', views.admin_users, name='admin_users'),
     path('panel/user-action/', views.admin_user_action, name='admin_user_action'),
@@ -42,11 +47,7 @@ urlpatterns = [
     path('panel/bots/', views.admin_bots, name='admin_bots'),
     path('panel/settings/', views.admin_settings_view, name='admin_settings'),
     
-    # 👇 YE DO NAYE URLs ADD KARNE HAIN 👇
+    # 👇 YAHAN HAIN WO DONO NAYE URLs JINKE BINA ERROR AA RAHA HAI 👇
     path('panel/tasks/', views.admin_tasks, name='admin_tasks'),
-    path('panel/logs/', views.admin_logs_view, name='admin_logs'),
-    
-    
-    # 🕵️ GOD MODE
-    path('panel/login-as/<int:user_id>/', views.login_as_user, name='login_as_user'),
+    path('panel/logs/', views.admin_logs_view, name='admin_logs'), 
 ]
