@@ -9,7 +9,7 @@
             <h1 class="text-2xl font-poppins font-black text-slate-800 tracking-tight">Service Catalog</h1>
             <p class="text-sm text-slate-500 mt-1">Configure pricing, platforms, and API routing.</p>
         </div>
-        <button class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold shadow-sm btn-press transition flex items-center gap-2">
+        <button onclick="openAddService()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold shadow-sm btn-press transition flex items-center gap-2">
             <i class="fa-solid fa-plus"></i> New Service
         </button>
     </div>
@@ -32,30 +32,84 @@
                     <tr class="border-b border-slate-50 hover:bg-slate-50/80 transition group">
                         <td class="px-6 py-4 text-slate-400 font-mono text-xs">#{{ s.id }}</td>
                         <td class="px-6 py-4">
-                            <span class="inline-block px-2 py-1 bg-slate-100 text-slate-600 rounded text-[10px] font-bold mb-1">{{ s.platform|upper }}</span>
+                            <span class="inline-block px-2 py-1 bg-slate-100 text-slate-600 rounded text-[10px] font-bold mb-1"><i class="fa-brands fa-{{ s.platform }} mr-1"></i>{{ s.platform|upper }}</span>
                             <p class="text-slate-800 font-semibold">{{ s.name }}</p>
                         </td>
-                        <td class="px-6 py-4 font-black text-blue-600">₹{{ s.price_per_1000 }}</td>
-                        <td class="px-6 py-4 text-xs text-slate-500">10 / 10000</td>
+                        <td class="px-6 py-4 font-black text-blue-600"><i class="fa-solid fa-indian-rupee-sign text-[10px] mr-1"></i>{{ s.price_per_1000 }}</td>
+                        <td class="px-6 py-4 text-xs text-slate-500">{{ s.min_order }} / {{ s.max_order }}</td>
                         <td class="px-6 py-4">
-                            {% if s.is_active %}
-                                <button class="text-emerald-500 text-2xl hover:text-slate-300 transition" onclick="showToast('Service paused', 'info')"><i class="fa-solid fa-toggle-on"></i></button>
-                            {% else %}
-                                <button class="text-slate-300 text-2xl hover:text-emerald-500 transition" onclick="showToast('Service activated', 'success')"><i class="fa-solid fa-toggle-off"></i></button>
-                            {% endif %}
+                            <form method="POST" action="{% url 'admin_service_action' %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="service_id" value="{{ s.id }}">
+                                <input type="hidden" name="action" value="toggle">
+                                {% if s.is_active %}
+                                    <button type="submit" class="text-emerald-500 text-2xl hover:text-slate-300 transition" title="Turn Off"><i class="fa-solid fa-toggle-on"></i></button>
+                                {% else %}
+                                    <button type="submit" class="text-slate-300 text-2xl hover:text-emerald-500 transition" title="Turn On"><i class="fa-solid fa-toggle-off"></i></button>
+                                {% endif %}
+                            </form>
                         </td>
                         <td class="px-6 py-4 text-right">
-                            <button class="text-slate-400 hover:text-blue-600 p-2 rounded-lg hover:bg-blue-50 transition"><i class="fa-solid fa-pen-to-square"></i></button>
-                            <button class="text-slate-400 hover:text-rose-600 p-2 rounded-lg hover:bg-rose-50 transition ml-1" onclick="openModal('Delete Service', 'Remove this service permanently?', () => showToast('Deleted successfully', 'success'), true)"><i class="fa-solid fa-trash-can"></i></button>
+                            <form method="POST" action="{% url 'admin_service_action' %}" class="inline-block" onsubmit="return confirm('Are you sure you want to delete this service?');">
+                                {% csrf_token %}
+                                <input type="hidden" name="service_id" value="{{ s.id }}">
+                                <input type="hidden" name="action" value="delete">
+                                <button type="submit" class="text-slate-400 hover:text-rose-600 p-2 rounded-lg hover:bg-rose-50 transition ml-1" title="Delete"><i class="fa-solid fa-trash-can"></i></button>
+                            </form>
                         </td>
                     </tr>
                     {% empty %}
-                    <tr><td colspan="6" class="px-6 py-12 text-center text-slate-400">No services configured.</td></tr>
+                    <tr><td colspan="6" class="px-6 py-12 text-center text-slate-400 font-semibold">No services configured.</td></tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
     </div>
 </div>
+
+<script>
+    function openAddService() {
+        const csrfToken = document.querySelector('#csrf-token-container input').value;
+        const formHtml = `
+            <form method="POST" action="{% url 'admin_service_action' %}" class="space-y-4 fade-in">
+                <input type="hidden" name="csrfmiddlewaretoken" value="${csrfToken}">
+                <input type="hidden" name="action" value="add">
+                
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Platform</label>
+                    <select name="platform" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:border-blue-500">
+                        <option value="youtube">YouTube</option>
+                        <option value="instagram">Instagram</option>
+                        <option value="telegram">Telegram</option>
+                        <option value="facebook">Facebook</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Service Name</label>
+                    <input type="text" name="name" required class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:border-blue-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Price per 1000 (INR)</label>
+                    <input type="number" step="0.01" name="price_per_1000" required class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:border-blue-500">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Min Order</label>
+                        <input type="number" name="min_order" value="10" required class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Max Order</label>
+                        <input type="number" name="max_order" value="10000" required class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:border-blue-500">
+                    </div>
+                </div>
+                <div class="pt-4 mt-4 border-t border-slate-100">
+                    <button type="submit" class="w-full bg-blue-600 text-white rounded-lg py-2.5 text-sm font-bold shadow-sm btn-press transition hover:bg-blue-700">
+                        <i class="fa-solid fa-plus mr-1"></i> Save Service
+                    </button>
+                </div>
+            </form>
+        `;
+        openSlideOver('Create New Service', formHtml);
+    }
+</script>
 {% endblock %}
-                            
