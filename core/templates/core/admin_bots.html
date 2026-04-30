@@ -7,7 +7,7 @@
     <div class="flex justify-between items-end">
         <div>
             <h1 class="text-2xl font-poppins font-black text-slate-800 tracking-tight">Automation Engines</h1>
-            <p class="text-sm text-slate-500 mt-1">Manage background workers, Playwright instances, and cookies.</p>
+            <p class="text-sm text-slate-500 mt-1">Manage background workers, Playwright instances, and systems.</p>
         </div>
         <button class="bg-white border border-slate-200 text-slate-600 px-4 py-2 rounded-lg text-sm font-semibold shadow-sm hover:bg-slate-50 transition btn-press flex items-center gap-2">
             <i class="fa-solid fa-cookie"></i> Manage Cookies
@@ -17,6 +17,7 @@
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {% for b in platform_bots %}
         <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 hover-lift relative overflow-hidden group">
+            
             {% if b.is_active and not b.is_banned %}
                 <div class="absolute top-0 left-0 w-full h-1 bg-emerald-500"></div>
             {% else %}
@@ -27,36 +28,69 @@
                 <div class="w-12 h-12 bg-slate-50 text-slate-600 border border-slate-100 rounded-xl flex items-center justify-center text-xl shadow-sm">
                     <i class="fa-solid fa-microchip"></i>
                 </div>
-                {% if b.is_banned %}
-                    <span class="inline-flex items-center px-2 py-1 rounded text-[10px] font-bold bg-rose-50 text-rose-600 border border-rose-100 uppercase tracking-wide">Offline</span>
-                {% elif b.is_active %}
+                {% if b.is_active %}
                     <span class="inline-flex items-center px-2 py-1 rounded text-[10px] font-bold bg-emerald-50 text-emerald-600 border border-emerald-100 uppercase tracking-wide">
                         <i class="fa-solid fa-circle text-[6px] mr-1.5 animate-pulse"></i> Running
                     </span>
+                {% else %}
+                    <span class="inline-flex items-center px-2 py-1 rounded text-[10px] font-bold bg-rose-50 text-rose-600 border border-rose-100 uppercase tracking-wide">Offline</span>
                 {% endif %}
             </div>
             
             <h3 class="text-lg font-bold font-poppins text-slate-800">{{ b.name }}</h3>
             <div class="flex items-center gap-4 mt-3">
-                <div class="text-xs text-slate-500"><i class="fa-solid fa-server mr-1"></i> Node 1</div>
-                <div class="text-xs text-emerald-600 font-semibold"><i class="fa-solid fa-check-double mr-1"></i> 98% Success</div>
+                <div class="text-xs text-slate-500"><i class="fa-solid fa-server mr-1"></i> Node {{ b.id }}</div>
             </div>
             
             <div class="mt-6 pt-4 border-t border-slate-100 flex gap-2">
-                <button class="flex-1 bg-slate-50 text-slate-600 border border-slate-200 py-2 rounded-lg text-xs font-semibold hover:bg-slate-100 transition btn-press" onclick="showToast('Restarting engine...', 'info')">
-                    <i class="fa-solid fa-rotate-right mr-1"></i> Restart
-                </button>
-                <button class="flex-1 bg-blue-50 text-blue-600 border border-blue-100 py-2 rounded-lg text-xs font-semibold hover:bg-blue-100 transition btn-press" onclick="openSlideOver('Logs: {{ b.name }}', '<div class=\'bg-slate-900 text-green-400 p-4 rounded-xl font-mono text-xs overflow-y-auto h-96\'>[SYS] Connecting...<br>[OK] Initialized.</div>')">
-                    <i class="fa-solid fa-terminal mr-1"></i> Logs
-                </button>
+                <form method="POST" action="{% url 'admin_bot_action' %}" class="flex-1">
+                    {% csrf_token %}
+                    <input type="hidden" name="bot_id" value="{{ b.id }}">
+                    <input type="hidden" name="action" value="toggle">
+                    <button type="submit" class="w-full bg-slate-50 text-slate-600 border border-slate-200 py-2 rounded-lg text-xs font-semibold hover:bg-slate-100 transition btn-press">
+                        <i class="fa-solid fa-power-off mr-1"></i> {% if b.is_active %}Stop{% else %}Start{% endif %}
+                    </button>
+                </form>
+                <form method="POST" action="{% url 'admin_bot_action' %}" class="flex-1" onsubmit="return confirm('Delete this Bot Engine permanently?');">
+                    {% csrf_token %}
+                    <input type="hidden" name="bot_id" value="{{ b.id }}">
+                    <input type="hidden" name="action" value="delete">
+                    <button type="submit" class="w-full bg-rose-50 text-rose-600 border border-rose-100 py-2 rounded-lg text-xs font-semibold hover:bg-rose-100 transition btn-press">
+                        <i class="fa-solid fa-trash mr-1"></i> Delete
+                    </button>
+                </form>
             </div>
         </div>
         {% endfor %}
         
-        <div class="bg-slate-50/50 p-6 rounded-2xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center text-slate-400 hover:text-blue-600 hover:border-blue-300 hover:bg-blue-50/50 transition cursor-pointer min-h-[220px] btn-press">
+        <div onclick="openAddBot()" class="bg-slate-50/50 p-6 rounded-2xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center text-slate-400 hover:text-blue-600 hover:border-blue-300 hover:bg-blue-50/50 transition cursor-pointer min-h-[220px] btn-press">
             <i class="fa-solid fa-plus text-3xl mb-3"></i>
             <span class="font-semibold text-sm">Deploy New Engine</span>
         </div>
     </div>
 </div>
+
+<script>
+    function openAddBot() {
+        const csrfToken = document.querySelector('#csrf-token-container input').value;
+        const formHtml = `
+            <form method="POST" action="{% url 'admin_bot_action' %}" class="space-y-4 fade-in">
+                <input type="hidden" name="csrfmiddlewaretoken" value="${csrfToken}">
+                <input type="hidden" name="action" value="add">
+                
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Bot Name / Server Node</label>
+                    <input type="text" name="name" placeholder="e.g. Worker-Node-01" required class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:border-blue-500">
+                </div>
+                
+                <div class="pt-4 mt-4 border-t border-slate-100">
+                    <button type="submit" class="w-full bg-emerald-600 text-white rounded-lg py-2.5 text-sm font-bold shadow-sm btn-press transition hover:bg-emerald-700">
+                        <i class="fa-solid fa-rocket mr-1"></i> Deploy Now
+                    </button>
+                </div>
+            </form>
+        `;
+        openSlideOver('Deploy Bot Engine', formHtml);
+    }
+</script>
 {% endblock %}
