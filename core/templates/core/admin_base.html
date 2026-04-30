@@ -41,6 +41,17 @@
 </head>
 <body class="antialiased overflow-hidden flex h-screen">
 
+    <div id="premium-loader" class="fixed inset-0 z-[99999] bg-slate-50 flex items-center justify-center transition-opacity duration-500">
+        <div class="flex flex-col items-center">
+            <div class="relative w-16 h-16 flex items-center justify-center">
+                <div class="absolute inset-0 border-4 border-slate-200 rounded-full"></div>
+                <div class="absolute inset-0 border-4 border-blue-600 rounded-full border-t-transparent animate-spin"></div>
+                <i class="fa-solid fa-bolt text-blue-600 text-xl animate-pulse"></i>
+            </div>
+            <h2 class="mt-4 text-xs font-bold text-slate-400 font-poppins tracking-widest uppercase animate-pulse">Initializing Panel...</h2>
+        </div>
+    </div>
+
     <div id="top-loader" class="fixed top-0 left-0 h-1 bg-blue-600 z-[9999] w-0 opacity-0 shadow-[0_0_10px_rgba(37,99,235,0.8)]"></div>
 
     <div id="csrf-token-container" class="hidden">{% csrf_token %}</div>
@@ -59,14 +70,14 @@
 
         <nav class="flex-1 py-6 px-3 space-y-1 overflow-y-auto">
             <a href="{% url 'custom_admin' %}" class="flex items-center px-3 py-2.5 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-blue-600 transition"><i class="fa-solid fa-chart-pie w-6 text-center text-lg"></i><span class="ml-3 text-sm font-medium">Dashboard</span></a>
-            <a href="{% url 'admin_users' %}" class="flex items-center px-3 py-2.5 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-blue-600 transition"><i class="fa-solid fa-users w-6 text-center text-lg"></i><span class="ml-3 text-sm font-medium">Manage Users</span></a>
-            <a href="{% url 'admin_services' %}" class="flex items-center px-3 py-2.5 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-blue-600 transition"><i class="fa-solid fa-box-open w-6 text-center text-lg"></i><span class="ml-3 text-sm font-medium">Manage Services</span></a>
-            <a href="{% url 'admin_payments' %}" class="flex items-center px-3 py-2.5 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-blue-600 transition"><i class="fa-solid fa-wallet w-6 text-center text-lg"></i><span class="ml-3 text-sm font-medium">Manage Payments</span></a>
-            <a href="{% url 'admin_bots' %}" class="flex items-center px-3 py-2.5 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-blue-600 transition"><i class="fa-solid fa-robot w-6 text-center text-lg"></i><span class="ml-3 text-sm font-medium">Manage Bots</span></a>
-            <a href="{% url 'admin_tasks' %}" class="flex items-center px-3 py-2.5 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-blue-600 transition"><i class="fa-solid fa-list-check w-6 text-center text-lg"></i><span class="ml-3 text-sm font-medium">Manage Tasks</span></a>
+            <a href="{% url 'admin_users' %}" class="flex items-center px-3 py-2.5 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-blue-600 transition"><i class="fa-solid fa-users w-6 text-center text-lg"></i><span class="ml-3 text-sm font-medium">Users</span></a>
+            <a href="{% url 'admin_services' %}" class="flex items-center px-3 py-2.5 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-blue-600 transition"><i class="fa-solid fa-box-open w-6 text-center text-lg"></i><span class="ml-3 text-sm font-medium">Services</span></a>
+            <a href="{% url 'admin_payments' %}" class="flex items-center px-3 py-2.5 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-blue-600 transition"><i class="fa-solid fa-wallet w-6 text-center text-lg"></i><span class="ml-3 text-sm font-medium">Payments</span></a>
+            <a href="{% url 'admin_bots' %}" class="flex items-center px-3 py-2.5 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-blue-600 transition"><i class="fa-solid fa-robot w-6 text-center text-lg"></i><span class="ml-3 text-sm font-medium">Bots</span></a>
+            <a href="{% url 'admin_tasks' %}" class="flex items-center px-3 py-2.5 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-blue-600 transition"><i class="fa-solid fa-list-check w-6 text-center text-lg"></i><span class="ml-3 text-sm font-medium">Tasks</span></a>
             
             <div class="pt-4 pb-2 px-3 text-xs font-bold text-slate-400 uppercase tracking-wider">System</div>
-            <a href="{% url 'admin_settings' %}" class="flex items-center px-3 py-2.5 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-blue-600 transition"><i class="fa-solid fa-gear w-6 text-center text-lg"></i><span class="ml-3 text-sm font-medium">Panel Settings</span></a>
+            <a href="{% url 'admin_settings' %}" class="flex items-center px-3 py-2.5 rounded-xl text-slate-600 hover:bg-slate-50 hover:text-blue-600 transition"><i class="fa-solid fa-gear w-6 text-center text-lg"></i><span class="ml-3 text-sm font-medium">Settings</span></a>
         </nav>
     </aside>
 
@@ -111,7 +122,18 @@
     </div>
 
     <script>
-        // 1. Sidebar Logic
+        // 1. Premium Full-Screen Loader Logic
+        window.addEventListener('load', function() {
+            const loader = document.getElementById('premium-loader');
+            setTimeout(() => {
+                loader.style.opacity = '0'; // Smooth fade out
+                setTimeout(() => {
+                    loader.style.display = 'none'; // Remove from DOM flow
+                }, 500); 
+            }, 300); 
+        });
+
+        // 2. Sidebar Logic
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
             const backdrop = document.getElementById('sidebar-backdrop');
@@ -124,7 +146,7 @@
             }
         }
 
-        // 2. Slide Over Logic
+        // 3. Slide Over Logic
         function openSlideOver(title, htmlContent) {
             document.getElementById('slide-title').innerText = title;
             document.getElementById('slide-content').innerHTML = htmlContent;
@@ -136,7 +158,7 @@
             setTimeout(() => document.getElementById('slide-over-overlay').classList.add('hidden'), 300);
         }
 
-        // 3. Awesome Toast Notifications Logic
+        // 4. Awesome Toast Notifications Logic
         function showToast(message, type = 'success') {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
@@ -160,15 +182,15 @@
             }, 4000);
         }
 
-        // 4. Smooth Loading Bar Logic
+        // 5. Top Loading Bar & Django Messages Integration
         document.addEventListener("DOMContentLoaded", () => {
-            const loader = document.getElementById('top-loader');
-            loader.style.width = '100%';
-            loader.style.opacity = '1';
-            setTimeout(() => { loader.style.opacity = '0'; }, 300);
-            setTimeout(() => { loader.style.width = '0'; }, 600);
+            const topLoader = document.getElementById('top-loader');
+            topLoader.style.width = '100%';
+            topLoader.style.opacity = '1';
+            setTimeout(() => { topLoader.style.opacity = '0'; }, 300);
+            setTimeout(() => { topLoader.style.width = '0'; }, 600);
 
-            // Django Backend Messages -> Convert to Toasts
+            // Trigger Django messages as Toast Notifications
             {% if messages %}
                 {% for message in messages %}
                     {% if message.tags == 'error' %} showToast("{{ message|escapejs }}", "error");
@@ -179,17 +201,17 @@
             {% endif %}
         });
 
-        // Trigger loading bar on link clicks
+        // Trigger top loading bar on internal link clicks for smooth SPA feel
         document.querySelectorAll('a').forEach(link => {
             link.addEventListener('click', function(e) {
-                if (this.hostname === window.location.hostname && !this.getAttribute('href').startsWith('#')) {
-                    const loader = document.getElementById('top-loader');
-                    loader.style.opacity = '1';
-                    loader.style.width = '40%';
+                if (this.hostname === window.location.hostname && !this.getAttribute('href').startsWith('#') && this.getAttribute('target') !== '_blank') {
+                    const topLoader = document.getElementById('top-loader');
+                    topLoader.style.opacity = '1';
+                    topLoader.style.width = '40%';
                 }
             });
         });
     </script>
 </body>
     </html>
-        
+    
