@@ -457,3 +457,43 @@ def admin_tasks(request):
     tasks = Task.objects.all().order_by('-created_at')
     return render(request, 'core/admin_tasks.html', {'tasks': tasks})
     
+
+@login_required
+def claim_daily_view(request):
+    if request.method == 'POST':
+        user = request.user
+        today = timezone.now().date()
+        
+        if user.last_daily_claim == today:
+            return JsonResponse({'status': 'error', 'message': 'Already claimed today!'})
+            
+        if user.last_daily_claim == today - timedelta(days=1):
+            user.login_streak += 1
+        else:
+            user.login_streak = 1 # Reset if streak broken
+            
+        if user.login_streak > 7:
+            user.login_streak = 1
+            
+        reward = 50 if user.login_streak == 7 else 10
+        user.diamonds += reward
+        user.last_daily_claim = today
+        user.save()
+        
+        return JsonResponse({'status': 'success', 'message': f'Claimed {reward} 💎!', 'diamonds': user.diamonds})
+
+@login_required
+def claim_task_view(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        task = get_object_or_404(Task, id=data.get('task_id'))
+        
+        if UserTask.objects.filter(user=request.user, task=task).exists():
+            return JsonResponse({'status': 'error', 'message': 'Task already claimed!'})
+            
+        UserTask.objects.create(user=request.user, task=task)
+        request.user.diamonds += task.reward_diamonds
+        request.user.save()
+        
+        return JsonResponse({'status': 'success', 'message': f'Task Complete! +{task.reward_diamonds} 💎', 'diamonds': request.user.diamonds})
+    
