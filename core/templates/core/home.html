@@ -12,22 +12,13 @@
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f8fafc; padding-bottom: 90px; -webkit-tap-highlight-color: transparent; }
         .font-poppins { font-family: 'Poppins', sans-serif; }
-        
-        /* Smooth animations */
-        .glass-card { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); }
         .shine-effect { position: relative; overflow: hidden; }
         .shine-effect::after { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.3) 50%, rgba(255,255,255,0) 100%); transform: rotate(30deg); animation: shine 3s infinite; }
         @keyframes shine { 0% { transform: translateX(-100%) rotate(30deg); } 100% { transform: translateX(100%) rotate(30deg); } }
-        
-        /* Loader Animation */
         .loader-ring { border: 3px solid #e2e8f0; border-top-color: #2563eb; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        
-        /* Toast Animation */
         .toast-enter { transform: translateY(-150%); opacity: 0; }
         .toast-active { transform: translateY(0); opacity: 1; }
-        
-        /* Active Nav indicator dot */
         .nav-active::after { content: ''; position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%); width: 4px; height: 4px; background-color: #2563eb; border-radius: 50%; }
         .btn-press:active { transform: scale(0.96); }
         .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
@@ -49,43 +40,31 @@
 
         <header class="flex justify-between items-center px-6 py-4 bg-white/80 backdrop-blur-md sticky top-0 z-40 border-b border-slate-100">
             <div class="flex items-center gap-2">
-                <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white shadow-md">
-                    <i class="fa-solid fa-rocket text-sm"></i>
-                </div>
+                <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white shadow-md"><i class="fa-solid fa-rocket text-sm"></i></div>
                 <span class="font-poppins font-black text-lg text-slate-800 tracking-tight">{{ setting.platform_name|default:"NextGen" }}</span>
             </div>
             <a href="{% url 'account' %}" class="w-10 h-10 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center relative hover:bg-slate-200 transition btn-press">
-                <i class="fa-regular fa-bell"></i>
-                <span class="absolute top-2 right-2.5 w-2 h-2 bg-rose-500 rounded-full border border-white"></span>
+                <i class="fa-regular fa-bell"></i><span class="absolute top-2 right-2.5 w-2 h-2 bg-rose-500 rounded-full border border-white"></span>
             </a>     
         </header>
 
         <div class="px-5 mt-6">
             <div class="bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 rounded-3xl p-6 text-white shadow-lg shadow-blue-500/30 relative overflow-hidden shine-effect">
                 <div class="absolute -right-6 -top-6 text-white/10 text-8xl"><i class="fa-solid fa-wallet"></i></div>
-                
                 <p class="text-blue-100 text-sm font-medium mb-1">👋 Hi, {{ request.user.username }}!</p>
                 <h2 class="text-3xl font-black font-poppins mb-6">₹{{ request.user.wallet_balance|floatformat:2 }}</h2>
-                
                 <div class="flex items-center justify-between bg-black/20 backdrop-blur-sm rounded-2xl p-4 border border-white/10">
                     <div>
                         <p class="text-[10px] text-blue-200 uppercase tracking-wider font-bold mb-0.5">Diamond Balance</p>
-                        <p class="text-xl font-black text-yellow-300 flex items-center gap-2">
-                            <i class="fa-regular fa-gem animate-pulse"></i> {{ request.user.diamonds }}
-                        </p>
+                        <p class="text-xl font-black text-yellow-300 flex items-center gap-2" id="user-diamonds"><i class="fa-regular fa-gem animate-pulse"></i> {{ request.user.diamonds }}</p>
                     </div>
-                    <a href="{% url 'new_order' %}" class="bg-white text-blue-700 text-sm font-bold px-5 py-2.5 rounded-xl transition-transform shadow-md btn-press">
-                        Boost Now
-                    </a>
+                    <a href="{% url 'new_order' %}" class="bg-white text-blue-700 text-sm font-bold px-5 py-2.5 rounded-xl shadow-md btn-press">Boost Now</a>
                 </div>
             </div>
         </div>
 
         <div class="px-5 mt-8">
-            <div class="flex justify-between items-end mb-4">
-                <h3 class="font-bold text-slate-800 text-lg">Earn Rewards 🎁</h3>
-            </div>
-
+            <h3 class="font-bold text-slate-800 text-lg mb-4">Earn Rewards 🎁</h3>
             <div class="flex gap-2 overflow-x-auto pb-2 scrollbar-hide mb-2">
                 <button onclick="switchTab('hot')" id="tab-hot" class="px-5 py-1.5 bg-slate-800 text-white rounded-full text-xs font-semibold whitespace-nowrap shadow-sm transition btn-press">🔥 Hot</button>
                 <button onclick="switchTab('daily')" id="tab-daily" class="px-5 py-1.5 bg-white border border-slate-200 text-slate-600 rounded-full text-xs font-semibold whitespace-nowrap transition btn-press">Daily</button>
@@ -98,31 +77,25 @@
                     <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Daily Login Calendar</h4>
                     <div class="grid grid-cols-4 gap-2">
                         {% for i in "123456"|make_list %}
-                        <div class="bg-slate-50 border border-slate-100 rounded-xl p-2 text-center relative btn-press">
-                            {% if forloop.counter == 1 %}
-                            <div class="absolute inset-0 bg-black/5 flex items-center justify-center backdrop-blur-[1px] rounded-xl z-20"><i class="fa-solid fa-check text-emerald-500 text-xl drop-shadow-md"></i></div>
-                            {% endif %}
+                        <div id="daily-day-{{ forloop.counter }}" onclick="claimDaily(this, {{ forloop.counter }}, 10)" class="bg-slate-50 border border-slate-100 rounded-xl p-2 text-center relative btn-press cursor-pointer">
+                            <p class="daily-date text-[8px] font-bold text-blue-500 mb-0.5 uppercase">Date</p>
                             <p class="text-[9px] font-bold text-slate-400 mb-1 relative z-10">Day {{ forloop.counter }}</p>
                             <i class="fa-regular fa-gem text-amber-400 text-lg mb-1 relative z-10 drop-shadow-sm"></i>
                             <p class="text-xs font-black text-slate-700 relative z-10">+10</p>
                         </div>
                         {% endfor %}
-                        
-                        <div class="col-span-2 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl p-2 text-center text-white flex flex-col justify-center items-center shadow-md btn-press relative overflow-hidden">
-                            <i class="fa-solid fa-gift absolute -right-2 -bottom-2 text-4xl opacity-20"></i>
-                            <p class="text-[9px] font-bold text-white/90 uppercase tracking-widest mb-1 relative z-10">Day 7 Bonus</p>
-                            <div class="flex items-center gap-1 relative z-10">
-                               <i class="fa-regular fa-gem text-xl animate-pulse"></i>
-                               <span class="text-lg font-black">+50</span>
-                            </div>
+                        <div id="daily-day-7" onclick="claimDaily(this, 7, 50)" class="col-span-2 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl p-2 text-center text-white flex flex-col justify-center items-center shadow-md btn-press relative overflow-hidden cursor-pointer">
+                            <p class="daily-date text-[8px] font-bold text-amber-100 uppercase mb-0.5 relative z-10">Date</p>
+                            <p class="text-[9px] font-bold text-white/90 uppercase tracking-widest mb-1 relative z-10">Day 7 Mega</p>
+                            <div class="flex items-center gap-1 relative z-10"><i class="fa-regular fa-gem text-xl animate-pulse"></i><span class="text-lg font-black">+50</span></div>
                         </div>
                     </div>
                 </div>
 
                 <div class="reward-bonus space-y-3">
                     {% for task in tasks %}
-                    <div class="bg-white p-3.5 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4 transition-transform hover:-translate-y-0.5 btn-press">
-                        <div class="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl flex-shrink-0 {% if 'youtube' in task.icon_class %}bg-rose-50 text-rose-500{% elif 'telegram' in task.icon_class %}bg-blue-50 text-blue-500{% elif 'instagram' in task.icon_class %}bg-fuchsia-50 text-fuchsia-500{% else %}bg-amber-50 text-amber-500{% endif %}">
+                    <div class="bg-white p-3.5 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4 transition-transform hover:-translate-y-0.5">
+                        <div class="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl flex-shrink-0 {% if 'youtube' in task.icon_class %}bg-rose-50 text-rose-500{% elif 'telegram' in task.icon_class %}bg-blue-50 text-blue-500{% else %}bg-amber-50 text-amber-500{% endif %}">
                             <i class="{{ task.icon_class }}"></i>
                         </div>
                         <div class="flex-1 min-w-0">
@@ -130,66 +103,17 @@
                             <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{{ task.get_task_type_display }}</p>
                             <p class="text-xs font-black text-amber-500 mt-0.5"><i class="fa-regular fa-gem mr-1"></i>+{{ task.reward_diamonds }}</p>
                         </div>
-                        <a href="{{ task.link|default:'#' }}" target="_blank" class="bg-blue-50 border border-blue-100 text-blue-600 text-xs font-bold px-4 py-2.5 rounded-xl hover:bg-blue-600 hover:text-white transition-colors shadow-sm">
+                        <button id="task-btn-{{ task.id }}" onclick="startTask('{{ task.id }}', '{{ task.get_task_type_display }}', '{{ task.link }}', {{ task.reward_diamonds }})" class="bg-blue-50 text-blue-600 text-xs font-bold px-4 py-2.5 rounded-xl transition-all w-20 text-center btn-press">
                             Start
-                        </a>
+                        </button>
                     </div>
                     {% empty %}
                     <div class="bg-slate-50 border border-slate-100 border-dashed rounded-2xl p-6 text-center">
                         <i class="fa-solid fa-box-open text-3xl text-slate-300 mb-2"></i>
                         <p class="text-sm font-bold text-slate-600">No active tasks</p>
-                        <p class="text-xs text-slate-400">Check back later for more rewards!</p>
                     </div>
                     {% endfor %}
                 </div>
-                
-            </div>
-        </div>
-
-        <div class="px-5 mt-8">
-            <div class="bg-gradient-to-r from-purple-500 to-indigo-600 rounded-3xl p-5 flex items-center justify-between text-white shadow-lg shadow-purple-500/20 btn-press transition-transform relative overflow-hidden">
-                <i class="fa-solid fa-bullhorn absolute right-0 top-0 text-7xl opacity-10 transform -rotate-12 translate-x-4"></i>
-                <div class="relative z-10">
-                    <span class="bg-white/20 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest mb-2 inline-block backdrop-blur-sm">Limited Time</span>
-                    <h3 class="font-poppins font-black text-lg leading-tight">Invite Friends <br> Earn Unlimited 💎</h3>
-                </div>
-                <a href="{% url 'team_rewards' %}" class="w-12 h-12 bg-white text-purple-600 rounded-full flex items-center justify-center text-xl shadow-md hover:scale-110 transition-transform relative z-10">
-                    <i class="fa-solid fa-arrow-right"></i>
-                </a>
-            </div>
-        </div>
-
-        <div class="px-5 mt-8 mb-8">
-            <h3 class="font-bold text-slate-800 text-lg mb-4">Need Help? 🤝</h3>
-            <div class="grid grid-cols-2 gap-4">
-                <a href="{% url 'about' %}" class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex flex-col items-center text-center hover:bg-blue-50 hover:border-blue-100 transition-colors btn-press group">
-                    <div class="w-10 h-10 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center mb-2 group-hover:bg-blue-100 transition-colors">
-                        <i class="fa-solid fa-circle-info"></i>
-                    </div>
-                    <h4 class="text-xs font-bold text-slate-800">About Us</h4>
-                    <p class="text-[9px] text-slate-400 mt-0.5">Who we are</p>
-                </a>
-                <a href="{% url 'support' %}" class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex flex-col items-center text-center hover:bg-emerald-50 hover:border-emerald-100 transition-colors btn-press group">
-                    <div class="w-10 h-10 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center mb-2 group-hover:bg-emerald-100 transition-colors">
-                        <i class="fa-solid fa-headset"></i>
-                    </div>
-                    <h4 class="text-xs font-bold text-slate-800">Support</h4>
-                    <p class="text-[9px] text-slate-400 mt-0.5">24/7 Live Help</p>
-                </a>
-                <a href="{% url 'faq' %}" class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex flex-col items-center text-center hover:bg-purple-50 hover:border-purple-100 transition-colors btn-press group">
-                    <div class="w-10 h-10 bg-purple-50 text-purple-500 rounded-full flex items-center justify-center mb-2 group-hover:bg-purple-100 transition-colors">
-                        <i class="fa-solid fa-clipboard-question"></i>
-                    </div>
-                    <h4 class="text-xs font-bold text-slate-800">FAQ</h4>
-                    <p class="text-[9px] text-slate-400 mt-0.5">Common questions</p>
-                </a>
-                <a href="{% url 'guide' %}" class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex flex-col items-center text-center hover:bg-amber-50 hover:border-amber-100 transition-colors btn-press group">
-                    <div class="w-10 h-10 bg-amber-50 text-amber-500 rounded-full flex items-center justify-center mb-2 group-hover:bg-amber-100 transition-colors">
-                        <i class="fa-solid fa-book-open"></i>
-                    </div>
-                    <h4 class="text-xs font-bold text-slate-800">Guide</h4>
-                    <p class="text-[9px] text-slate-400 mt-0.5">How to use panel</p>
-                </a>
             </div>
         </div>
 
@@ -197,107 +121,110 @@
 
     <nav class="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-lg border-t border-slate-200 z-50 pb-safe shadow-[0_-4px_20px_rgba(0,0,0,0.03)]">
         <div class="max-w-md mx-auto flex justify-between items-center px-6 py-2.5">
-            
-            <a href="{% url 'home' %}" class="flex flex-col items-center text-blue-600 relative nav-active btn-press w-16 transition">
-                <i class="fa-solid fa-house text-xl mb-1 animate-bounce-short"></i>
-                <span class="text-[10px] font-black">Home</span>
-            </a>
-            
-            <a href="{% url 'orders' %}" class="flex flex-col items-center text-slate-400 hover:text-blue-600 transition btn-press w-16">
-                <i class="fa-solid fa-receipt text-xl mb-1"></i>
-                <span class="text-[10px] font-bold">Orders</span>
-            </a>
-            
-            <a href="{% url 'team_rewards' %}" class="flex flex-col items-center text-slate-400 hover:text-blue-600 transition btn-press w-16">
-                <i class="fa-solid fa-users text-xl mb-1"></i>
-                <span class="text-[10px] font-bold">Team</span>
-            </a>
-            
-            <a href="{% url 'account' %}" class="flex flex-col items-center text-slate-400 hover:text-blue-600 transition btn-press w-16">
-                <i class="fa-solid fa-user text-xl mb-1"></i>
-                <span class="text-[10px] font-bold">Profile</span>
-            </a>
-            
+            <a href="{% url 'home' %}" class="flex flex-col items-center text-blue-600 relative nav-active btn-press w-16"><i class="fa-solid fa-house text-xl mb-1 animate-bounce-short"></i><span class="text-[10px] font-black">Home</span></a>
+            <a href="{% url 'orders' %}" class="flex flex-col items-center text-slate-400 hover:text-blue-600 transition btn-press w-16"><i class="fa-solid fa-receipt text-xl mb-1"></i><span class="text-[10px] font-bold">Orders</span></a>
+            <a href="{% url 'team_rewards' %}" class="flex flex-col items-center text-slate-400 hover:text-blue-600 transition btn-press w-16"><i class="fa-solid fa-users text-xl mb-1"></i><span class="text-[10px] font-bold">Team</span></a>
+            <a href="{% url 'account' %}" class="flex flex-col items-center text-slate-400 hover:text-blue-600 transition btn-press w-16"><i class="fa-solid fa-user text-xl mb-1"></i><span class="text-[10px] font-bold">Profile</span></a>
         </div>
     </nav>
 
     <script>
-        // 1. Premium Loading Screen Fade Out
+        // 1. Loader Logic
         window.addEventListener('load', function() {
-            const loader = document.getElementById('page-loader');
-            setTimeout(() => {
-                loader.style.opacity = '0';
-                setTimeout(() => { loader.style.display = 'none'; }, 500); 
-            }, 300); 
+            setTimeout(() => { document.getElementById('page-loader').style.opacity = '0'; setTimeout(() => { document.getElementById('page-loader').style.display = 'none'; }, 500); }, 300); 
         });
 
-        // 2. Tab Switching Logic
-        function switchTab(tabName) {
-            // Reset all buttons styling
-            const tabs = ['hot', 'daily', 'bonus'];
-            tabs.forEach(t => {
-                const btn = document.getElementById('tab-' + t);
-                btn.className = "px-5 py-1.5 bg-white border border-slate-200 text-slate-600 rounded-full text-xs font-semibold whitespace-nowrap transition btn-press";
-            });
-
-            // Set active button styling
-            const activeBtn = document.getElementById('tab-' + tabName);
-            activeBtn.className = "px-5 py-1.5 bg-slate-800 text-white border border-slate-800 rounded-full text-xs font-semibold whitespace-nowrap shadow-sm transition btn-press";
-
-            // Hide/Show Content
-            const dailyBlock = document.querySelector('.reward-daily');
-            const bonusBlock = document.querySelector('.reward-bonus');
-
-            if (tabName === 'hot') {
-                dailyBlock.style.display = 'block';
-                bonusBlock.style.display = 'block';
-            } else if (tabName === 'daily') {
-                dailyBlock.style.display = 'block';
-                bonusBlock.style.display = 'none';
-            } else if (tabName === 'bonus') {
-                dailyBlock.style.display = 'none';
-                bonusBlock.style.display = 'block';
-            }
-        }
-
-        // 3. Custom Toast Alert System
+        // 2. Toast System
         function showToast(message, type = 'success') {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
-            
             let icon = 'fa-circle-check', bg = 'bg-white', border = 'border-emerald-200', text = 'text-emerald-600', iconBg = 'bg-emerald-50';
             if (type === 'error') { icon = 'fa-circle-exclamation'; border = 'border-rose-200'; text = 'text-rose-600'; iconBg = 'bg-rose-50'; }
             if (type === 'info') { icon = 'fa-circle-info'; border = 'border-blue-200'; text = 'text-blue-600'; iconBg = 'bg-blue-50'; }
 
             toast.className = `flex items-center p-3 rounded-2xl shadow-lg border ${border} ${bg} toast-enter transition-all duration-500 pointer-events-auto`;
-            toast.innerHTML = `
-                <div class="${iconBg} ${text} w-8 h-8 rounded-full flex items-center justify-center shrink-0"><i class="fa-solid ${icon} text-sm"></i></div>
-                <p class="ml-3 text-xs font-bold text-slate-700 flex-1">${message}</p>
-                <button onclick="this.parentElement.remove()" class="ml-2 text-slate-400 hover:text-slate-600 p-1"><i class="fa-solid fa-xmark"></i></button>
-            `;
+            toast.innerHTML = `<div class="${iconBg} ${text} w-8 h-8 rounded-full flex items-center justify-center shrink-0"><i class="fa-solid ${icon} text-sm"></i></div><p class="ml-3 text-xs font-bold text-slate-700 flex-1">${message}</p>`;
             container.appendChild(toast);
-            
-            requestAnimationFrame(() => {
-                toast.classList.remove('toast-enter');
-                toast.classList.add('toast-active');
-            });
-            setTimeout(() => {
-                toast.classList.remove('toast-active');
-                toast.classList.add('toast-enter');
-                setTimeout(() => toast.remove(), 500);
-            }, 3500);
+            requestAnimationFrame(() => { toast.classList.remove('toast-enter'); toast.classList.add('toast-active'); });
+            setTimeout(() => { toast.classList.remove('toast-active'); toast.classList.add('toast-enter'); setTimeout(() => toast.remove(), 500); }, 3500);
         }
 
-        document.addEventListener("DOMContentLoaded", () => {
-            {% if messages %}
-                {% for message in messages %}
-                    {% if message.tags == 'error' %} showToast("{{ message|escapejs }}", "error");
-                    {% elif message.tags == 'success' %} showToast("{{ message|escapejs }}", "success");
-                    {% else %} showToast("{{ message|escapejs }}", "info");
-                    {% endif %}
-                {% endfor %}
-            {% endif %}
+        // 3. Tab System
+        function switchTab(tabName) {
+            ['hot', 'daily', 'bonus'].forEach(t => document.getElementById('tab-' + t).className = "px-5 py-1.5 bg-white border border-slate-200 text-slate-600 rounded-full text-xs font-semibold whitespace-nowrap transition btn-press");
+            document.getElementById('tab-' + tabName).className = "px-5 py-1.5 bg-slate-800 text-white border border-slate-800 rounded-full text-xs font-semibold whitespace-nowrap shadow-sm transition btn-press";
+            document.querySelector('.reward-daily').style.display = (tabName === 'hot' || tabName === 'daily') ? 'block' : 'none';
+            document.querySelector('.reward-bonus').style.display = (tabName === 'hot' || tabName === 'bonus') ? 'block' : 'none';
+        }
+
+        // 4. Set Calendar Dates Dynamically
+        const dateElements = document.querySelectorAll('.daily-date');
+        const today = new Date();
+        dateElements.forEach((el, index) => {
+            const date = new Date(today);
+            date.setDate(today.getDate() + index);
+            el.innerText = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
         });
+
+        // 5. Daily Claim Logic (Simulated)
+        let currentDayTracker = 1; // Backend se aayega
+        function claimDaily(element, day, reward) {
+            if (day < currentDayTracker) {
+                showToast("Already claimed!", "info");
+            } else if (day === currentDayTracker) {
+                showToast(`Awesome! You claimed ${reward} Diamonds 💎`, "success");
+                element.innerHTML += '<div class="absolute inset-0 bg-black/5 flex items-center justify-center backdrop-blur-[1px] rounded-xl z-20"><i class="fa-solid fa-check text-emerald-500 text-xl drop-shadow-md"></i></div>';
+                currentDayTracker++; // Move to next day
+            } else {
+                showToast("Claim Invalid! Please claim again tomorrow.", "error");
+            }
+        }
+
+        // Initialize Day 1 as un-claimed so user can click it (remove if backend handles it)
+
+        // 6. Bonus Tasks Logic (Start -> Checking -> Claim -> Claimed)
+        function startTask(taskId, type, link, reward) {
+            const btn = document.getElementById('task-btn-' + taskId);
+            
+            // Step 1: Open Link
+            if(link && link !== 'None' && link !== '#') window.open(link, '_blank');
+            
+            // Step 2: Loading State
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+            btn.classList.replace('bg-blue-50', 'bg-slate-100');
+            btn.classList.replace('text-blue-600', 'text-slate-500');
+            btn.disabled = true;
+
+            // Step 3: Wait for verification
+            // Telegram takes longer (simulating bot check), others take less
+            const isTelegram = type.toLowerCase().includes('telegram');
+            const delay = isTelegram ? 5000 : 8000; 
+            
+            if(isTelegram) showToast("Checking Telegram Join Status...", "info");
+
+            setTimeout(() => {
+                // Step 4: Ready to Claim
+                btn.innerHTML = 'Claim';
+                btn.disabled = false;
+                btn.classList.replace('bg-slate-100', 'bg-emerald-500');
+                btn.classList.replace('text-slate-500', 'text-white');
+                
+                // Assign new claim function
+                btn.onclick = function() {
+                    claimTask(taskId, btn, reward);
+                };
+            }, delay);
+        }
+
+        function claimTask(taskId, btn, reward) {
+            // Final State: Claimed
+            btn.innerHTML = '<i class="fa-solid fa-check"></i>';
+            btn.classList.replace('bg-emerald-500', 'bg-slate-200');
+            btn.disabled = true;
+            
+            // Update diamonds in UI visually (To be updated in DB by backend)
+            showToast(`Task Complete! +${reward} Diamonds 💎`, "success");
+        }
     </script>
 </body>
     </html>
