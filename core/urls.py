@@ -35,7 +35,7 @@ urlpatterns = [
     path('dashboard/add-funds/', views.add_funds_view, name='add_funds'),
     path('dashboard/account/', views.account_view, name='account'),
     path('dashboard/team/', views.team_and_rewards, name='team_rewards'),
-
+    
     # ==========================================
     # 👑 SUPER ADMIN COMMAND CENTER
     # ==========================================
@@ -49,6 +49,7 @@ urlpatterns = [
         path('panel/service-action/', views.admin_service_action, name='admin_service_action'),
     path('panel/payment-action/', views.admin_payment_action, name='admin_payment_action'),
     path('panel/bot-action/', views.admin_bot_action, name='admin_bot_action'),
+    path('panel/task-action/', views.admin_task_action, name='admin_task_action'),
 
     # 👇 YAHAN HAIN WO DONO NAYE URLs JINKE BINA ERROR AA RAHA HAI 👇
     path('panel/tasks/', views.admin_tasks, name='admin_tasks'),
