@@ -292,10 +292,33 @@ def admin_bots(request):
     return render(request, 'core/admin_bots.html', context)
 
 @login_required(login_url='/login/')
-def admin_tasks(request):
+def admin_task_action(request):
     if not request.user.is_superuser: return redirect('home')
-    tasks = Task.objects.all().order_by('-created_at')
-    return render(request, 'core/admin_tasks.html', {'tasks': tasks})
+    
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        
+        if action == 'add':
+            Task.objects.create(
+                title=request.POST.get('title'),
+                task_type=request.POST.get('task_type', 'custom'),
+                icon_class=request.POST.get('icon_class', 'fa-solid fa-star'),
+                link=request.POST.get('link', ''),
+                reward_diamonds=int(request.POST.get('reward_diamonds', 0))
+            )
+            messages.success(request, "New Reward Task Created!")
+            
+        else:
+            task = get_object_or_404(Task, id=request.POST.get('task_id'))
+            if action == 'toggle':
+                task.is_active = not task.is_active
+                task.save()
+                messages.success(request, "Task status updated!")
+            elif action == 'delete':
+                task.delete()
+                messages.success(request, "Task deleted permanently!")
+                
+    return redirect('admin_tasks')
 
 @login_required(login_url='/login/')
 def admin_logs_view(request):
