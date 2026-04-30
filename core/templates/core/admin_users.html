@@ -1,5 +1,4 @@
 {% extends 'core/admin_base.html' %}
-
 {% block title %}Manage Users - AdminPanel{% endblock %}
 
 {% block content %}
@@ -7,22 +6,7 @@
     <div class="flex justify-between items-end">
         <div>
             <h1 class="text-2xl font-poppins font-black text-slate-800 tracking-tight">User Management</h1>
-            <p class="text-sm text-slate-500 mt-1">View, edit, and manage all registered accounts.</p>
-        </div>
-        <button class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold shadow-sm btn-press transition flex items-center gap-2" onclick="showToast('Add User feature coming soon', 'info')">
-            <i class="fa-solid fa-plus"></i> Add User
-        </button>
-    </div>
-
-    <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex flex-wrap gap-4 justify-between items-center">
-        <div class="flex gap-2">
-            <button class="bg-slate-100 text-slate-700 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-slate-200 transition">All</button>
-            <button class="bg-white border border-slate-200 text-slate-600 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-slate-50 transition">Active</button>
-            <button class="bg-white border border-slate-200 text-slate-600 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-slate-50 transition">Banned</button>
-        </div>
-        <div class="flex items-center bg-slate-50 border border-slate-200 px-3 py-2 rounded-lg focus-within:border-blue-500 transition w-72">
-            <i class="fa-solid fa-search text-slate-400 text-sm"></i>
-            <input type="text" placeholder="Search username..." class="bg-transparent border-none outline-none text-sm ml-2 w-full text-slate-700">
+            <p class="text-sm text-slate-500 mt-1">Control accounts, balances, and analytics.</p>
         </div>
     </div>
 
@@ -34,48 +18,127 @@
                         <th class="px-6 py-4">User Details</th>
                         <th class="px-6 py-4">Wallet Balance</th>
                         <th class="px-6 py-4">Diamonds</th>
-                        <th class="px-6 py-4">Joined Date</th>
+                        <th class="px-6 py-4">Total Spent</th>
                         <th class="px-6 py-4">Status</th>
                         <th class="px-6 py-4 text-right">Actions</th>
                     </tr>
                 </thead>
                 <tbody class="text-sm font-medium text-slate-700">
                     {% for u in platform_users %}
-                    <tr class="border-b border-slate-50 hover:bg-slate-50/80 transition group">
+                    <tr class="border-b border-slate-50 hover:bg-slate-50/80 transition">
                         <td class="px-6 py-4 flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold shadow-sm">
-                                <i class="fa-solid fa-user text-sm"></i>
-                            </div>
+                            <div class="w-10 h-10 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center"><i class="fa-solid fa-user"></i></div>
                             <div>
-                                <p class="text-slate-800 font-bold group-hover:text-blue-600 transition cursor-pointer" onclick="openSlideOver('User: @{{ u.username }}', '<div class=\'p-4\'><p>Details fetching module ready.</p></div>')">@{{ u.username }}</p>
-                                <p class="text-[10px] text-slate-400 font-normal">TG ID: {{ u.telegram_id|default:"Web" }}</p>
+                                <p class="text-slate-800 font-bold hover:text-blue-600 cursor-pointer" onclick="openFullDetails('{{ u.id }}', '{{ u.username }}', '{{ u.telegram_id|default:'N/A' }}', '{{ u.wallet_balance }}', '{{ u.diamonds }}', '{{ u.total_spent }}', '{{ u.is_banned }}', '{{ u.date_joined|date:'M d, Y' }}')">@{{ u.username }}</p>
+                                <p class="text-[10px] text-slate-400">Joined: {{ u.date_joined|date:"M d, Y" }}</p>
                             </div>
                         </td>
-                        <td class="px-6 py-4 font-bold text-emerald-600">
-                            <i class="fa-solid fa-indian-rupee-sign text-[10px] mr-1"></i>{{ u.wallet_balance }}
-                        </td>
-                        <td class="px-6 py-4 font-bold text-amber-500">
-                            <i class="fa-solid fa-gem mr-1 text-xs"></i>{{ u.diamonds }}
-                        </td>
-                        <td class="px-6 py-4 text-xs text-slate-500">{{ u.date_joined|date:"M d, Y" }}</td>
+                        <td class="px-6 py-4 font-bold text-emerald-600">₹{{ u.wallet_balance }}</td>
+                        <td class="px-6 py-4 font-bold text-amber-500"><i class="fa-solid fa-gem text-xs mr-1"></i>{{ u.diamonds }}</td>
+                        <td class="px-6 py-4 font-semibold text-slate-600">₹{{ u.total_spent }}</td>
                         <td class="px-6 py-4">
                             {% if u.is_banned %}
-                                <span class="inline-flex items-center px-2.5 py-1 rounded-md text-[10px] font-bold bg-rose-50 text-rose-600 border border-rose-100">Banned</span>
+                                <span class="bg-rose-50 text-rose-600 border border-rose-100 px-2 py-1 rounded text-[10px] font-bold">Banned</span>
                             {% else %}
-                                <span class="inline-flex items-center px-2.5 py-1 rounded-md text-[10px] font-bold bg-emerald-50 text-emerald-600 border border-emerald-100">Active</span>
+                                <span class="bg-emerald-50 text-emerald-600 border border-emerald-100 px-2 py-1 rounded text-[10px] font-bold">Active</span>
                             {% endif %}
                         </td>
                         <td class="px-6 py-4 text-right">
-                            <button onclick="openModal('Manage Balance', 'Add or deduct funds for @{{ u.username }}', () => showToast('Funds updated', 'success'), false)" class="text-slate-400 hover:text-blue-600 p-2 rounded-lg hover:bg-blue-50 transition" title="Add Balance"><i class="fa-solid fa-wallet"></i></button>
-                            <button class="text-slate-400 hover:text-rose-600 p-2 rounded-lg hover:bg-rose-50 transition ml-1" title="Ban User"><i class="fa-solid fa-ban"></i></button>
+                            <button onclick="openFullDetails('{{ u.id }}', '{{ u.username }}', '{{ u.telegram_id|default:'N/A' }}', '{{ u.wallet_balance }}', '{{ u.diamonds }}', '{{ u.total_spent }}', '{{ u.is_banned }}', '{{ u.date_joined|date:'M d, Y' }}')" class="bg-slate-100 text-blue-600 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-slate-200 transition btn-press">
+                                <i class="fa-solid fa-sliders"></i> Manage
+                            </button>
                         </td>
                     </tr>
-                    {% empty %}
-                    <tr><td colspan="6" class="px-6 py-12 text-center text-slate-400">No users found.</td></tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
     </div>
 </div>
+
+<script>
+function openFullDetails(id, username, tg_id, balance, diamonds, spent, isBanned, joined) {
+    const csrfToken = document.querySelector('#csrf-token-container input').value;
+    const banText = isBanned === 'True' ? 'Unban User' : 'Ban User';
+    const banColor = isBanned === 'True' ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : 'bg-rose-50 text-rose-600 border-rose-200';
+    
+    // IP and Country are mocked as requested (Django doesn't store this by default)
+    const mockIP = "192.168." + Math.floor(Math.random() * 255) + "." + Math.floor(Math.random() * 255);
+    
+    const htmlBlock = `
+        <div class="space-y-6 fade-in">
+            <div class="flex items-center gap-4 bg-slate-50 p-4 rounded-xl border border-slate-100">
+                <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xl shadow-inner"><i class="fa-solid fa-user-astronaut"></i></div>
+                <div>
+                    <h4 class="font-bold text-slate-800 text-lg">@${username}</h4>
+                    <p class="text-[10px] font-mono text-slate-500 bg-slate-200 px-1.5 py-0.5 rounded mt-1">ID: ${tg_id}</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <div class="border border-slate-100 p-3 rounded-xl bg-white shadow-sm">
+                    <p class="text-[10px] text-slate-400 uppercase font-bold mb-1"><i class="fa-solid fa-globe mr-1"></i> Location / IP</p>
+                    <p class="text-xs font-semibold text-slate-700">India (IN)</p>
+                    <p class="text-[10px] font-mono text-slate-500">${mockIP}</p>
+                </div>
+                <div class="border border-slate-100 p-3 rounded-xl bg-white shadow-sm">
+                    <p class="text-[10px] text-slate-400 uppercase font-bold mb-1"><i class="fa-solid fa-chart-line mr-1"></i> Account Stats</p>
+                    <p class="text-xs font-semibold text-slate-700">Total Spent: ₹${spent}</p>
+                    <p class="text-[10px] text-slate-500">Joined: ${joined}</p>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-between p-4 bg-slate-900 text-white rounded-xl shadow-md">
+                <div>
+                    <p class="text-[10px] text-slate-400 uppercase tracking-widest font-bold mb-1">Wallet</p>
+                    <p class="text-xl font-black">₹${balance}</p>
+                </div>
+                <div class="text-right">
+                    <p class="text-[10px] text-slate-400 uppercase tracking-widest font-bold mb-1">Diamonds</p>
+                    <p class="text-xl font-black text-amber-400"><i class="fa-solid fa-gem text-sm mr-1"></i>${diamonds}</p>
+                </div>
+            </div>
+
+            <hr class="border-slate-100">
+
+            <div class="space-y-4">
+                <h4 class="font-bold text-slate-800 text-sm"><i class="fa-solid fa-bolt text-blue-500 mr-1"></i> Quick Actions</h4>
+                
+                <form method="POST" action="{% url 'admin_user_action' %}" class="flex gap-2">
+                    <input type="hidden" name="csrfmiddlewaretoken" value="${csrfToken}">
+                    <input type="hidden" name="user_id" value="${id}">
+                    <input type="hidden" name="action" value="add_balance">
+                    <div class="relative flex-1">
+                        <i class="fa-solid fa-indian-rupee-sign absolute left-3 top-2.5 text-slate-400 text-xs"></i>
+                        <input type="number" name="amount" placeholder="Add Amount" required class="w-full pl-8 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:border-emerald-500 focus:bg-white outline-none transition">
+                    </div>
+                    <button type="submit" class="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-lg text-xs font-bold transition shadow-sm btn-press"><i class="fa-solid fa-plus"></i></button>
+                </form>
+
+                <form method="POST" action="{% url 'admin_user_action' %}" class="flex gap-2">
+                    <input type="hidden" name="csrfmiddlewaretoken" value="${csrfToken}">
+                    <input type="hidden" name="user_id" value="${id}">
+                    <input type="hidden" name="action" value="add_diamonds">
+                    <div class="relative flex-1">
+                        <i class="fa-solid fa-gem absolute left-3 top-2.5 text-amber-400 text-xs"></i>
+                        <input type="number" name="amount" placeholder="Add Diamonds" required class="w-full pl-8 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:border-amber-500 focus:bg-white outline-none transition">
+                    </div>
+                    <button type="submit" class="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-lg text-xs font-bold transition shadow-sm btn-press"><i class="fa-solid fa-plus"></i></button>
+                </form>
+
+                <form method="POST" action="{% url 'admin_user_action' %}">
+                    <input type="hidden" name="csrfmiddlewaretoken" value="${csrfToken}">
+                    <input type="hidden" name="user_id" value="${id}">
+                    <input type="hidden" name="action" value="toggle_ban">
+                    <button type="submit" class="w-full mt-2 py-2.5 border rounded-lg text-sm font-bold transition btn-press ${banColor}">
+                        <i class="fa-solid fa-shield-halved mr-1"></i> ${banText}
+                    </button>
+                </form>
+            </div>
+        </div>
+    `;
+    
+    openSlideOver(`Manage @${username}`, htmlBlock);
+}
+</script>
 {% endblock %}
