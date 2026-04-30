@@ -9,6 +9,9 @@ class CustomUser(AbstractUser):
     # Telegram Authentication Data
     telegram_id = models.CharField(max_length=100, unique=True, null=True, blank=True)
     telegram_username = models.CharField(max_length=100, null=True, blank=True)
+        # (Existing CustomUser code ke andar ye add karein)
+    login_streak = models.IntegerField(default=0)
+    last_daily_claim = models.DateField(null=True, blank=True)
     
     # Financials & Rewards
     wallet_balance = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
