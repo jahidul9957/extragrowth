@@ -11,7 +11,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
 from django.db.models import Sum
 
-from .models import CustomUser, Service, Order, Payment, Bot
+from .models import CustomUser, Service, Order, Payment, Bot, SiteSetting, Task
 
 # ==========================================
 # 💰 0. GOOGLE ADSENSE VERIFICATION
@@ -21,16 +21,51 @@ def ads_txt_view(request):
     return HttpResponse(ads_txt_content, content_type="text/plain")
 
 # ==========================================
-# 🌍 1. PUBLIC LANDING PAGE (Index for Chrome & AdSense)
+# 🌍 1. PUBLIC LANDING & BLOGS
 # ==========================================
 def index_view(request):
-    # Ab chahe admin ho ya normal user, agar wo browser me / daalega 
-    # toh use sirf aapka Blog/AdSense page (index.html) hi dikhega!
     return render(request, 'core/index.html')
 
+def about_view(request): return render(request, 'core/about.html')
+def support_view(request): return render(request, 'core/support.html')
+def guide_view(request): return render(request, 'core/guide.html')
+def faq_view(request): return render(request, 'core/faq.html')
+
+
 # ==========================================
-# 🚀 2. TELEGRAM SILENT AUTH ENGINE
+# 🔐 2. AUTHENTICATION (Web & Telegram)
 # ==========================================
+def login_view(request):
+    if request.user.is_authenticated:
+        if request.user.is_superuser: 
+            return redirect('custom_admin')
+        return redirect('home')
+
+    if request.method == 'POST':
+        u = request.POST.get('username')
+        p = request.POST.get('password')
+        next_url = request.POST.get('next')
+        
+        user = authenticate(request, username=u, password=p)
+        if user is not None:
+            auth_login(request, user)
+            if next_url: return redirect(next_url)
+            if user.is_superuser: return redirect('custom_admin')
+            return redirect('home')
+        else:
+            messages.error(request, "❌ Invalid Username or Password")
+            
+    return render(request, 'core/login.html')
+
+def register_view(request):
+    if request.user.is_authenticated: return redirect('home')
+    return render(request, 'core/register.html')
+
+def logout_view(request):
+    logout(request)
+    return redirect('login_view')
+
+# -- TELEGRAM AUTH ENGINE --
 TELEGRAM_BOT_TOKEN = "8691081519:AAEVWnllssUWpRvYOAUcA9hgwKZs0oKV3Hc"
 
 def verify_telegram_data(init_data):
@@ -81,7 +116,6 @@ def telegram_auth_api(request):
                 return JsonResponse({'status': 'error', 'message': 'Account banned.'}, status=403)
                 
             auth_login(request, user, backend='django.contrib.auth.backends.ModelBackend')
-            # Login hone ke baad sidha /dashboard/ par bhejna hai
             return JsonResponse({'status': 'success', 'redirect_url': '/dashboard/'})
             
         except Exception as e:
@@ -90,11 +124,13 @@ def telegram_auth_api(request):
 
 
 # ==========================================
-# 📱 3. FRONTEND VIEWS (Customer App Dashboard)
+# 📱 3. CUSTOMER DASHBOARD VIEWS
 # ==========================================
 @login_required(login_url='/login/')
 def home_view(request):
-    return render(request, 'core/home.html')
+    if request.user.is_superuser: return redirect('custom_admin')
+    setting, _ = SiteSetting.objects.get_or_create(id=1)
+    return render(request, 'core/home.html', {'setting': setting})
 
 @login_required(login_url='/login/')
 def services_view(request):
@@ -162,12 +198,9 @@ def team_and_rewards(request):
     total_invites = invited_friends.count()
     active_invites = invited_friends.filter(total_spent__gt=0).count()
     
-    if total_invites >= 50:
-        tier_name, tier_icon, tier_color = "Gold", "🥇", "text-yellow-500"
-    elif total_invites >= 10:
-        tier_name, tier_icon, tier_color = "Silver", "🥈", "text-slate-400"
-    else:
-        tier_name, tier_icon, tier_color = "Bronze", "🥉", "text-orange-500"
+    if total_invites >= 50: tier_name, tier_icon, tier_color = "Gold", "🥇", "text-yellow-500"
+    elif total_invites >= 10: tier_name, tier_icon, tier_color = "Silver", "🥈", "text-slate-400"
+    else: tier_name, tier_icon, tier_color = "Bronze", "🥉", "text-orange-500"
 
     if request.method == 'POST' and request.POST.get('action') == 'redeem':
         if request.user.diamonds >= 50:
@@ -189,16 +222,7 @@ def team_and_rewards(request):
 
 
 # ==========================================
-# 📘 4. SUPPORT & INFO PAGES (AdSense Public)
-# ==========================================
-def about_view(request): return render(request, 'core/about.html')
-def support_view(request): return render(request, 'core/support.html')
-def guide_view(request): return render(request, 'core/guide.html')
-def faq_view(request): return render(request, 'core/faq.html')
-
-
-# ==========================================
-# 👑 5. SUPER ADMIN VIEWS
+# 👑 4. SUPER ADMIN COMMAND CENTER
 # ==========================================
 @login_required(login_url='/login/')
 def custom_admin_dashboard(request):
@@ -213,19 +237,44 @@ def custom_admin_dashboard(request):
     return render(request, 'core/admin_dashboard.html', context)
 
 @login_required(login_url='/login/')
-def admin_users_view(request):
+def admin_users(request):
     if not request.user.is_superuser: return redirect('home')
     platform_users = CustomUser.objects.all().order_by('-date_joined')
     return render(request, 'core/admin_users.html', {'platform_users': platform_users})
 
 @login_required(login_url='/login/')
-def admin_services_view(request):
+def admin_user_action(request):
+    if not request.user.is_superuser: return redirect('home')
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        user_id = request.POST.get('user_id')
+        target_user = get_object_or_404(CustomUser, id=user_id)
+        
+        if action == 'add_balance':
+            amt = float(request.POST.get('amount', 0))
+            target_user.wallet_balance += amt
+            target_user.save()
+            messages.success(request, f"Added ₹{amt} to @{target_user.username}")
+        elif action == 'add_diamonds':
+            amt = int(request.POST.get('amount', 0))
+            target_user.diamonds += amt
+            target_user.save()
+            messages.success(request, f"Added {amt} Diamonds to @{target_user.username}")
+        elif action == 'toggle_ban':
+            target_user.is_banned = not target_user.is_banned
+            target_user.save()
+            status = "Banned" if target_user.is_banned else "Unbanned"
+            messages.success(request, f"User @{target_user.username} is now {status}")
+    return redirect('admin_users')
+
+@login_required(login_url='/login/')
+def admin_services(request):
     if not request.user.is_superuser: return redirect('home')
     platform_services = Service.objects.all().order_by('-id')
     return render(request, 'core/admin_services.html', {'platform_services': platform_services})
 
 @login_required(login_url='/login/')
-def admin_payments_view(request):
+def admin_payments(request):
     if not request.user.is_superuser: return redirect('home')
     context = {
         'platform_payments': Payment.objects.all().order_by('-created_at'),
@@ -234,7 +283,7 @@ def admin_payments_view(request):
     return render(request, 'core/admin_payments.html', context)
 
 @login_required(login_url='/login/')
-def admin_bots_view(request):
+def admin_bots(request):
     if not request.user.is_superuser: return redirect('home')
     context = {
         'platform_bots': Bot.objects.all().order_by('-id'),
@@ -243,81 +292,45 @@ def admin_bots_view(request):
     return render(request, 'core/admin_bots.html', context)
 
 @login_required(login_url='/login/')
-def login_as_user(request, user_id):
+def admin_tasks(request):
     if not request.user.is_superuser: return redirect('home')
-    target_user = get_object_or_404(CustomUser, id=user_id)
-    auth_login(request, target_user, backend='django.contrib.auth.backends.ModelBackend')
-    return redirect('home')
+    tasks = Task.objects.all().order_by('-created_at')
+    return render(request, 'core/admin_tasks.html', {'tasks': tasks})
+
+@login_required(login_url='/login/')
+def admin_logs_view(request):
+    if not request.user.is_superuser: return redirect('home')
+    recent_orders = Order.objects.all().order_by('-created_at')[:30]
+    return render(request, 'core/admin_logs.html', {'logs': recent_orders})
 
 @login_required(login_url='/login/')
 def admin_settings_view(request):
     if not request.user.is_superuser: return redirect('home')
-    return render(request, 'core/admin_settings.html')
-
-@login_required(login_url='/login/')
-def admin_user_action(request):
-    if not request.user.is_superuser:
-        return redirect('home')
-        
-    if request.method == 'POST':
-        action = request.POST.get('action')
-        user_id = request.POST.get('user_id')
-        target_user = get_object_or_404(CustomUser, id=user_id)
-        
-        if action == 'add_balance':
-            amount = float(request.POST.get('amount', 0))
-            target_user.wallet_balance += amount
-            target_user.save()
-            messages.success(request, f"Added ₹{amount} to {target_user.username}'s wallet.")
-            
-        elif action == 'add_diamonds':
-            amount = int(request.POST.get('amount', 0))
-            target_user.diamonds += amount
-            target_user.save()
-            messages.success(request, f"Added {amount} Diamonds to {target_user.username}.")
-            
-        elif action == 'toggle_ban':
-            target_user.is_banned = not target_user.is_banned
-            target_user.save()
-            status = "Banned" if target_user.is_banned else "Unbanned"
-            messages.success(request, f"User {target_user.username} has been {status}.")
-            
-    return redirect('admin_users')
+    setting, _ = SiteSetting.objects.get_or_create(id=1)
     
-# ==========================================
-# 🔐 6. NORMAL WEB AUTH (Login Form for Admin)
-# ==========================================
-def login_view(request):
-    # Agar user pehle se login hai
-    if request.user.is_authenticated:
-        if request.user.is_superuser: 
-            return redirect('custom_admin') # Admin ko panel par
-        return redirect('home') # Normal user ko dashboard par
-
     if request.method == 'POST':
-        u = request.POST.get('username')
-        p = request.POST.get('password')
-        next_url = request.POST.get('next')
+        setting.platform_name = request.POST.get('platform_name', setting.platform_name)
+        setting.upi_id = request.POST.get('upi_id', setting.upi_id)
+        setting.qr_image_url = request.POST.get('qr_image_url', setting.qr_image_url)
+        setting.support_telegram = request.POST.get('support_telegram', setting.support_telegram)
+        setting.telegram_channel = request.POST.get('telegram_channel', setting.telegram_channel)
+        setting.min_deposit = request.POST.get('min_deposit', setting.min_deposit)
+        setting.diamonds_per_rupee = request.POST.get('diamonds_per_rupee', setting.diamonds_per_rupee)
+        setting.diamonds_needed_for_1_rs = request.POST.get('diamonds_needed_for_1_rs', setting.diamonds_needed_for_1_rs)
         
-        user = authenticate(request, username=u, password=p)
-        if user is not None:
-            auth_login(request, user)
-            if next_url: 
-                return redirect(next_url)
-            if user.is_superuser: 
-                return redirect('custom_admin')
-            return redirect('home')
-        else:
-            messages.error(request, "❌ Invalid Username or Password")
+        setting.maintenance_mode = 'maintenance_mode' in request.POST
+        setting.save()
+
+        request.user.first_name = request.POST.get('first_name', request.user.first_name)
+        request.user.email = request.POST.get('email', request.user.email)
+        
+        if 'profile_image' in request.FILES:
+            request.user.profile_image = request.FILES['profile_image']
             
-    return render(request, 'core/login.html')
+        request.user.save()
 
+        messages.success(request, "System settings and profile updated successfully!")
+        return redirect('admin_settings')
 
-def register_view(request):
-    if request.user.is_authenticated: return redirect('home')
-    return render(request, 'core/register.html')
-
-def logout_view(request):
-    logout(request)
-    return redirect('login')
+    return render(request, 'core/admin_settings.html', {'setting': setting})
         
