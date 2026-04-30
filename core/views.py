@@ -129,9 +129,16 @@ def telegram_auth_api(request):
 @login_required(login_url='/login/')
 def home_view(request):
     if request.user.is_superuser: return redirect('custom_admin')
+    
     setting, _ = SiteSetting.objects.get_or_create(id=1)
-    return render(request, 'core/home.html', {'setting': setting})
-
+    # Backend se active tasks nikalo
+    tasks = Task.objects.filter(is_active=True).order_by('-created_at')
+    
+    return render(request, 'core/home.html', {
+        'setting': setting, 
+        'tasks': tasks
+    })
+    
 @login_required(login_url='/login/')
 def services_view(request):
     services = Service.objects.filter(is_active=True).order_by('-id')
