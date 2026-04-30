@@ -42,6 +42,7 @@ urlpatterns = [
     path('panel/settings/', views.admin_settings_view, name='admin_settings'),
         # Admin User Actions URL
     path('panel/user-action/', views.admin_user_action, name='admin_user_action'),
+        path('panel/logs/', views.admin_logs_view, name='admin_logs'),
     
     # 🕵️ GOD MODE
     path('panel/login-as/<int:user_id>/', views.login_as_user, name='login_as_user'),
