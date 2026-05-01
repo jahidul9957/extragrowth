@@ -383,9 +383,10 @@ def admin_task_action(request):
 @login_required(login_url='/login/')
 def admin_logs_view(request):
     if not request.user.is_superuser: return redirect('home')
-    recent_orders = Order.objects.all().order_by('-created_at')[:30]
-    return render(request, 'core/admin_logs.html', {'logs': recent_orders})
-
+    # Admin ko pure system ke notifications/logs dikhenge
+    logs = Notification.objects.all().order_by('-created_at')[:100]
+    return render(request, 'core/admin_logs.html', {'logs': logs})
+    
 @login_required(login_url='/login/')
 def admin_settings_view(request):
     if not request.user.is_superuser: return redirect('home')
