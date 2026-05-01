@@ -26,6 +26,12 @@ urlpatterns = [
     path('dashboard/team/', views.team_and_rewards, name='team_rewards'),
     path('dashboard/payments/', views.payment_history_view, name='payment_history'),
     path('dashboard/notifications/', views.notifications_view, name='notifications'),
+        # User dashboard ke andar:
+    path('dashboard/withdrawals/', views.withdraw_history_view, name='withdraw_history'),
+    
+    # Admin Panel ke andar:
+    path('panel/withdrawals/', views.admin_withdrawals, name='admin_withdrawals'),
+    path('panel/withdrawal-action/', views.admin_withdrawal_action, name='admin_withdrawal_action'),
     
     # 💎 REWARD APIs (New)
     path('api/claim-daily/', views.claim_daily_view, name='claim_daily_api'),
