@@ -1,1 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Add Funds - NextGen</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        body { background-color: #f8fafc; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; overflow-x: hidden; }
+        .font-poppins { font-family: 'Poppins', sans-serif; }
+        
+        /* Smooth UI Animations */
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-up { animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; opacity: 0; }
+        .delay-100 { animation-delay: 0.1s; } .delay-200 { animation-delay: 0.2s; } .delay-300 { animation-delay: 0.3s; }
+        
+        /* Premium Center Glass Alert System */
+        .glass-alert {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+        }
+        .toast-enter { opacity: 0; transform: scale(0.85) translateY(20px); }
+        .toast-active { opacity: 1; transform: scale(1) translateY(0); }
+        
+        .btn-press:active { transform: scale(0.95); }
+    </style>
+</head>
+<body class="antialiased text-slate-800 relative">
 
+    <div class="fixed top-0 left-0 w-full h-96 bg-gradient-to-b from-blue-100/50 to-transparent -z-10"></div>
+    <div class="fixed top-20 -right-20 w-72 h-72 bg-blue-300 rounded-full blur-[80px] opacity-30 -z-10"></div>
+    <div class="fixed bottom-0 -left-20 w-72 h-72 bg-purple-300 rounded-full blur-[80px] opacity-30 -z-10"></div>
+
+    <div id="toast-container" class="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-[100] flex flex-col gap-3 pointer-events-none w-max max-w-[85vw]"></div>
+
+    <div class="max-w-md mx-auto relative h-screen flex flex-col">
+
+        <div class="bg-white/80 backdrop-blur-lg px-5 py-4 flex items-center justify-between shadow-sm sticky top-0 z-50 border-b border-white/50">
+            <a href="{% url 'home' %}" class="w-10 h-10 bg-white rounded-full flex items-center justify-center text-slate-500 hover:text-blue-600 transition shadow-sm border border-slate-100 btn-press">
+                <i class="fa-solid fa-arrow-left text-lg"></i>
+            </a>
+            <h1 class="text-lg font-black font-poppins text-slate-800 tracking-tight">Add Funds</h1>
+            <div class="w-10"></div> 
+        </div>
+
+        <div class="flex-1 overflow-y-auto p-5 pb-10 space-y-6">
+            
+            <div class="bg-gradient-to-br from-slate-800 via-slate-900 to-black rounded-[2rem] p-6 text-white shadow-xl shadow-slate-900/20 flex items-center justify-between relative overflow-hidden animate-fade-up border border-slate-700/50">
+                <i class="fa-solid fa-wallet absolute -right-4 -bottom-4 text-7xl opacity-10 transform -rotate-12"></i>
+                <div class="relative z-10">
+                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Available Balance</p>
+                    <h2 class="text-3xl font-black font-poppins">₹{{ request.user.wallet_balance }}</h2>
+                </div>
+                <div class="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-md border border-white/20 relative z-10 shadow-inner">
+                    <i class="fa-solid fa-indian-rupee-sign text-xl text-blue-300"></i>
+                </div>
+            </div>
+
+            <div class="bg-white/70 backdrop-blur-xl p-6 rounded-[2rem] shadow-sm border border-white animate-fade-up delay-100 text-center relative overflow-hidden">
+                <h3 class="font-bold text-slate-800 text-sm mb-4">Scan QR to Pay</h3>
+                
+                <div class="w-44 h-44 bg-white border border-slate-200 rounded-2xl mx-auto mb-5 flex items-center justify-center p-3 shadow-md relative group">
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=upi://pay?pa={{ setting.upi_id|default:'pay2nextgen@ybl' }}&pn={{ setting.platform_name|default:'NextGen'|urlencode }}&cu=INR" class="w-full h-full rounded-xl transition-transform group-hover:scale-105" alt="Payment QR">
+                </div>
+                
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Or Copy Official UPI ID</p>
+                <div class="flex items-center justify-center gap-2">
+                    <code class="bg-slate-100 text-slate-700 px-5 py-3 rounded-xl text-sm font-bold border border-slate-200 tracking-wide w-full truncate" id="upi-id">{{ setting.upi_id|default:'pay2nextgen@ybl' }}</code>
+                    <button onclick="copyUPI()" class="w-12 h-12 bg-blue-600 text-white rounded-xl flex shrink-0 items-center justify-center hover:bg-blue-700 transition btn-press shadow-md shadow-blue-500/30">
+                        <i class="fa-regular fa-copy text-lg"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="animate-fade-up delay-200 space-y-3">
+                <h3 class="font-bold text-slate-800 text-sm mb-1 px-2">Pay via UPI Apps</h3>
+                
+                <a href="phonepe://pay?pa={{ setting.upi_id }}&pn={{ setting.platform_name|urlencode }}&cu=INR" class="bg-white/80 backdrop-blur-md p-3.5 rounded-2xl shadow-sm border border-white flex items-center justify-between transition-transform btn-press hover:shadow-md">
+                    <div class="flex items-center gap-4">
+                        <div class="w-11 h-11 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center text-xl shadow-inner border border-purple-100"><i class="fa-solid fa-p"></i></div>
+                        <span class="font-bold text-slate-800 text-sm">PhonePe</span>
+                    </div>
+                    <span class="bg-slate-800 text-white px-5 py-2.5 rounded-xl text-xs font-bold shadow-md flex items-center gap-1">Pay <i class="fa-solid fa-chevron-right text-[10px]"></i></span>
+                </a>
+                
+                <a href="gpay://upi/pay?pa={{ setting.upi_id }}&pn={{ setting.platform_name|urlencode }}&cu=INR" class="bg-white/80 backdrop-blur-md p-3.5 rounded-2xl shadow-sm border border-white flex items-center justify-between transition-transform btn-press hover:shadow-md">
+                    <div class="flex items-center gap-4">
+                        <div class="w-11 h-11 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center text-xl shadow-inner border border-blue-100"><i class="fa-brands fa-google"></i></div>
+                        <span class="font-bold text-slate-800 text-sm">Google Pay</span>
+                    </div>
+                    <span class="bg-slate-800 text-white px-5 py-2.5 rounded-xl text-xs font-bold shadow-md flex items-center gap-1">Pay <i class="fa-solid fa-chevron-right text-[10px]"></i></span>
+                </a>
+
+                <a href="upi://pay?pa={{ setting.upi_id }}&pn={{ setting.platform_name|urlencode }}&cu=INR" class="bg-white/80 backdrop-blur-md p-3.5 rounded-2xl shadow-sm border border-white flex items-center justify-between transition-transform btn-press hover:shadow-md">
+                    <div class="flex items-center gap-4">
+                        <div class="w-11 h-11 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center text-xl shadow-inner border border-emerald-100"><i class="fa-solid fa-qrcode"></i></div>
+                        <span class="font-bold text-slate-800 text-sm">Paytm / Other UPI</span>
+                    </div>
+                    <span class="bg-slate-800 text-white px-5 py-2.5 rounded-xl text-xs font-bold shadow-md flex items-center gap-1">Pay <i class="fa-solid fa-chevron-right text-[10px]"></i></span>
+                </a>
+            </div>
+
+            <div class="bg-white/80 backdrop-blur-xl p-6 rounded-[2rem] shadow-sm border border-white animate-fade-up delay-300 relative">
+                <h3 class="font-bold text-slate-800 text-sm mb-5 flex items-center gap-2">
+                    <i class="fa-solid fa-shield-halved text-emerald-500"></i> Submit UTR Reference
+                </h3>
+                
+                <form method="POST" action="{% url 'add_funds' %}" class="space-y-4" onsubmit="return validateForm(event)">
+                    {% csrf_token %}
+                    
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2 px-1">Amount Paid (₹)</label>
+                        <div class="relative">
+                            <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold">₹</span>
+                            <input type="number" name="amount" required min="10" placeholder="e.g. 500" class="w-full bg-white border border-slate-200 rounded-2xl py-3.5 pl-9 pr-4 text-sm font-bold text-slate-800 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-50 transition shadow-sm">
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2 px-1">12-Digit Transaction ID</label>
+                        <div class="relative">
+                            <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"><i class="fa-solid fa-hashtag"></i></span>
+                            <input type="text" id="utr_input" name="utr_number" required placeholder="Example: 312456789012" class="w-full bg-white border border-slate-200 rounded-2xl py-3.5 pl-10 pr-4 text-sm font-bold text-slate-800 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-50 transition shadow-sm tracking-widest font-mono">
+                        </div>
+                    </div>
+                    
+                    <button type="submit" id="submit-btn" class="w-full bg-blue-600 text-white font-bold text-sm py-4 rounded-2xl shadow-lg shadow-blue-500/30 hover:bg-blue-700 transition btn-press mt-2 flex justify-center items-center gap-2">
+                        <i class="fa-solid fa-paper-plane"></i> Verify Payment
+                    </button>
+                </form>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // 1. Center Glass Toast Alert System (py-4 px-8 as requested)
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            
+            // Icon and colors
+            let icon = 'fa-circle-check', textCol = 'text-emerald-600', iconBg = 'bg-emerald-50';
+            if (type === 'error') { icon = 'fa-circle-xmark'; textCol = 'text-rose-600'; iconBg = 'bg-rose-50'; }
+            if (type === 'info') { icon = 'fa-circle-info'; textCol = 'text-blue-600'; iconBg = 'bg-blue-50'; }
+
+            // Glassmorphism classes with px-8 py-4
+            toast.className = `glass-alert py-4 px-8 flex flex-col items-center justify-center gap-2 toast-enter transition-all duration-300 pointer-events-auto rounded-[2rem]`;
+            toast.innerHTML = `
+                <div class="${iconBg} ${textCol} w-14 h-14 rounded-full flex items-center justify-center shrink-0 mb-1 shadow-inner border border-white">
+                    <i class="fa-solid ${icon} text-2xl"></i>
+                </div>
+                <p class="text-sm font-black text-slate-800 text-center leading-tight">${message}</p>
+            `;
+            
+            container.appendChild(toast);
+            
+            // Animate In
+            requestAnimationFrame(() => { toast.classList.remove('toast-enter'); toast.classList.add('toast-active'); });
+            
+            // Animate Out & Remove
+            setTimeout(() => { 
+                toast.classList.remove('toast-active'); 
+                toast.classList.add('toast-enter'); 
+                setTimeout(() => toast.remove(), 400); 
+            }, 3500);
+        }
+
+        // Catch Django Messages
+        document.addEventListener("DOMContentLoaded", () => {
+            {% if messages %}
+                {% for message in messages %}
+                    {% if message.tags == 'error' %} showToast("{{ message|escapejs }}", "error");
+                    {% elif message.tags == 'success' %} showToast("{{ message|escapejs }}", "success");
+                    {% else %} showToast("{{ message|escapejs }}", "info");
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
+        });
+
+        // 2. Copy UPI
+        function copyUPI() {
+            const upiText = document.getElementById('upi-id').innerText;
+            navigator.clipboard.writeText(upiText);
+            showToast("UPI ID Copied Successfully!", "success");
+        }
+
+        // 3. STRICT UTR VALIDATION
+        const utrInput = document.getElementById('utr_input');
+        utrInput.addEventListener('input', function(e) {
+            this.value = this.value.replace(/\D/g, ''); // Numbers Only
+            if (this.value.length > 12) this.value = this.value.slice(0, 12); // Max 12
+        });
+
+        function validateForm(event) {
+            const utrLength = utrInput.value.length;
+            if (utrLength !== 12) {
+                event.preventDefault();
+                showToast(`UTR must be exactly 12 digits! (You entered ${utrLength})`, "error");
+                
+                if(navigator.vibrate) navigator.vibrate(200); 
+                
+                utrInput.classList.add('border-rose-500', 'bg-rose-50', 'ring-rose-200', 'ring-4');
+                setTimeout(() => utrInput.classList.remove('border-rose-500', 'bg-rose-50', 'ring-rose-200', 'ring-4'), 1000);
+                return false;
+            }
+
+            const btn = document.getElementById('submit-btn');
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-lg"></i> Processing...';
+            btn.classList.replace('bg-blue-600', 'bg-slate-400');
+            btn.style.pointerEvents = 'none';
+            return true;
+        }
+    </script>
+</body>
+</html>
