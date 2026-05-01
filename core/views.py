@@ -1,5 +1,7 @@
 import hmac
 import hashlib
+import os
+import ast
 import json
 import threading
 import traceback
@@ -25,12 +27,17 @@ from .models import CustomUser, Service, Order, Payment, Bot, SiteSetting, Task,
 # ==========================================
 # 🤖 0. BACKGROUND BOT ENGINE (JS INJECTION)
 # ==========================================
+
 def run_bot_in_background(order_id):
+    # 🔥 FIX 1: THE MAGIC BYPASS 🔥
+    # Yeh line Django ko bataegi ki "Bhai ghabrao mat, mujhe database save karne do!"
+    os.environ["DJANGO_ALLOW_ASYNC_UNSAFE"] = "true"
+    
     print(f"🚀 [RENDER LOG] BOT PROCESS STARTED FOR ORDER: {order_id}")
     try:
+        from .models import Order, Bot, Notification
         order = Order.objects.get(id=order_id)
         
-        # Ek active bot account uthao jiske paas cookies hon
         bot_account = Bot.objects.filter(is_active=True, is_banned=False).first()
         
         if not bot_account:
@@ -40,17 +47,26 @@ def run_bot_in_background(order_id):
         with sync_playwright() as p:
             print("⏳ Launching Browser...")
             browser = p.chromium.launch(headless=True, args=['--no-sandbox', '--disable-setuid-sandbox'])
-            
             context = browser.new_context()
             
-            # Cookies load karo
+            # 🔥 FIX 2: ADVANCED COOKIE PARSER 🔥
+            # Ab user chahe single quotes daale ya double, system dono padh lega
             if bot_account.cookies:
                 try:
-                    cookies = json.loads(bot_account.cookies)
+                    cookies_str = bot_account.cookies.strip()
+                    try:
+                        cookies = json.loads(cookies_str) # Standard JSON (Double quotes)
+                    except json.JSONDecodeError:
+                        cookies = ast.literal_eval(cookies_str) # Fallback for Single quotes
+                        
+                    # Agar galti se list ke bajaye sirf dict daal diya ho
+                    if isinstance(cookies, dict): 
+                        cookies = [cookies]
+                        
                     context.add_cookies(cookies)
                     print("🍪 Cookies Loaded Successfully")
-                except:
-                    print("⚠️ Invalid Cookie Format")
+                except Exception as ce:
+                    print(f"⚠️ Invalid Cookie Error: {ce}")
 
             page = context.new_page()
             print(f"🎯 Going to: {order.link}")
@@ -84,7 +100,7 @@ def run_bot_in_background(order_id):
             
             if clicked:
                 order.status = 'Completed'
-                order.save()
+                order.save() # Ab yahan koi ASYNC ERROR nahi aayega!
                 print("✨ [RENDER LOG] JS Click Successful! Task Finished!")
                 
                 Notification.objects.create(
@@ -117,7 +133,7 @@ def run_bot_in_background(order_id):
             )
         except:
             pass
-
+        
 
 # ==========================================
 # 💰 0. GOOGLE ADSENSE VERIFICATION
