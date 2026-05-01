@@ -40,7 +40,11 @@ class CustomUser(AbstractUser):
     def __str__(self):
         return f"@{self.username}"
 
-
+    # CustomUser ke andar sabse niche yeh add karein:
+    @property
+    def unread_notifications(self):
+        return self.notification_set.filter(is_read=False).count()
+        
 # ==========================================
 # 2. TASK MODEL (For Earning Diamonds)
 # ==========================================
@@ -175,7 +179,4 @@ class UserTask(models.Model):
         unique_together = ('user', 'task') # Ek user 1 task ko 1 hi baar karega
     
     # CustomUser ke andar sabse niche yeh add karein:
-    @property
-    def unread_notifications(self):
-        return self.notification_set.filter(is_read=False).count()
-        
+    
