@@ -94,77 +94,71 @@
                 <button onclick="switchTab('bonus')" id="tab-bonus" class="px-5 py-1.5 bg-white border border-slate-200 text-slate-600 rounded-full text-xs font-semibold whitespace-nowrap transition btn-press">Bonus</button>
             </div>
 
-            <div id="rewards-container" class="space-y-4 fade-in">
+        <div id="rewards-container" class="space-y-4 fade-in">
                 
-                <div class="reward-daily bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
-                    <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Daily Login Calendar</h4>
-                    <div class="grid grid-cols-4 gap-2">
-                        {% for i in "123456"|make_list %}
-                        <div class="bg-slate-50 border border-slate-100 rounded-xl p-2 text-center relative transition-all {% if forloop.counter == claimable_day %}btn-press cursor-pointer ring-2 ring-blue-500 shadow-md bg-blue-50{% elif forloop.counter > checked_days and forloop.counter != claimable_day %}opacity-50{% endif %}"
-                             {% if forloop.counter == claimable_day %}onclick="claimDailyFromDB()"{% endif %}>
-                            <p class="daily-date text-[8px] font-bold text-blue-500 mb-0.5 uppercase" data-offset="{{ forloop.counter|add:'-1' }}">Date</p>
-                            <p class="text-[9px] font-bold text-slate-400 mb-1 relative z-10">Day {{ forloop.counter }}</p>
-                            <i class="fa-regular fa-gem text-amber-400 text-lg mb-1 relative z-10 drop-shadow-sm"></i>
-                            <p class="text-xs font-black text-slate-700 relative z-10">+10</p>
-                            
-                            {% if forloop.counter <= checked_days %}
-                            <div class="absolute inset-0 bg-black/5 flex items-center justify-center backdrop-blur-[1px] rounded-xl z-20"><i class="fa-solid fa-check text-emerald-500 text-xl drop-shadow-md"></i></div>
-                            {% endif %}
-                        </div>
-                        {% endfor %}
+            <div class="reward-daily bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
+                <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Daily Login Calendar</h4>
+                <div class="grid grid-cols-4 gap-2">
+                    
+                    {% for i in "123456"|make_list %}
+                    <div class="bg-slate-50 border border-slate-100 rounded-xl p-2 text-center relative transition-all {% if forloop.counter == claimable_day %}btn-press cursor-pointer ring-2 ring-blue-500 shadow-md bg-blue-50{% elif forloop.counter > checked_days and forloop.counter != claimable_day %}opacity-50{% endif %}"
+                         {% if forloop.counter == claimable_day %}onclick="claimDailyFromDB()"{% endif %}>
+                        <p class="daily-date text-[8px] font-bold text-blue-500 mb-0.5 uppercase" data-offset="{{ forloop.counter|add:'-1' }}">Date</p>
+                        <p class="text-[9px] font-bold text-slate-400 mb-1 relative z-10">Day {{ forloop.counter }}</p>
+                        <i class="fa-regular fa-gem text-amber-400 text-lg mb-1 relative z-10 drop-shadow-sm"></i>
+                        <p class="text-xs font-black text-slate-700 relative z-10">+10</p>
                         
-                        <div class="col-span-2 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl p-2 text-center text-white flex flex-col justify-center items-center shadow-md relative overflow-hidden transition-all {% if claimable_day == 7 %}btn-press cursor-pointer ring-2 ring-white scale-105{% elif 7 > checked_days and claimable_day != 7 %}opacity-50{% endif %}"
-                             {% if claimable_day == 7 %}onclick="claimDailyFromDB()"{% endif %}>
-                            <p class="daily-date text-[8px] font-bold text-amber-100 uppercase mb-0.5 relative z-10" data-offset="6">Date</p>
-                            <p class="text-[9px] font-bold text-white/90 uppercase tracking-widest mb-1 relative z-10">Day 7 Mega</p>
-                            <div class="flex items-center gap-1 relative z-10"><i class="fa-regular fa-gem text-xl animate-pulse"></i><span class="text-lg font-black">+50</span></div>
-                            <i class="fa-solid fa-gift absolute -right-2 -bottom-2 text-4xl opacity-20"></i>
-                            
-                            {% if checked_days == 7 %}
-                            <div class="absolute inset-0 bg-black/20 flex items-center justify-center backdrop-blur-[2px] rounded-xl z-20"><i class="fa-solid fa-check text-emerald-400 text-3xl drop-shadow-md"></i></div>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
-
-                <div class="reward-bonus space-y-3">
-                                <div class="reward-bonus space-y-3">
-                    {% for task in tasks %}
-                    <div id="task-card-{{ task.id }}" class="bg-white p-3.5 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4 transition-transform hover:-translate-y-0.5 btn-press {% if task.id in completed_task_ids %}opacity-60{% endif %}">
-                        <div class="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl flex-shrink-0 {% if 'youtube' in task.icon_class %}bg-rose-50 text-rose-500{% elif 'telegram' in task.icon_class %}bg-blue-50 text-blue-500{% else %}bg-amber-50 text-amber-500{% endif %}">
-                            <i class="{{ task.icon_class }}"></i>
-                        </div>
-                        <div class="flex-1 min-w-0">
-                            <h4 class="text-sm font-bold text-slate-800 truncate">{{ task.title }}</h4>
-                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{{ task.get_task_type_display }}</p>
-                            <p class="text-xs font-black text-amber-500 mt-0.5"><i class="fa-regular fa-gem mr-1"></i>+{{ task.reward_diamonds }}</p>
-                        </div>
-                        
-                        {% if task.id in completed_task_ids %}
-                            <button disabled class="bg-slate-100 text-slate-400 text-xs font-bold px-4 py-2.5 rounded-xl w-20 text-center cursor-not-allowed">
-                                <i class="fa-solid fa-check"></i>
-                            </button>
-                        {% else %}
-                            <button id="task-btn-{{ task.id }}" onclick="initiateTask('{{ task.id }}', '{{ task.get_task_type_display }}', '{{ task.link }}')" class="bg-blue-50 border border-blue-100 text-blue-600 text-xs font-bold px-4 py-2.5 rounded-xl hover:bg-blue-600 hover:text-white transition-colors shadow-sm w-20 text-center">
-                                Start
-                            </button>
+                        {% if forloop.counter <= checked_days %}
+                        <div class="absolute inset-0 bg-black/5 flex items-center justify-center backdrop-blur-[1px] rounded-xl z-20"><i class="fa-solid fa-check text-emerald-500 text-xl drop-shadow-md"></i></div>
                         {% endif %}
                     </div>
-                    {% endfor %}
-                                </div>
-                    
-                    {% empty %}
-                    <div class="bg-slate-50 border border-slate-100 border-dashed rounded-2xl p-6 text-center">
-                        <i class="fa-solid fa-box-open text-3xl text-slate-300 mb-2"></i>
-                        <p class="text-sm font-bold text-slate-600">All caught up!</p>
-                        <p class="text-xs text-slate-400">You have completed all available tasks.</p>
+                    {% endfor %} <div class="col-span-2 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl p-2 text-center text-white flex flex-col justify-center items-center shadow-md relative overflow-hidden transition-all {% if claimable_day == 7 %}btn-press cursor-pointer ring-2 ring-white scale-105{% elif 7 > checked_days and claimable_day != 7 %}opacity-50{% endif %}"
+                         {% if claimable_day == 7 %}onclick="claimDailyFromDB()"{% endif %}>
+                        <p class="daily-date text-[8px] font-bold text-amber-100 uppercase mb-0.5 relative z-10" data-offset="6">Date</p>
+                        <p class="text-[9px] font-bold text-white/90 uppercase tracking-widest mb-1 relative z-10">Day 7 Mega</p>
+                        <div class="flex items-center gap-1 relative z-10"><i class="fa-regular fa-gem text-xl animate-pulse"></i><span class="text-lg font-black">+50</span></div>
+                        <i class="fa-solid fa-gift absolute -right-2 -bottom-2 text-4xl opacity-20"></i>
+                        
+                        {% if checked_days == 7 %}
+                        <div class="absolute inset-0 bg-black/20 flex items-center justify-center backdrop-blur-[2px] rounded-xl z-20"><i class="fa-solid fa-check text-emerald-400 text-3xl drop-shadow-md"></i></div>
+                        {% endif %}
                     </div>
-                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="reward-bonus space-y-3"> {% for task in tasks %}
+                <div id="task-card-{{ task.id }}" class="bg-white p-3.5 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4 transition-transform hover:-translate-y-0.5 btn-press {% if task.id in completed_task_ids %}opacity-60{% endif %}">
+                    <div class="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl flex-shrink-0 {% if 'youtube' in task.icon_class %}bg-rose-50 text-rose-500{% elif 'telegram' in task.icon_class %}bg-blue-50 text-blue-500{% else %}bg-amber-50 text-amber-500{% endif %}">
+                        <i class="{{ task.icon_class }}"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <h4 class="text-sm font-bold text-slate-800 truncate">{{ task.title }}</h4>
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{{ task.get_task_type_display }}</p>
+                        <p class="text-xs font-black text-amber-500 mt-0.5"><i class="fa-regular fa-gem mr-1"></i>+{{ task.reward_diamonds }}</p>
+                    </div>
+                    
+                    {% if task.id in completed_task_ids %}
+                        <button disabled class="bg-slate-100 text-slate-400 text-xs font-bold px-4 py-2.5 rounded-xl w-20 text-center cursor-not-allowed">
+                            <i class="fa-solid fa-check"></i>
+                        </button>
+                    {% else %}
+                        <button id="task-btn-{{ task.id }}" onclick="initiateTask('{{ task.id }}', '{{ task.get_task_type_display }}', '{{ task.link }}')" class="bg-blue-50 border border-blue-100 text-blue-600 text-xs font-bold px-4 py-2.5 rounded-xl hover:bg-blue-600 hover:text-white transition-colors shadow-sm w-20 text-center">
+                            Start
+                        </button>
+                    {% endif %}
                 </div>
                 
+                {% empty %} <div class="bg-slate-50 border border-slate-100 border-dashed rounded-2xl p-6 text-center">
+                    <i class="fa-solid fa-box-open text-3xl text-slate-300 mb-2"></i>
+                    <p class="text-sm font-bold text-slate-600">All caught up!</p>
+                    <p class="text-xs text-slate-400">You have completed all available tasks.</p>
+                </div>
+                
+                {% endfor %}
             </div>
-        </div>
-
+            
+                                     </div>
+    
         <div class="px-5 mt-8">
             <div class="bg-gradient-to-r from-purple-500 to-indigo-600 rounded-3xl p-5 flex items-center justify-between text-white shadow-lg shadow-purple-500/20 btn-press transition-transform relative overflow-hidden">
                 <i class="fa-solid fa-bullhorn absolute right-0 top-0 text-7xl opacity-10 transform -rotate-12 translate-x-4"></i>
