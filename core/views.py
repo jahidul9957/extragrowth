@@ -266,6 +266,8 @@ def account_view(request):
 
 @login_required(login_url='/login/')
 def team_and_rewards(request):
+    from decimal import Decimal # 👈 Error proof fix: Isko seedha yahan bula liya
+    
     setting, _ = SiteSetting.objects.get_or_create(id=1)
     invited_friends = request.user.referrals.all().order_by('-date_joined')
     total_invites = invited_friends.count()
@@ -277,11 +279,17 @@ def team_and_rewards(request):
     if request.method == 'POST' and request.POST.get('action') == 'withdraw':
         upi_id = request.POST.get('upi_id')
         try:
+            # Check for divide by zero issue
+            rate = setting.diamonds_needed_for_1_rs
+            if rate <= 0: rate = 50 # Fallback safety
+                
             withdraw_diamonds = int(request.POST.get('diamonds'))
-            if withdraw_diamonds < setting.diamonds_needed_for_1_rs:
-                messages.error(request, f"⚠️ Minimum {setting.diamonds_needed_for_1_rs} diamonds required!")
+            
+            if withdraw_diamonds < rate:
+                messages.error(request, f"⚠️ Minimum {rate} diamonds required!")
             elif request.user.diamonds >= withdraw_diamonds:
-                rs_add = Decimal(str(withdraw_diamonds / setting.diamonds_needed_for_1_rs))
+                # Calculation with safety
+                rs_add = Decimal(str(withdraw_diamonds / rate))
                 request.user.diamonds -= withdraw_diamonds
                 request.user.save()
                 
@@ -289,18 +297,19 @@ def team_and_rewards(request):
                 Notification.objects.create(user=request.user, title="Withdrawal Requested ⏳", message=f"Your request for ₹{rs_add} is pending admin approval.", icon="fa-clock-rotate-left", color="amber")
                 messages.success(request, f"🎉 Withdrawal request of ₹{rs_add} submitted!")
                 
-                # 🔥 SUCCESS hone par history page par bhejo
+                # Success hone par sidha history page
                 return redirect('withdraw_history') 
             else:
                 messages.error(request, "⚠️ Insufficient Diamonds!")
-        except:
-            messages.error(request, "⚠️ Invalid Input!")
+                
+        except Exception as e:
+            # 🔥 THE MAGIC FIX: Ab asli error screen par dikhega!
+            messages.error(request, f"⚠️ System Error: {str(e)}")
             
-        # Error aane par wapas usi page par roko
         return redirect('team_rewards')
 
     return render(request, 'core/team.html', {'setting': setting, 'invited_friends': invited_friends, 'total_invites': total_invites, 'tier_name': tier_name, 'tier_icon': tier_icon, 'tier_color': tier_color})
-    
+
 # ==========================================
 # 👑 4. SUPER ADMIN COMMAND CENTER
 # ==========================================
