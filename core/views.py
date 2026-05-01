@@ -161,9 +161,11 @@ def home_view(request):
     if request.user.is_superuser: return redirect('custom_admin')
     setting, _ = SiteSetting.objects.get_or_create(id=1)
     
-    # 1. Sirf wahi Tasks bhejo jo user ne abhi tak complete NAHI kiye hain
-    completed_task_ids = UserTask.objects.filter(user=request.user).values_list('task_id', flat=True)
-    tasks = Task.objects.filter(is_active=True).exclude(id__in=completed_task_ids).order_by('-created_at')
+    # 1. Saare active tasks bhejenge, aur jo complete ho gaye unki ID alag se bhejenge
+    completed_task_ids = list(UserTask.objects.filter(user=request.user).values_list('task_id', flat=True))
+    
+    # 🔥 Yahan se '.exclude()' hata diya hai taaki koi task gayab na ho
+    tasks = Task.objects.filter(is_active=True).order_by('-created_at')
     
     # 2. Daily Calendar Logic
     today = timezone.now().date()
@@ -181,9 +183,13 @@ def home_view(request):
         checked_days = 0
         
     return render(request, 'core/home.html', {
-        'setting': setting, 'tasks': tasks,
-        'claimable_day': claimable_day, 'checked_days': checked_days
+        'setting': setting, 
+        'tasks': tasks, 
+        'completed_task_ids': completed_task_ids, # 🔥 Ise naya add kiya hai
+        'claimable_day': claimable_day, 
+        'checked_days': checked_days
     })
+    
     
 @login_required(login_url='/login/')
 def services_view(request):
