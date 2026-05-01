@@ -1,147 +1,64 @@
 {% extends 'core/admin_base.html' %}
 
-{% block title %}Settings - AdminPanel{% endblock %}
+{% block title %}Settings - Admin Panel{% endblock %}
 
 {% block content %}
-<div class="max-w-5xl mx-auto space-y-6 pb-20"> 
-    
+<div class="space-y-6 max-w-2xl">
     <div>
         <h1 class="text-2xl font-poppins font-black text-slate-800 tracking-tight">System Settings</h1>
-        <p class="text-sm text-slate-500 mt-1">Configure your platform's core mechanics and APIs.</p>
+        <p class="text-sm text-slate-500 mt-1">Manage platform configurations and your admin profile.</p>
     </div>
 
-    <div class="flex gap-2 border-b border-slate-200 overflow-x-auto scrollbar-hide">
-        <button onclick="switchTab('general')" id="tab-btn-general" class="tab-btn px-4 py-3 text-sm font-semibold border-b-2 border-blue-600 text-blue-600 transition"><i class="fa-solid fa-sliders mr-2"></i> General</button>
-        <button onclick="switchTab('payment')" id="tab-btn-payment" class="tab-btn px-4 py-3 text-sm font-semibold border-b-2 border-transparent text-slate-500 hover:text-slate-700 transition"><i class="fa-solid fa-credit-card mr-2"></i> Payment</button>
-        <button onclick="switchTab('referral')" id="tab-btn-referral" class="tab-btn px-4 py-3 text-sm font-semibold border-b-2 border-transparent text-slate-500 hover:text-slate-700 transition"><i class="fa-solid fa-gift mr-2"></i> Referral</button>
-        <button onclick="switchTab('support')" id="tab-btn-support" class="tab-btn px-4 py-3 text-sm font-semibold border-b-2 border-transparent text-slate-500 hover:text-slate-700 transition"><i class="fa-solid fa-headset mr-2"></i> Support</button>
-        <button onclick="switchTab('profile')" id="tab-btn-profile" class="tab-btn px-4 py-3 text-sm font-semibold border-b-2 border-transparent text-slate-500 hover:text-slate-700 transition"><i class="fa-solid fa-user-gear mr-2"></i> Profile</button>
-    </div>
-
-    <form method="POST" action="{% url 'admin_settings' %}" enctype="multipart/form-data">
+    <form method="POST" action="{% url 'admin_settings' %}" enctype="multipart/form-data" class="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 space-y-6">
         {% csrf_token %}
-        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-            
-            <div id="tab-general" class="tab-content p-6 fade-in block">
-                <h3 class="font-poppins font-bold text-slate-800 mb-6 border-b border-slate-100 pb-2">Basic Information</h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Platform Name</label>
-                        <input type="text" name="platform_name" value="{{ setting.platform_name }}" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:border-blue-500 transition">
-                    </div>
-                    <div class="md:col-span-2">
-                        <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Maintenance Mode</label>
-                        <div class="flex items-center gap-3 bg-slate-50 p-4 rounded-xl border border-slate-100">
-                            <label class="relative inline-flex items-center cursor-pointer">
-                                <input type="checkbox" name="maintenance_mode" class="sr-only peer" {% if setting.maintenance_mode %}checked{% endif %}>
-                                <div class="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
-                            </label>
-                            <div>
-                                <p class="text-sm font-bold text-slate-700">Enable Maintenance</p>
-                                <p class="text-[10px] text-slate-500">Only admins will be able to access the site.</p>
-                            </div>
-                        </div>
-                    </div>
+        
+        <div>
+            <h3 class="font-bold text-slate-700 text-sm mb-3"><i class="fa-solid fa-user-shield text-blue-500 mr-2"></i>1. Admin Profile Picture</h3>
+            <div class="flex items-center gap-4">
+                <div class="w-16 h-16 rounded-full bg-slate-50 flex items-center justify-center overflow-hidden border border-slate-200 shrink-0 shadow-inner">
+                    {% if request.user.profile_image %}
+                        <img src="{{ request.user.profile_image.url }}" class="w-full h-full object-cover">
+                    {% else %}
+                        <i class="fa-solid fa-user-tie text-2xl text-slate-400"></i>
+                    {% endif %}
                 </div>
+                <input type="file" name="profile_image" accept="image/*" class="w-full text-xs text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-blue-50 file:text-blue-600 hover:file:bg-blue-100 transition cursor-pointer">
             </div>
-
-            <div id="tab-payment" class="tab-content p-6 fade-in hidden">
-                <h3 class="font-poppins font-bold text-slate-800 mb-6 border-b border-slate-100 pb-2">UPI Configuration</h3>
-                <div class="space-y-6">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Merchant UPI ID</label>
-                        <input type="text" name="upi_id" value="{{ setting.upi_id }}" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm font-mono outline-none focus:border-blue-500 transition">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase mb-2">QR Code Image URL</label>
-                        <input type="url" name="qr_image_url" value="{{ setting.qr_image_url|default:'' }}" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:border-blue-500 transition">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Minimum Deposit (INR)</label>
-                        <input type="number" name="min_deposit" value="{{ setting.min_deposit }}" class="w-1/3 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:border-blue-500 transition">
-                    </div>
-                </div>
-            </div>
-
-            <div id="tab-referral" class="tab-content p-6 fade-in hidden">
-                <h3 class="font-poppins font-bold text-slate-800 mb-6 border-b border-slate-100 pb-2">Diamond Rewards Program</h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Diamonds per INR 1 Spent</label>
-                        <input type="number" name="diamonds_per_rupee" value="{{ setting.diamonds_per_rupee }}" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:border-blue-500 transition">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Diamonds needed for INR 1</label>
-                        <input type="number" name="diamonds_needed_for_1_rs" value="{{ setting.diamonds_needed_for_1_rs }}" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:border-blue-500 transition">
-                    </div>
-                </div>
-            </div>
-
-            <div id="tab-support" class="tab-content p-6 fade-in hidden">
-                <h3 class="font-poppins font-bold text-slate-800 mb-6 border-b border-slate-100 pb-2">Support Channels</h3>
-                <div class="space-y-6">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Telegram Channel Link</label>
-                        <input type="url" name="telegram_channel" value="{{ setting.telegram_channel }}" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:border-blue-500 transition">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Support Bot / Link</label>
-                        <input type="text" name="support_telegram" value="{{ setting.support_telegram }}" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:border-blue-500 transition">
-                    </div>
-                </div>
-            </div>
-
-            <div id="tab-profile" class="tab-content p-6 fade-in hidden">
-                <h3 class="font-poppins font-bold text-slate-800 mb-6 border-b border-slate-100 pb-2">Admin Profile</h3>
-                <div class="flex flex-col md:flex-row gap-8 items-start">
-                    
-                    <div class="flex flex-col items-center gap-3">
-                        <div class="w-24 h-24 bg-slate-100 border-2 border-slate-200 rounded-3xl flex items-center justify-center text-slate-400 text-3xl shadow-sm relative group overflow-hidden bg-cover bg-center" {% if request.user.profile_image %}style="background-image: url('{{ request.user.profile_image.url }}');"{% endif %}>
-                            {% if not request.user.profile_image %}<i class="fa-solid fa-user-tie"></i>{% endif %}
-                            <input type="file" name="profile_image" id="profile_upload" class="hidden" accept="image/*">
-                            <label for="profile_upload" class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition flex items-center justify-center cursor-pointer text-white">
-                                <i class="fa-solid fa-camera"></i>
-                            </label>
-                        </div>
-                        <p class="text-[10px] font-bold text-slate-400 uppercase">Upload Photo</p>
-                    </div>
-                    
-                    <div class="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
-                        <div>
-                            <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Full Name</label>
-                            <input type="text" name="first_name" value="{{ request.user.first_name }}" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:border-blue-500 transition">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Email Address</label>
-                            <input type="email" name="email" value="{{ request.user.email }}" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:border-blue-500 transition">
-                        </div>
-                    </div>
-                </div>
-            </div>
-
         </div>
 
-        <div class="fixed bottom-0 right-0 w-full md:w-[calc(100%-256px)] bg-white/80 backdrop-blur-md border-t border-slate-200 p-4 px-6 flex justify-end z-20 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
-            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-2.5 rounded-lg text-sm font-semibold shadow-md transition flex items-center gap-2 btn-press">
-                <i class="fa-solid fa-floppy-disk"></i> Save All Changes
-            </button>
+        <hr class="border-slate-100">
+
+        <div>
+            <h3 class="font-bold text-slate-700 text-sm mb-4"><i class="fa-solid fa-globe text-emerald-500 mr-2"></i>2. Platform Information</h3>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Platform Name</label>
+                    <input type="text" name="platform_name" value="{{ setting.platform_name }}" class="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-sm font-bold text-slate-800 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-50 transition">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Official UPI ID (For Add Funds)</label>
+                    <input type="text" name="upi_id" value="{{ setting.upi_id }}" class="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-sm font-bold text-slate-800 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-50 transition">
+                </div>
+            </div>
         </div>
+
+        <hr class="border-slate-100">
+
+        <div>
+            <h3 class="font-bold text-slate-700 text-sm mb-4"><i class="fa-regular fa-gem text-amber-500 mr-2"></i>3. Diamond Redeem Rate Control</h3>
+            <div>
+                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">How many Diamonds = ₹1</label>
+                <div class="flex items-center gap-3">
+                    <input type="number" name="diamonds_needed" required value="{{ setting.diamonds_needed_for_1_rs }}" class="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-sm font-bold text-slate-800 outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-50 transition">
+                    <span class="text-sm font-black text-slate-500 bg-slate-100 px-4 py-3 rounded-xl border border-slate-200 whitespace-nowrap">💎 = ₹1</span>
+                </div>
+                <p class="text-[10px] font-medium text-slate-400 mt-2">*If you type 50 here, users must collect 50 diamonds to withdraw ₹1. Type 100 to make 100 💎 = ₹1.</p>
+            </div>
+        </div>
+
+        <button type="submit" class="w-full bg-blue-600 text-white font-bold text-sm py-4 rounded-xl shadow-md shadow-blue-500/30 hover:bg-blue-700 transition active:scale-95 mt-4 flex justify-center items-center gap-2">
+            <i class="fa-solid fa-floppy-disk"></i> Save All Settings
+        </button>
     </form>
 </div>
-
-<script>
-    function switchTab(tabId) {
-        document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-        document.querySelectorAll('.tab-btn').forEach(el => {
-            el.classList.remove('border-blue-600', 'text-blue-600');
-            el.classList.add('border-transparent', 'text-slate-500');
-        });
-        
-        document.getElementById('tab-' + tabId).classList.remove('hidden');
-        const activeBtn = document.getElementById('tab-btn-' + tabId);
-        activeBtn.classList.remove('border-transparent', 'text-slate-500');
-        activeBtn.classList.add('border-blue-600', 'text-blue-600');
-    }
-</script>
 {% endblock %}
-        
