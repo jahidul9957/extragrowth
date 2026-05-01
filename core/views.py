@@ -409,31 +409,25 @@ def admin_settings_view(request):
     setting, _ = SiteSetting.objects.get_or_create(id=1)
     
     if request.method == 'POST':
+        # 1. Text & Number Settings Update
         setting.platform_name = request.POST.get('platform_name', setting.platform_name)
         setting.upi_id = request.POST.get('upi_id', setting.upi_id)
-        setting.qr_image_url = request.POST.get('qr_image_url', setting.qr_image_url)
-        setting.support_telegram = request.POST.get('support_telegram', setting.support_telegram)
-        setting.telegram_channel = request.POST.get('telegram_channel', setting.telegram_channel)
-        setting.min_deposit = request.POST.get('min_deposit', setting.min_deposit)
-        setting.diamonds_per_rupee = request.POST.get('diamonds_per_rupee', setting.diamonds_per_rupee)
-        setting.diamonds_needed_for_1_rs = request.POST.get('diamonds_needed_for_1_rs', setting.diamonds_needed_for_1_rs)
-        
-        setting.maintenance_mode = 'maintenance_mode' in request.POST
+        # 👇 Diamond to Rs logic
+        setting.diamonds_needed_for_1_rs = int(request.POST.get('diamonds_needed', setting.diamonds_needed_for_1_rs))
         setting.save()
-
-        request.user.first_name = request.POST.get('first_name', request.user.first_name)
-        request.user.email = request.POST.get('email', request.user.email)
         
+        # 2. 📸 Profile Image Fix (Agar file aayi hai toh save karo)
         if 'profile_image' in request.FILES:
             request.user.profile_image = request.FILES['profile_image']
+            request.user.save()
             
-        request.user.save()
-
-        messages.success(request, "System settings and profile updated successfully!")
-        return redirect('admin_settings')
-
-    return render(request, 'core/admin_settings.html', {'setting': setting})
+        messages.success(request, "Settings & Profile updated successfully!")
+        return redirect('admin_settings') # Redirect to prevent blank screen issue
         
+    return render(request, 'core/admin_settings.html', {'setting': setting})
+    
+
+
 # ==========================================
 # ⚡ SUPER ADMIN ACTION CONTROLLERS (Functional Logic)
 # ==========================================
