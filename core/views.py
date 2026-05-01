@@ -288,18 +288,19 @@ def team_and_rewards(request):
                 Withdrawal.objects.create(user=request.user, diamonds_used=withdraw_diamonds, amount_rs=rs_add, upi_id=upi_id)
                 Notification.objects.create(user=request.user, title="Withdrawal Requested ⏳", message=f"Your request for ₹{rs_add} is pending admin approval.", icon="fa-clock-rotate-left", color="amber")
                 messages.success(request, f"🎉 Withdrawal request of ₹{rs_add} submitted!")
+                
+                # 🔥 SUCCESS hone par history page par bhejo
+                return redirect('withdraw_history') 
             else:
                 messages.error(request, "⚠️ Insufficient Diamonds!")
-                except:
+        except:
             messages.error(request, "⚠️ Invalid Input!")
-            return redirect('team_rewards')
             
-        # Agar sab sahi raha, toh history page par bhejo 👇
-        return redirect('withdraw_history') 
-                    
-    return render(request, 'core/team.html', {'setting': setting, 'invited_friends': invited_friends, 'total_invites': total_invites, 'tier_name': tier_name, 'tier_icon': tier_icon, 'tier_color': tier_color})
-        
+        # Error aane par wapas usi page par roko
+        return redirect('team_rewards')
 
+    return render(request, 'core/team.html', {'setting': setting, 'invited_friends': invited_friends, 'total_invites': total_invites, 'tier_name': tier_name, 'tier_icon': tier_icon, 'tier_color': tier_color})
+    
 # ==========================================
 # 👑 4. SUPER ADMIN COMMAND CENTER
 # ==========================================
