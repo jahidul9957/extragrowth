@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Payment History - NextGen</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        body { background-color: #f8fafc; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+        .font-poppins { font-family: 'Poppins', sans-serif; }
+        
+        /* Smooth UI Animations */
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-up { animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; opacity: 0; }
+        
+        /* Loader Animation */
+        .loader-ring { border: 3px solid #e2e8f0; border-top-color: #2563eb; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        .nav-active::after { content: ''; position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%); width: 4px; height: 4px; background-color: #2563eb; border-radius: 50%; }
+        .btn-press:active { transform: scale(0.96); }
+        .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
+    </style>
+</head>
+<body class="antialiased text-slate-800 pb-24">
+
+    <div id="page-loader" class="fixed inset-0 z-[99999] bg-slate-50 flex items-center justify-center transition-opacity duration-500">
+        <div class="flex flex-col items-center">
+            <div class="loader-ring mb-4"></div>
+            <p class="text-xs font-bold text-slate-400 font-poppins tracking-widest uppercase animate-pulse">Loading Records...</p>
+        </div>
+    </div>
+
+    <div class="max-w-md mx-auto relative h-full">
+
+        <div class="bg-white/90 backdrop-blur-lg px-5 py-4 flex items-center justify-between shadow-sm sticky top-0 z-50 border-b border-white">
+            <a href="{% url 'account' %}" class="w-10 h-10 bg-slate-50 rounded-full flex items-center justify-center text-slate-500 hover:text-blue-600 hover:bg-blue-50 transition btn-press border border-slate-100">
+                <i class="fa-solid fa-arrow-left text-lg"></i>
+            </a>
+            <h1 class="text-lg font-black font-poppins text-slate-800 tracking-tight">Payment History</h1>
+            <a href="{% url 'add_funds' %}" class="w-10 h-10 bg-blue-50 rounded-full flex items-center justify-center text-blue-600 hover:bg-blue-100 transition btn-press border border-blue-100">
+                <i class="fa-solid fa-plus text-lg"></i>
+            </a>
+        </div>
+
+        <div class="p-5 space-y-4">
+            
+            {% for payment in payments %}
+            
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 animate-fade-up relative overflow-hidden" style="animation-delay: {{ forloop.counter0|add:1 }}00ms;">
+                    
+                    {% if payment.status == 'Pending' %}
+                        <div class="absolute top-0 left-0 w-1 h-full bg-amber-400"></div>
+                    {% elif payment.status == 'Completed' %}
+                        <div class="absolute top-0 left-0 w-1 h-full bg-emerald-500"></div>
+                    {% else %}
+                        <div class="absolute top-0 left-0 w-1 h-full bg-rose-500"></div>
+                    {% endif %}
+
+                    <div class="flex justify-between items-start mb-3 pl-2">
+                        <div>
+                            <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Transaction #{{ payment.id }}</p>
+                            <p class="text-[10px] text-slate-500 mt-0.5 font-medium"><i class="fa-regular fa-clock"></i> {{ payment.created_at|date:"d M Y, h:i A" }}</p>
+                        </div>
+                        
+                        {% if payment.status == 'Pending' %}
+                            <span class="inline-flex items-center px-2.5 py-1 rounded-md text-[9px] font-bold bg-amber-50 text-amber-600 uppercase tracking-wide border border-amber-100 shadow-sm">
+                                <i class="fa-solid fa-hourglass-half fa-spin mr-1 text-[8px]"></i> Pending
+                            </span>
+                        {% elif payment.status == 'Completed' %}
+                            <span class="inline-flex items-center px-2.5 py-1 rounded-md text-[9px] font-bold bg-emerald-50 text-emerald-600 uppercase tracking-wide border border-emerald-100 shadow-sm">
+                                <i class="fa-solid fa-check-double mr-1 text-[8px]"></i> Completed
+                            </span>
+                        {% else %}
+                            <span class="inline-flex items-center px-2.5 py-1 rounded-md text-[9px] font-bold bg-rose-50 text-rose-600 uppercase tracking-wide border border-rose-100 shadow-sm">
+                                <i class="fa-solid fa-xmark mr-1 text-[8px]"></i> Rejected
+                            </span>
+                        {% endif %}
+                    </div>
+
+                    <div class="bg-slate-50 border border-slate-100 rounded-xl p-3 flex justify-between items-center ml-2">
+                        <div>
+                            <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">UTR / Ref No</p>
+                            <p class="text-xs font-mono font-bold text-slate-700 tracking-wider"><i class="fa-solid fa-hashtag text-slate-300 mr-1"></i>{{ payment.utr_number }}</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Amount</p>
+                            <p class="text-lg font-black text-slate-800">₹{{ payment.amount|floatformat:0 }}</p>
+                        </div>
+                    </div>
+                    
+                    {% if payment.status == 'Rejected' %}
+                    <p class="text-[9px] font-bold text-rose-500 mt-2 ml-2"><i class="fa-solid fa-circle-info mr-1"></i>Invalid UTR or payment not received. Contact support if deducted.</p>
+                    {% endif %}
+                    
+                    {% if payment.status == 'Pending' %}
+                    <p class="text-[9px] font-bold text-amber-600 mt-2 ml-2"><i class="fa-solid fa-bolt mr-1"></i>Admin is verifying this transaction. Usually takes 5-10 mins.</p>
+                    {% endif %}
+
+                </div>
+            
+            {% empty %}
+                
+                <div class="bg-white rounded-3xl border border-slate-100 border-dashed p-10 text-center flex flex-col items-center justify-center animate-fade-up mt-10">
+                    <div class="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center text-slate-300 text-4xl mb-4 shadow-inner">
+                        <i class="fa-solid fa-money-bill-transfer"></i>
+                    </div>
+                    <h3 class="font-bold text-slate-700 text-lg mb-1">No Transactions Yet</h3>
+                    <p class="text-xs text-slate-400 mb-6">You haven't added any funds to your wallet yet.</p>
+                    <a href="{% url 'add_funds' %}" class="bg-blue-600 text-white text-sm font-bold px-6 py-3 rounded-xl shadow-md shadow-blue-500/30 hover:bg-blue-700 transition btn-press flex items-center gap-2">
+                        <i class="fa-solid fa-plus"></i> Add Funds Now
+                    </a>
+                </div>
+
+            {% endfor %}
+
+        </div>
+    </div>
+
+    <nav class="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-lg border-t border-slate-200 z-50 pb-safe shadow-[0_-4px_20px_rgba(0,0,0,0.03)]">
+        <div class="max-w-md mx-auto flex justify-between items-center px-6 py-2.5">
+            <a href="{% url 'home' %}" class="flex flex-col items-center text-slate-400 hover:text-blue-600 transition btn-press w-16">
+                <i class="fa-solid fa-house text-xl mb-1 transition-transform group-hover:-translate-y-1"></i><span class="text-[10px] font-bold">Home</span>
+            </a>
+            <a href="{% url 'orders' %}" class="flex flex-col items-center text-slate-400 hover:text-blue-600 transition btn-press w-16">
+                <i class="fa-solid fa-receipt text-xl mb-1"></i><span class="text-[10px] font-bold">Orders</span>
+            </a>
+            <a href="{% url 'team_rewards' %}" class="flex flex-col items-center text-slate-400 hover:text-blue-600 transition btn-press w-16">
+                <i class="fa-solid fa-users text-xl mb-1"></i><span class="text-[10px] font-bold">Team</span>
+            </a>
+            <a href="{% url 'account' %}" class="flex flex-col items-center text-blue-600 relative nav-active transition btn-press w-16">
+                <i class="fa-solid fa-user text-xl mb-1 animate-bounce-short"></i><span class="text-[10px] font-black">Profile</span>
+            </a>
+        </div>
+    </nav>
+
+    <script>
+        window.addEventListener('load', function() {
+            setTimeout(() => { 
+                document.getElementById('page-loader').style.opacity = '0'; 
+                setTimeout(() => { document.getElementById('page-loader').style.display = 'none'; }, 500); 
+            }, 300); 
+        });
+    </script>
+</body>
+                              </html>
+                                                                                           
