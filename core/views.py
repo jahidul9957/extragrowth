@@ -16,18 +16,18 @@ from django.utils import timezone
 from django.db.models import Sum
 from datetime import timedelta
 
-from .models import CustomUser, Service, Order, Payment, Bot, SiteSetting, Task, UserTask, Notification, Withdrawal
-
+# Playwright
 from playwright.sync_api import sync_playwright
 
-# ==========================================
-# 🤖 0. BACKGROUND BOT ENGINE (THE MISSING PIECE)
-# ==========================================
+from .models import CustomUser, Service, Order, Payment, Bot, SiteSetting, Task, UserTask, Notification, Withdrawal
 
+
+# ==========================================
+# 🤖 0. BACKGROUND BOT ENGINE (JS INJECTION)
+# ==========================================
 def run_bot_in_background(order_id):
     print(f"🚀 [RENDER LOG] BOT PROCESS STARTED FOR ORDER: {order_id}")
     try:
-        from .models import Order, Bot, Notification # Circular import se bachne ke liye andar bulaya
         order = Order.objects.get(id=order_id)
         
         # Ek active bot account uthao jiske paas cookies hon
@@ -59,7 +59,6 @@ def run_bot_in_background(order_id):
             page.wait_for_load_state("networkidle")
 
             # 🔥 THE MAGIC: JAVASCRIPT INJECTION 🔥
-            # Yeh JS code seedha browser console me run hoga aur force click karega
             js_injection = """
             () => {
                 const selectors = [
@@ -72,7 +71,7 @@ def run_bot_in_background(order_id):
                 for (let selector of selectors) {
                     let btn = document.querySelector(selector);
                     if (btn) {
-                        btn.click(); // 💉 Force JS Click
+                        btn.click(); // Force JS Click
                         return true;
                     }
                 }
@@ -88,11 +87,10 @@ def run_bot_in_background(order_id):
                 order.save()
                 print("✨ [RENDER LOG] JS Click Successful! Task Finished!")
                 
-                # Optional: Admin ko batao ki JS se click ho gaya
                 Notification.objects.create(
-                    user=None,
+                    user=order.user,
                     title="🤖 Bot Success (JS Inject)",
-                    message=f"Subscribed to {order.link} successfully.",
+                    message=f"Successfully processed your order for {order.link}",
                     icon="fa-robot",
                     color="emerald"
                 )
@@ -111,7 +109,7 @@ def run_bot_in_background(order_id):
             order.status = 'Failed'
             order.save()
             Notification.objects.create(
-                user=None,
+                user=None, # System Notification
                 title="🤖 Bot Failure",
                 message=f"Order #{order.id} failed. Error: {str(e)[:100]}",
                 icon="fa-bug",
@@ -120,7 +118,6 @@ def run_bot_in_background(order_id):
         except:
             pass
 
-            
 
 # ==========================================
 # 💰 0. GOOGLE ADSENSE VERIFICATION
@@ -172,7 +169,6 @@ def logout_view(request):
     logout(request)
     return redirect('login_view')
 
-# -- TELEGRAM AUTH ENGINE --
 TELEGRAM_BOT_TOKEN = "8691081519:AAEVWnllssUWpRvYOAUcA9hgwKZs0oKV3Hc"
 
 def verify_telegram_data(init_data):
@@ -206,7 +202,6 @@ def telegram_auth_api(request):
                 
             tg_id = str(tg_user.get('id'))
             tg_username = tg_user.get('username', f"user_{tg_id}")
-            
             first_name = tg_user.get('first_name', '')
             last_name = tg_user.get('last_name', '')
             photo_url = tg_user.get('photo_url', '')
@@ -285,12 +280,10 @@ def home_view(request):
         'checked_days': checked_days
     })
     
-    
 @login_required(login_url='/login/')
 def services_view(request):
     services = Service.objects.filter(is_active=True).order_by('-id')
     return render(request, 'core/services.html', {'services': services})
-
 
 @login_required(login_url='/login/')
 def new_order_view(request):
@@ -319,7 +312,7 @@ def new_order_view(request):
                 color="blue"
             )
             
-            # 🔥 THE MAGIC: Bot ko yahan background me bulaya!
+            # 🔥 Start Bot in Background 🔥
             threading.Thread(target=run_bot_in_background, args=(order.id,), daemon=True).start()
             
             messages.success(request, f"🎉 Order placed! ₹{charge} deducted.")
@@ -330,12 +323,10 @@ def new_order_view(request):
             
     return render(request, 'core/new_order.html', {'services': Service.objects.filter(is_active=True)})
     
-
 @login_required(login_url='/login/')
 def orders_view(request):
     orders = Order.objects.filter(user=request.user).order_by('-created_at')
     return render(request, 'core/orders.html', {'orders': orders})
-
 
 @login_required(login_url='/login/')
 def add_funds_view(request):
@@ -352,18 +343,15 @@ def add_funds_view(request):
         
     return render(request, 'core/add_funds.html', {'setting': setting})
 
-
 @login_required(login_url='/login/')
 def payment_history_view(request):
     payments = Payment.objects.filter(user=request.user).order_by('-created_at')
     return render(request, 'core/payment_history.html', {'payments': payments})
     
-
 @login_required(login_url='/login/')
 def account_view(request):
     user_orders_count = Order.objects.filter(user=request.user).count()
     return render(request, 'core/account.html', {'user_orders_count': user_orders_count})
-
 
 @login_required(login_url='/login/')
 def team_and_rewards(request):
@@ -404,27 +392,26 @@ def team_and_rewards(request):
 
     return render(request, 'core/team.html', {'setting': setting, 'invited_friends': invited_friends, 'total_invites': total_invites, 'tier_name': tier_name, 'tier_icon': tier_icon, 'tier_color': tier_color})
 
-        
-      # ==========================================
+# ==========================================
 # 👑 4. SUPER ADMIN COMMAND CENTER
 # ==========================================
 @login_required(login_url='/login/')
 def custom_admin_dashboard(request):
-   if not request.user.is_superuser: return redirect('home')
-   context = {
-       'total_users': CustomUser.objects.count(),
-       'active_bots': Bot.objects.filter(is_active=True).count(),
-       'orders_today': Order.objects.filter(created_at__date=timezone.now().date()).count(),
-       'total_revenue': Order.objects.filter(status='Completed').aggregate(total=Sum('charge'))['total'] or 0.00,
-       'recent_orders': Order.objects.all().order_by('-created_at')[:5],
-   }
-   return render(request, 'core/admin_dashboard.html', context)
+    if not request.user.is_superuser: return redirect('home')
+    context = {
+        'total_users': CustomUser.objects.count(),
+        'active_bots': Bot.objects.filter(is_active=True).count(),
+        'orders_today': Order.objects.filter(created_at__date=timezone.now().date()).count(),
+        'total_revenue': Order.objects.filter(status='Completed').aggregate(total=Sum('charge'))['total'] or 0.00,
+        'recent_orders': Order.objects.all().order_by('-created_at')[:5],
+    }
+    return render(request, 'core/admin_dashboard.html', context)
 
 @login_required(login_url='/login/')
 def admin_users(request):
-   if not request.user.is_superuser: return redirect('home')
-   platform_users = CustomUser.objects.all().order_by('-date_joined')
-   return render(request, 'core/admin_users.html', {'platform_users': platform_users})
+    if not request.user.is_superuser: return redirect('home')
+    platform_users = CustomUser.objects.all().order_by('-date_joined')
+    return render(request, 'core/admin_users.html', {'platform_users': platform_users})
 
 @login_required(login_url='/login/')
 def admin_user_action(request):
@@ -436,8 +423,7 @@ def admin_user_action(request):
         
         if action == 'add_balance':
             try:
-                # ❌ Purana: amt = float(request.POST.get('amount', 0))
-                # ✅ Naya: Decimal mein convert kiya
+                # ✅ Fixed Decimal Error
                 amt = Decimal(request.POST.get('amount', '0')) 
                 target_user.wallet_balance += amt
                 target_user.save()
@@ -458,116 +444,259 @@ def admin_user_action(request):
             messages.success(request, f"User @{target_user.username} is now {status}")
             
     return redirect('admin_users')
-    )
 
 @login_required(login_url='/login/')
 def admin_services(request):
-   if not request.user.is_superuser: return redirect('home')
-   platform_services = Service.objects.all().order_by('-id')
-   return render(request, 'core/admin_services.html', {'platform_services': platform_services})
+    if not request.user.is_superuser: return redirect('home')
+    platform_services = Service.objects.all().order_by('-id')
+    return render(request, 'core/admin_services.html', {'platform_services': platform_services})
 
 @login_required(login_url='/login/')
 def admin_payments(request):
-   if not request.user.is_superuser: return redirect('home')
-   context = {
-       'platform_payments': Payment.objects.all().order_by('-created_at'),
-       'pending_count': Payment.objects.filter(status='Pending').count(),
-   }
-   return render(request, 'core/admin_payments.html', context)
+    if not request.user.is_superuser: return redirect('home')
+    context = {
+        'platform_payments': Payment.objects.all().order_by('-created_at'),
+        'pending_count': Payment.objects.filter(status='Pending').count(),
+    }
+    return render(request, 'core/admin_payments.html', context)
 
 @login_required(login_url='/login/')
 def admin_bots(request):
-   if not request.user.is_superuser: return redirect('home')
-   context = {
-       'platform_bots': Bot.objects.all().order_by('-id'),
-       'active_bots_count': Bot.objects.filter(is_active=True, is_banned=False).count(),
-   }
-   return render(request, 'core/admin_bots.html', context)
+    if not request.user.is_superuser: return redirect('home')
+    context = {
+        'platform_bots': Bot.objects.all().order_by('-id'),
+        'active_bots_count': Bot.objects.filter(is_active=True, is_banned=False).count(),
+    }
+    return render(request, 'core/admin_bots.html', context)
 
 @login_required(login_url='/login/')
 def admin_task_action(request):
-   if not request.user.is_superuser: return redirect('home')
-   
-   if request.method == 'POST':
-       action = request.POST.get('action')
-       
-       if action == 'add':
-           Task.objects.create(
-               title=request.POST.get('title'),
-               task_type=request.POST.get('task_type', 'custom'),
-               icon_class=request.POST.get('icon_class', 'fa-solid fa-star'),
-               link=request.POST.get('link', ''),
-               reward_diamonds=int(request.POST.get('reward_diamonds', 0))
-           )
-           messages.success(request, "New Reward Task Created!")
-           
-       else:
-           task = get_object_or_404(Task, id=request.POST.get('task_id'))
-           if action == 'toggle':
-               task.is_active = not task.is_active
-               task.save()
-               messages.success(request, "Task status updated!")
-           elif action == 'delete':
-               task.delete()
-               messages.success(request, "Task deleted permanently!")
-               
-   return redirect('admin_tasks')
+    if not request.user.is_superuser: return redirect('home')
+    
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        
+        if action == 'add':
+            Task.objects.create(
+                title=request.POST.get('title'),
+                task_type=request.POST.get('task_type', 'custom'),
+                icon_class=request.POST.get('icon_class', 'fa-solid fa-star'),
+                link=request.POST.get('link', ''),
+                reward_diamonds=int(request.POST.get('reward_diamonds', 0))
+            )
+            messages.success(request, "New Reward Task Created!")
+            
+        else:
+            task = get_object_or_404(Task, id=request.POST.get('task_id'))
+            if action == 'toggle':
+                task.is_active = not task.is_active
+                task.save()
+                messages.success(request, "Task status updated!")
+            elif action == 'delete':
+                task.delete()
+                messages.success(request, "Task deleted permanently!")
+                
+    return redirect('admin_tasks')
 
 @login_required(login_url='/login/')
 def admin_logs_view(request):
-   if not request.user.is_superuser: return redirect('home')
-   logs = Notification.objects.all().order_by('-created_at')[:100]
-   return render(request, 'core/admin_logs.html', {'logs': logs})
-   
+    if not request.user.is_superuser: return redirect('home')
+    logs = Notification.objects.all().order_by('-created_at')[:100]
+    return render(request, 'core/admin_logs.html', {'logs': logs})
+    
 @login_required(login_url='/login/')
 def admin_settings_view(request):
-   if not request.user.is_superuser: return redirect('home')
-   setting, _ = SiteSetting.objects.get_or_create(id=1)
-   
-   if request.method == 'POST':
-       setting.platform_name = request.POST.get('platform_name', setting.platform_name)
-       setting.upi_id = request.POST.get('upi_id', setting.upi_id)
-       setting.diamonds_needed_for_1_rs = int(request.POST.get('diamonds_needed', setting.diamonds_needed_for_1_rs))
-       setting.save()
-       
-       if 'profile_image' in request.FILES:
-           request.user.profile_image = request.FILES['profile_image']
-           request.user.save()
-           
-       messages.success(request, "Settings & Profile updated successfully!")
-       return redirect('admin_settings')
-       
-   return render(request, 'core/admin_settings.html', {'setting': setting})
-   Notification.objects.filter(user=request.user).order_by('-created_at')[:50]
-   Notification.objects.filter(user=request.user, is_read=False).update(is_read=True)
-   return render(request, 'core/notifications.html', {'notifications': notifs})
-   
+    if not request.user.is_superuser: return redirect('home')
+    setting, _ = SiteSetting.objects.get_or_create(id=1)
+    
+    if request.method == 'POST':
+        setting.platform_name = request.POST.get('platform_name', setting.platform_name)
+        setting.upi_id = request.POST.get('upi_id', setting.upi_id)
+        setting.diamonds_needed_for_1_rs = int(request.POST.get('diamonds_needed', setting.diamonds_needed_for_1_rs))
+        setting.save()
+        
+        if 'profile_image' in request.FILES:
+            request.user.profile_image = request.FILES['profile_image']
+            request.user.save()
+            
+        messages.success(request, "Settings & Profile updated successfully!")
+        return redirect('admin_settings')
+        
+    return render(request, 'core/admin_settings.html', {'setting': setting})
+
+# ==========================================
+# ⚡ SUPER ADMIN ACTION CONTROLLERS
+# ==========================================
+@login_required(login_url='/login/')
+def admin_service_action(request):
+    if not request.user.is_superuser: return redirect('home')
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        
+        if action == 'add':
+            Service.objects.create(
+                name=request.POST.get('name'),
+                platform=request.POST.get('platform'),
+                price_per_1000=request.POST.get('price_per_1000'),
+                min_order=request.POST.get('min_order', 10),
+                max_order=request.POST.get('max_order', 10000)
+            )
+            messages.success(request, "New Service added successfully!")
+            
+        else:
+            svc = get_object_or_404(Service, id=request.POST.get('service_id'))
+            if action == 'toggle':
+                svc.is_active = not svc.is_active
+                svc.save()
+                messages.success(request, "Service status updated!")
+            elif action == 'delete':
+                svc.delete()
+                messages.success(request, "Service deleted permanently!")
+                
+    return redirect('admin_services')
+
+
+@login_required(login_url='/login/')
+def admin_payment_action(request):
+    if not request.user.is_superuser: return redirect('home')
+    if request.method == 'POST':
+        payment = get_object_or_404(Payment, id=request.POST.get('payment_id'))
+        if request.POST.get('action') == 'approve' and payment.status == 'Pending':
+            payment.status = 'Completed'
+            payment.user.wallet_balance += payment.amount
+            payment.user.save()
+            payment.save()
+            
+            Notification.objects.create(
+                user=payment.user, 
+                title="Payment Approved 💸", 
+                message=f"₹{payment.amount} has been successfully added to your wallet.", 
+                icon="fa-money-bill-trend-up", 
+                color="emerald"
+            )
+            messages.success(request, f"Approved! ₹{payment.amount} added.")
+            
+        elif request.POST.get('action') == 'reject':
+            payment.status = 'Rejected'
+            payment.save()
+            
+            Notification.objects.create(
+                user=payment.user, 
+                title="Payment Rejected ❌", 
+                message="Your recent payment request was rejected by the admin. Check UTR.", 
+                icon="fa-circle-xmark", 
+                color="rose"
+            )
+            messages.error(request, "Payment Rejected.")
+            
+    return redirect('admin_payments')
+    
+
+@login_required(login_url='/login/')
+def admin_bot_action(request):
+    if not request.user.is_superuser: return redirect('home')
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        
+        if action == 'add':
+            bot_count = Bot.objects.count() + 1
+            auto_name = f"Worker-Node-{bot_count:02d}"
+            cookies_data = request.POST.get('cookies', '')
+            
+            Bot.objects.create(name=auto_name, cookies=cookies_data)
+            messages.success(request, f"🚀 {auto_name} Deployed Successfully with Cookies!")
+            
+        else:
+            bot = get_object_or_404(Bot, id=request.POST.get('bot_id'))
+            if action == 'toggle':
+                bot.is_active = not bot.is_active
+                bot.save()
+                messages.success(request, f"{bot.name} power state changed!")
+            elif action == 'delete':
+                bot.delete()
+                messages.success(request, "Bot Engine Terminated.")
+                
+    return redirect('admin_bots')
+                
+
+@login_required(login_url='/login/')
+def admin_tasks(request):
+    if not request.user.is_superuser: return redirect('home')
+    tasks = Task.objects.all().order_by('-created_at')
+    return render(request, 'core/admin_tasks.html', {'tasks': tasks})
+    
+
+@login_required(login_url='/login/')
+def claim_daily_view(request):
+    if request.method == 'POST':
+        user = request.user
+        today = timezone.now().date()
+        
+        if user.last_daily_claim == today:
+            return JsonResponse({'status': 'error', 'message': 'Already claimed today!'})
+            
+        if user.last_daily_claim == today - timedelta(days=1):
+            user.login_streak += 1
+        else:
+            user.login_streak = 1 
+            
+        if user.login_streak > 7:
+            user.login_streak = 1
+            
+        reward = 50 if user.login_streak == 7 else 10
+        user.diamonds += reward
+        user.last_daily_claim = today
+        user.save()
+        
+        return JsonResponse({'status': 'success', 'message': f'Claimed {reward} 💎!', 'diamonds': user.diamonds})
+
+@login_required(login_url='/login/')
+def claim_task_view(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        task = get_object_or_404(Task, id=data.get('task_id'))
+        
+        if UserTask.objects.filter(user=request.user, task=task).exists():
+            return JsonResponse({'status': 'error', 'message': 'Task already claimed!'})
+            
+        UserTask.objects.create(user=request.user, task=task)
+        request.user.diamonds += task.reward_diamonds
+        request.user.save()
+        
+        return JsonResponse({'status': 'success', 'message': f'Task Complete! +{task.reward_diamonds} 💎', 'diamonds': request.user.diamonds})
+    
+@login_required(login_url='/login/')
+def notifications_view(request):
+    notifs = Notification.objects.filter(user=request.user).order_by('-created_at')[:50]
+    Notification.objects.filter(user=request.user, is_read=False).update(is_read=True)
+    return render(request, 'core/notifications.html', {'notifications': notifs})
+    
 @login_required(login_url='/login/')
 def withdraw_history_view(request):
-   withdrawals = Withdrawal.objects.filter(user=request.user).order_by('-created_at')
-   return render(request, 'core/withdraw_history.html', {'withdrawals': withdrawals})
+    withdrawals = Withdrawal.objects.filter(user=request.user).order_by('-created_at')
+    return render(request, 'core/withdraw_history.html', {'withdrawals': withdrawals})
 
 @login_required(login_url='/login/')
 def admin_withdrawals(request):
-   if not request.user.is_superuser: return redirect('home')
-   withdrawals = Withdrawal.objects.all().order_by('-created_at')
-   return render(request, 'core/admin_withdrawals.html', {'platform_withdrawals': withdrawals, 'pending_count': withdrawals.filter(status='Pending').count()})
+    if not request.user.is_superuser: return redirect('home')
+    withdrawals = Withdrawal.objects.all().order_by('-created_at')
+    return render(request, 'core/admin_withdrawals.html', {'platform_withdrawals': withdrawals, 'pending_count': withdrawals.filter(status='Pending').count()})
 
 @login_required(login_url='/login/')
 def admin_withdrawal_action(request):
-   if not request.user.is_superuser: return redirect('home')
-   if request.method == 'POST':
-       withdraw = get_object_or_404(Withdrawal, id=request.POST.get('withdraw_id'))
-       if request.POST.get('action') == 'approve' and withdraw.status == 'Pending':
-           withdraw.status = 'Completed'
-           withdraw.save()
-           Notification.objects.create(user=withdraw.user, title="Withdrawal Approved 💸", message=f"₹{withdraw.amount_rs} has been sent to your UPI.", icon="fa-money-bill-wave", color="emerald")
-           messages.success(request, f"Approved! (Please manually send ₹{withdraw.amount_rs} to {withdraw.upi_id})")
-       elif request.POST.get('action') == 'reject' and withdraw.status == 'Pending':
-           withdraw.status = 'Rejected'
-           withdraw.user.diamonds += withdraw.diamonds_used 
-           withdraw.user.save()
-           withdraw.save()
-           Notification.objects.create(user=withdraw.user, title="Withdrawal Rejected ❌", message="Your withdrawal request was rejected. Diamonds refunded.", icon="fa-circle-xmark", color="rose")
-           messages.error(request, "Withdrawal Rejected & Diamonds Refunded.")
-   return redirect('admin_withdrawals')
+    if not request.user.is_superuser: return redirect('home')
+    if request.method == 'POST':
+        withdraw = get_object_or_404(Withdrawal, id=request.POST.get('withdraw_id'))
+        if request.POST.get('action') == 'approve' and withdraw.status == 'Pending':
+            withdraw.status = 'Completed'
+            withdraw.save()
+            Notification.objects.create(user=withdraw.user, title="Withdrawal Approved 💸", message=f"₹{withdraw.amount_rs} has been sent to your UPI.", icon="fa-money-bill-wave", color="emerald")
+            messages.success(request, f"Approved! (Please manually send ₹{withdraw.amount_rs} to {withdraw.upi_id})")
+        elif request.POST.get('action') == 'reject' and withdraw.status == 'Pending':
+            withdraw.status = 'Rejected'
+            withdraw.user.diamonds += withdraw.diamonds_used 
+            withdraw.user.save()
+            withdraw.save()
+            Notification.objects.create(user=withdraw.user, title="Withdrawal Rejected ❌", message="Your withdrawal request was rejected. Diamonds refunded.", icon="fa-circle-xmark", color="rose")
+            messages.error(request, "Withdrawal Rejected & Diamonds Refunded.")
+    return redirect('admin_withdrawals')
