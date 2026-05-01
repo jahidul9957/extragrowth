@@ -255,32 +255,36 @@ def account_view(request):
 
 @login_required(login_url='/login/')
 def team_and_rewards(request):
+    setting, _ = SiteSetting.objects.get_or_create(id=1)
     invited_friends = request.user.referrals.all().order_by('-date_joined')
     total_invites = invited_friends.count()
-    active_invites = invited_friends.filter(total_spent__gt=0).count()
     
     if total_invites >= 50: tier_name, tier_icon, tier_color = "Gold", "🥇", "text-yellow-500"
     elif total_invites >= 10: tier_name, tier_icon, tier_color = "Silver", "🥈", "text-slate-400"
     else: tier_name, tier_icon, tier_color = "Bronze", "🥉", "text-orange-500"
 
-    if request.method == 'POST' and request.POST.get('action') == 'redeem':
-        if request.user.diamonds >= 50:
-            rs_to_add = request.user.diamonds / 50
-            request.user.wallet_balance += rs_to_add
-            request.user.diamonds = 0
-            request.user.save()
-            messages.success(request, f"🎉 Success! ₹{rs_to_add} added to your wallet.")
-        else:
-            messages.error(request, "⚠️ Minimum 50 Diamonds required to redeem!")
+    if request.method == 'POST' and request.POST.get('action') == 'withdraw':
+        upi_id = request.POST.get('upi_id')
+        try:
+            withdraw_diamonds = int(request.POST.get('diamonds'))
+            if withdraw_diamonds < setting.diamonds_needed_for_1_rs:
+                messages.error(request, f"⚠️ Minimum {setting.diamonds_needed_for_1_rs} diamonds required!")
+            elif request.user.diamonds >= withdraw_diamonds:
+                rs_add = Decimal(str(withdraw_diamonds / setting.diamonds_needed_for_1_rs))
+                request.user.diamonds -= withdraw_diamonds
+                request.user.save()
+                
+                Withdrawal.objects.create(user=request.user, diamonds_used=withdraw_diamonds, amount_rs=rs_add, upi_id=upi_id)
+                Notification.objects.create(user=request.user, title="Withdrawal Requested ⏳", message=f"Your request for ₹{rs_add} is pending admin approval.", icon="fa-clock-rotate-left", color="amber")
+                messages.success(request, f"🎉 Withdrawal request of ₹{rs_add} submitted!")
+            else:
+                messages.error(request, "⚠️ Insufficient Diamonds!")
+        except:
+            messages.error(request, "⚠️ Invalid Input!")
         return redirect('team_rewards')
 
-    context = {
-        'invited_friends': invited_friends, 'total_invites': total_invites,
-        'active_invites': active_invites, 'tier_name': tier_name,
-        'tier_icon': tier_icon, 'tier_color': tier_color,
-    }
-    return render(request, 'core/team.html', context)
-
+    return render(request, 'core/team.html', {'setting': setting, 'invited_friends': invited_friends, 'total_invites': total_invites, 'tier_name': tier_name, 'tier_icon': tier_icon, 'tier_color': tier_color})
+        
 
 # ==========================================
 # 👑 4. SUPER ADMIN COMMAND CENTER
