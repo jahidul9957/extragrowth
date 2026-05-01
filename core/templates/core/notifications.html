@@ -1,44 +1,113 @@
-{% extends 'core/base.html' %} <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Notifications</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Notifications - NextGen</title>
+    
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>body { background-color: #f8fafc; font-family: 'Inter', sans-serif; }</style>
+    
+    <style>
+        body { background-color: #f8fafc; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+        .font-poppins { font-family: 'Poppins', sans-serif; }
+        
+        /* Smooth UI Animations */
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-up { animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; opacity: 0; }
+        
+        /* Loader Animation */
+        .loader-ring { border: 3px solid #e2e8f0; border-top-color: #2563eb; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        .nav-active::after { content: ''; position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%); width: 4px; height: 4px; background-color: #2563eb; border-radius: 50%; }
+        .btn-press:active { transform: scale(0.96); }
+        .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
+    </style>
 </head>
-<body class="pb-20 text-slate-800">
+<body class="antialiased text-slate-800 pb-24">
 
-    <div class="bg-white/90 backdrop-blur-lg px-5 py-4 flex items-center justify-between shadow-sm sticky top-0 z-50">
-        <a href="{% url 'home' %}" class="w-10 h-10 bg-slate-50 rounded-full flex items-center justify-center text-slate-500 hover:text-blue-600 transition"><i class="fa-solid fa-arrow-left"></i></a>
-        <h1 class="text-lg font-black font-poppins text-slate-800">Notifications</h1>
-        <div class="w-10"></div>
+    <div id="page-loader" class="fixed inset-0 z-[99999] bg-slate-50 flex items-center justify-center transition-opacity duration-500">
+        <div class="flex flex-col items-center">
+            <div class="loader-ring mb-4"></div>
+            <p class="text-xs font-bold text-slate-400 font-poppins tracking-widest uppercase animate-pulse">Loading Alerts...</p>
+        </div>
     </div>
 
-    <div class="p-5 max-w-md mx-auto space-y-4">
-        {% for notif in notifications %}
-        <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex gap-4 relative overflow-hidden">
-            {% if not notif.is_read %}
-            <div class="absolute top-0 right-0 w-2 h-2 bg-rose-500 rounded-full m-3 animate-pulse"></div>
-            {% endif %}
+    <div class="max-w-md mx-auto relative h-full">
+
+        <div class="bg-white/90 backdrop-blur-lg px-5 py-4 flex items-center justify-between shadow-sm sticky top-0 z-50 border-b border-white">
+            <a href="{% url 'home' %}" class="w-10 h-10 bg-slate-50 rounded-full flex items-center justify-center text-slate-500 hover:text-blue-600 hover:bg-blue-50 transition btn-press border border-slate-100">
+                <i class="fa-solid fa-arrow-left text-lg"></i>
+            </a>
+            <h1 class="text-lg font-black font-poppins text-slate-800 tracking-tight">Notifications</h1>
+            <div class="w-10"></div> </div>
+
+        <div class="p-5 space-y-4">
             
-            <div class="w-12 h-12 rounded-full bg-{{ notif.color }}-50 text-{{ notif.color }}-500 flex items-center justify-center text-xl shrink-0 shadow-inner">
-                <i class="fa-solid {{ notif.icon }}"></i>
-            </div>
-            <div>
-                <h3 class="text-sm font-bold text-slate-800">{{ notif.title }}</h3>
-                <p class="text-xs text-slate-500 mt-1 leading-relaxed">{{ notif.message }}</p>
-                <p class="text-[9px] font-bold text-slate-400 mt-2 uppercase tracking-widest"><i class="fa-regular fa-clock"></i> {{ notif.created_at|timesince }} ago</p>
-            </div>
+            {% for notif in notifications %}
+                <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex gap-4 relative overflow-hidden animate-fade-up transition-all hover:shadow-md" style="animation-delay: {{ forloop.counter0|add:1 }}00ms;">
+                    
+                    <i class="fa-solid {{ notif.icon }} absolute -right-3 -bottom-3 text-5xl text-{{ notif.color }}-500 opacity-5 transform -rotate-12"></i>
+
+                    <div class="w-12 h-12 rounded-full bg-{{ notif.color }}-50 text-{{ notif.color }}-500 flex items-center justify-center text-xl shrink-0 shadow-inner border border-{{ notif.color }}-100 relative z-10">
+                        <i class="fa-solid {{ notif.icon }}"></i>
+                    </div>
+                    
+                    <div class="flex-1 min-w-0 relative z-10">
+                        <div class="flex justify-between items-start">
+                            <h3 class="text-sm font-bold text-slate-800 truncate pr-2">{{ notif.title }}</h3>
+                        </div>
+                        <p class="text-xs text-slate-500 mt-1 leading-relaxed">{{ notif.message }}</p>
+                        <p class="text-[9px] font-bold text-slate-400 mt-2 uppercase tracking-widest"><i class="fa-regular fa-clock mr-1"></i> {{ notif.created_at|timesince }} ago</p>
+                    </div>
+                </div>
+            
+            {% empty %}
+                
+                <div class="bg-white rounded-3xl border border-slate-100 border-dashed p-10 text-center flex flex-col items-center justify-center animate-fade-up mt-10">
+                    <div class="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center text-slate-300 text-4xl mb-4 shadow-inner relative">
+                        <i class="fa-regular fa-bell-slash"></i>
+                        <span class="absolute top-0 right-0 w-4 h-4 bg-white rounded-full flex items-center justify-center"><div class="w-2 h-2 bg-slate-300 rounded-full"></div></span>
+                    </div>
+                    <h3 class="font-bold text-slate-700 text-lg mb-1">All caught up!</h3>
+                    <p class="text-xs text-slate-400 mb-6">You have no new notifications right now. System alerts will appear here.</p>
+                    <a href="{% url 'home' %}" class="bg-blue-600 text-white text-sm font-bold px-6 py-3 rounded-xl shadow-md shadow-blue-500/30 hover:bg-blue-700 transition btn-press">
+                        Go to Dashboard
+                    </a>
+                </div>
+
+            {% endfor %}
+
         </div>
-        {% empty %}
-        <div class="text-center py-10">
-            <i class="fa-regular fa-bell-slash text-5xl text-slate-300 mb-4"></i>
-            <h3 class="text-slate-500 font-bold">No notifications yet!</h3>
-        </div>
-        {% endfor %}
     </div>
+
+    <nav class="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-lg border-t border-slate-200 z-50 pb-safe shadow-[0_-4px_20px_rgba(0,0,0,0.03)]">
+        <div class="max-w-md mx-auto flex justify-between items-center px-6 py-2.5">
+            <a href="{% url 'home' %}" class="flex flex-col items-center text-slate-400 hover:text-blue-600 transition btn-press w-16">
+                <i class="fa-solid fa-house text-xl mb-1 transition-transform group-hover:-translate-y-1"></i><span class="text-[10px] font-bold">Home</span>
+            </a>
+            <a href="{% url 'orders' %}" class="flex flex-col items-center text-slate-400 hover:text-blue-600 transition btn-press w-16">
+                <i class="fa-solid fa-receipt text-xl mb-1"></i><span class="text-[10px] font-bold">Orders</span>
+            </a>
+            <a href="{% url 'team_rewards' %}" class="flex flex-col items-center text-slate-400 hover:text-blue-600 transition btn-press w-16">
+                <i class="fa-solid fa-users text-xl mb-1"></i><span class="text-[10px] font-bold">Team</span>
+            </a>
+            <a href="{% url 'account' %}" class="flex flex-col items-center text-slate-400 hover:text-blue-600 transition btn-press w-16">
+                <i class="fa-solid fa-user text-xl mb-1"></i><span class="text-[10px] font-bold">Profile</span>
+            </a>
+        </div>
+    </nav>
+
+    <script>
+        window.addEventListener('load', function() {
+            setTimeout(() => { 
+                document.getElementById('page-loader').style.opacity = '0'; 
+                setTimeout(() => { document.getElementById('page-loader').style.display = 'none'; }, 500); 
+            }, 300); 
+        });
+    </script>
 </body>
-</html>
+                                </html>
+                                                                                                                                
