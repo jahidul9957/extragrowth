@@ -2,202 +2,296 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>New Order - NextGen SMM</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Place New Order - NextGen</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
+    
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; padding-bottom: 70px; }
-        @media (min-width: 768px) { body { padding-bottom: 0; } }
-        h1, h2, h3, .font-poppins { font-family: 'Poppins', sans-serif; }
+        body { background-color: #f8fafc; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+        .font-poppins { font-family: 'Poppins', sans-serif; }
+        
+        /* Smooth UI Animations */
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-up { animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; opacity: 0; }
+        
+        /* Glass Toast */
+        .glass-alert { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.5); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15); }
+        .toast-enter { opacity: 0; transform: scale(0.85) translateY(20px); }
+        .toast-active { opacity: 1; transform: scale(1) translateY(0); }
+        
+        .btn-press:active { transform: scale(0.96); }
+        
+        /* Skeleton Loading Animation for Profile Fetch */
+        .skeleton-shimmer {
+            background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite linear;
+        }
+        @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+        
+        .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
     </style>
 </head>
-<body class="text-slate-800 antialiased">
+<body class="antialiased text-slate-800 pb-24">
 
-    <nav class="sticky top-0 z-50 bg-white/90 backdrop-blur-md shadow-sm border-b border-slate-200">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16 items-center">
-                <a href="{% url 'home' %}" class="flex-shrink-0 flex items-center gap-2 cursor-pointer">
-                    <i class="fa-solid fa-rocket text-blue-600 text-2xl"></i>
-                    <span class="font-poppins font-bold text-xl tracking-tight text-slate-900">NextGen<span class="text-blue-600">SMM</span></span>
-                </a>
-                
-                <div class="hidden md:flex space-x-8 items-center font-medium text-slate-600">
-                    <a href="{% url 'home' %}" class="hover:text-blue-600 transition">Home</a>
-                    <a href="{% url 'services' %}" class="hover:text-blue-600 transition">Services</a>
-                    <a href="{% url 'orders' %}" class="hover:text-blue-600 transition">My Orders</a>
-                    
-                    <div class="flex items-center gap-4 border-l pl-6 border-slate-200">
-                        <span class="text-sm bg-slate-100 py-1 px-3 rounded-full text-slate-700 font-semibold">₹ {{ user.wallet_balance|floatformat:2 }}</span>
-                        <a href="{% url 'logout' %}" class="text-red-500 hover:text-red-600 transition" title="Logout"><i class="fa-solid fa-right-from-bracket"></i></a>
-                    </div>
-                </div>
-            </div>
+    <div id="toast-container" class="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-[100] flex flex-col gap-3 pointer-events-none w-max max-w-[85vw]"></div>
+    <div id="csrf-token-container" class="hidden">{% csrf_token %}</div>
+
+    <div class="max-w-md mx-auto relative h-full">
+
+        <div class="bg-white/80 backdrop-blur-lg px-5 py-4 flex items-center justify-between shadow-sm sticky top-0 z-50 border-b border-white/50">
+            <a href="{% url 'home' %}" class="w-10 h-10 bg-white rounded-full flex items-center justify-center text-slate-500 hover:text-blue-600 transition shadow-sm border border-slate-100 btn-press">
+                <i class="fa-solid fa-arrow-left text-lg"></i>
+            </a>
+            <h1 class="text-lg font-black font-poppins text-slate-800 tracking-tight">Boost Content</h1>
+            <div class="w-10"></div> 
         </div>
-    </nav>
 
-    <div class="bg-slate-900 text-white py-10">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h1 class="text-2xl md:text-3xl font-poppins font-bold">Create New Order 🛒</h1>
-            <p class="text-slate-400 mt-2 text-sm">Boost your social media presence in just a few clicks.</p>
-        </div>
-    </div>
-
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
-        {% if messages %}
-            {% for message in messages %}
-                <div class="p-4 mb-4 rounded-xl text-sm font-semibold shadow-sm {% if message.tags == 'error' %}bg-red-50 text-red-600 border border-red-200{% else %}bg-green-50 text-green-600 border border-green-200{% endif %}">
-                    {{ message }}
-                </div>
-            {% endfor %}
-        {% endif %}
-    </div>
-
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div class="p-5 space-y-5">
             
-            <div class="lg:col-span-2">
-                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 md:p-8">
-                    <form method="POST" action="{% url 'new_order' %}">
-                        {% csrf_token %}
-                        
-                        <div class="mb-6">
-                            <label class="block text-sm font-semibold text-slate-700 mb-2">Category & Service <span class="text-red-500">*</span></label>
-                            <div class="relative">
-                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <i class="fa-solid fa-layer-group text-slate-400"></i>
-                                </div>
-                                <select name="service" id="serviceSelect" onchange="calculateCharge()" required class="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all appearance-none text-slate-700">
-                                    <option value="" data-price="0" disabled selected>-- Select a Premium Service --</option>
-                                    {% for service in services %}
-                                        <option value="{{ service.id }}" data-price="{{ service.price_per_1000 }}">
-                                            ID: {{ service.id }} - {{ service.name }} (₹{{ service.price_per_1000 }}/1000)
-                                        </option>
-                                    {% endfor %}
-                                </select>
-                                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                                    <i class="fa-solid fa-chevron-down text-slate-400 text-sm"></i>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="mb-6">
-                            <label class="block text-sm font-semibold text-slate-700 mb-2">Target Link <span class="text-red-500">*</span></label>
-                            <div class="relative">
-                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <i class="fa-solid fa-link text-slate-400"></i>
-                                </div>
-                                <input type="url" name="link" placeholder="e.g. https://www.youtube.com/channel/UC..." required class="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all">
-                            </div>
-                            <p class="text-xs text-slate-500 mt-2"><i class="fa-solid fa-circle-info mr-1"></i> Make sure your account/post is public.</p>
-                        </div>
-
-                        <div class="mb-8">
-                            <label class="block text-sm font-semibold text-slate-700 mb-2">Quantity <span class="text-red-500">*</span></label>
-                            <div class="relative">
-                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <i class="fa-solid fa-hashtag text-slate-400"></i>
-                                </div>
-                                <input type="number" name="quantity" id="quantityInput" onkeyup="calculateCharge()" onchange="calculateCharge()" min="10" placeholder="Minimum: 10" required class="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all">
-                            </div>
-                        </div>
-
-                        <div class="bg-blue-50 rounded-xl p-6 mb-8 border border-blue-100 flex justify-between items-center">
-                            <div>
-                                <h3 class="text-sm font-bold text-blue-800 uppercase tracking-wider">Total Charge</h3>
-                                <p class="text-xs text-blue-600 mt-1">Calculated automatically</p>
-                            </div>
-                            <div class="text-3xl font-black text-blue-700" id="chargeDisplay">
-                                ₹ 0.00
-                            </div>
-                        </div>
-
-                        <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold text-lg py-4 rounded-xl hover:shadow-lg hover:shadow-blue-500/30 hover:-translate-y-0.5 transition-all duration-300">
-                            <i class="fa-solid fa-paper-plane mr-2"></i> Place Order
-                        </button>
-                    </form>
-                </div>
-            </div>
-
-            <div class="space-y-6">
-                <div class="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-6 text-white shadow-lg relative overflow-hidden">
-                    <div class="absolute top-0 right-0 p-4 opacity-10 text-6xl">
-                        <i class="fa-solid fa-wallet"></i>
+            <form method="POST" action="{% url 'new_order' %}" id="order-form" onsubmit="return validateOrderForm(event)">
+                {% csrf_token %}
+                
+                <div class="bg-white p-5 rounded-[1.5rem] shadow-sm border border-slate-100 animate-fade-up">
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Select Service</label>
+                    
+                    <div class="relative">
+                        <select id="service-select" name="service" onchange="updateServiceInfo()" class="w-full bg-slate-50 border border-slate-200 text-slate-800 font-bold text-sm rounded-xl py-4 pl-4 pr-10 appearance-none outline-none focus:ring-4 focus:ring-blue-50 focus:border-blue-500 transition shadow-sm">
+                            <option value="" disabled selected>-- Choose a Boost Service --</option>
+                            {% for service in services %}
+                            <option value="{{ service.id }}" data-price="{{ service.price_per_1000 }}" data-min="{{ service.min_order }}" data-max="{{ service.max_order }}" data-platform="{{ service.platform }}">
+                                {{ service.name }} - ₹{{ service.price_per_1000 }} / 1K
+                            </option>
+                            {% endfor %}
+                        </select>
+                        <i class="fa-solid fa-chevron-down absolute right-4 top-1/2 transform -translate-y-1/2 text-slate-400 pointer-events-none"></i>
                     </div>
-                    <p class="text-slate-400 text-sm font-medium mb-1">Current Balance</p>
-                    <h2 class="text-3xl font-poppins font-bold mb-4">₹ {{ user.wallet_balance|floatformat:2 }}</h2>
-                    <a href="{% url 'add_funds' %}" class="block w-full text-center bg-white/10 hover:bg-white/20 border border-white/20 text-white font-semibold py-2.5 rounded-lg transition-colors text-sm backdrop-blur-sm">
-                        <i class="fa-solid fa-plus mr-1"></i> Add Funds
+
+                    <div id="service-info" class="hidden mt-4 bg-slate-50 border border-slate-100 rounded-xl p-3 flex items-center justify-between">
+                        <div class="flex items-center gap-2 text-xs font-bold text-slate-600">
+                            <i class="fa-solid fa-bolt text-amber-500"></i> Speed: Instant
+                        </div>
+                        <div class="flex items-center gap-2 text-xs font-bold text-slate-600">
+                            <i class="fa-solid fa-box text-blue-500"></i> <span id="min-max-text">Min: 10 | Max: 10k</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-5 rounded-[1.5rem] shadow-sm border border-slate-100 mt-5 animate-fade-up" style="animation-delay: 0.1s;">
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 flex justify-between">
+                        <span>Target Link</span>
+                        <span id="platform-icon" class="text-slate-300 transition-colors"><i class="fa-solid fa-link"></i></span>
+                    </label>
+                    
+                    <div class="relative">
+                        <input type="url" id="target-link" name="link" required placeholder="Paste profile or post link here..." oninput="handleLinkInput()" class="w-full bg-slate-50 border border-slate-200 text-slate-800 font-medium text-sm rounded-xl py-3.5 px-4 outline-none focus:ring-4 focus:ring-blue-50 focus:border-blue-500 transition shadow-sm">
+                    </div>
+                    <p class="text-[9px] text-slate-400 font-medium mt-2">*Ensure account is public before placing order.</p>
+
+                    <div id="profile-loading" class="hidden mt-4 border border-slate-100 rounded-xl p-3 flex items-center gap-3">
+                        <div class="w-12 h-12 rounded-full skeleton-shimmer shrink-0"></div>
+                        <div class="flex-1 space-y-2">
+                            <div class="h-3 bg-slate-200 rounded skeleton-shimmer w-1/2"></div>
+                            <div class="h-2 bg-slate-200 rounded skeleton-shimmer w-1/3"></div>
+                        </div>
+                        <i class="fa-solid fa-spinner fa-spin text-slate-300"></i>
+                    </div>
+
+                    <div id="profile-preview" class="hidden mt-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 rounded-xl p-3 flex items-center gap-3 relative overflow-hidden transition-all duration-500">
+                        <div class="absolute -right-4 -bottom-4 text-5xl opacity-10" id="preview-bg-icon"><i class="fa-brands fa-instagram"></i></div>
+                        
+                        <div class="w-12 h-12 rounded-full bg-white p-0.5 shadow-sm shrink-0 relative z-10">
+                            <img src="" id="preview-avatar" class="w-full h-full rounded-full object-cover">
+                        </div>
+                        <div class="flex-1 min-w-0 relative z-10">
+                            <h4 class="text-sm font-black text-slate-800 truncate" id="preview-name">User Name</h4>
+                            <p class="text-[10px] font-bold text-slate-500 truncate" id="preview-username">@username</p>
+                        </div>
+                        <div class="text-right relative z-10">
+                            <p class="text-[9px] font-bold text-slate-400 uppercase">Followers</p>
+                            <p class="text-xs font-black text-blue-600" id="preview-stats">10.5K</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-5 rounded-[1.5rem] shadow-sm border border-slate-100 mt-5 animate-fade-up" style="animation-delay: 0.2s;">
+                    <div class="flex gap-4">
+                        <div class="flex-1">
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Quantity</label>
+                            <input type="number" id="quantity" name="quantity" required placeholder="1000" oninput="calculateTotal()" class="w-full bg-slate-50 border border-slate-200 text-slate-800 font-black text-lg rounded-xl py-3 px-4 outline-none focus:ring-4 focus:ring-blue-50 focus:border-blue-500 transition shadow-sm text-center">
+                        </div>
+                        
+                        <div class="flex-1 bg-slate-800 rounded-xl p-3 flex flex-col justify-center items-center text-white shadow-inner relative overflow-hidden">
+                            <i class="fa-solid fa-calculator absolute -right-2 -bottom-2 text-4xl opacity-10"></i>
+                            <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Total Price</p>
+                            <h3 class="text-2xl font-black text-emerald-400" id="total-price">₹0.00</h3>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-6 bg-slate-50 border border-slate-200 p-4 rounded-[1.5rem] flex items-center justify-between animate-fade-up" style="animation-delay: 0.3s;">
+                    <div>
+                        <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-0.5">Wallet Balance</p>
+                        <p class="text-sm font-black text-slate-800" id="wallet-balance" data-balance="{{ request.user.wallet_balance }}">₹{{ request.user.wallet_balance }}</p>
+                    </div>
+                    <a href="{% url 'add_funds' %}" class="text-[10px] font-bold bg-white text-blue-600 border border-blue-100 px-3 py-1.5 rounded-lg shadow-sm btn-press">
+                        <i class="fa-solid fa-plus"></i> Add Funds
                     </a>
                 </div>
 
-                <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
-                    <h3 class="font-poppins font-bold text-slate-800 mb-4 border-b border-slate-100 pb-3">📌 Order Guidelines</h3>
-                    <ul class="space-y-4 text-sm text-slate-600">
-                        <li class="flex items-start gap-3">
-                            <i class="fa-solid fa-unlock text-green-500 mt-1"></i>
-                            <span>Your account must be <strong>Public</strong>. Private accounts will not receive followers/likes.</span>
-                        </li>
-                        <li class="flex items-start gap-3">
-                            <i class="fa-solid fa-ban text-red-500 mt-1"></i>
-                            <span>Do not place two orders for the same link at the same time. Wait for the first to Complete.</span>
-                        </li>
-                        <li class="flex items-start gap-3">
-                            <i class="fa-solid fa-clock text-blue-500 mt-1"></i>
-                            <span>Orders usually start instantly but can take up to 24 hours depending on the server load.</span>
-                        </li>
-                    </ul>
-                </div>
-            </div>
+                <p id="insufficient-warning" class="hidden text-center text-xs font-bold text-rose-500 mt-4 animate-pulse">⚠️ Insufficient Wallet Balance!</p>
+                
+                <button type="submit" id="submit-btn" class="w-full bg-blue-600 text-white font-bold text-sm py-4 rounded-2xl shadow-lg shadow-blue-500/30 hover:bg-blue-700 transition btn-press mt-4 flex justify-center items-center gap-2">
+                    <i class="fa-solid fa-rocket"></i> Place Order
+                </button>
 
+            </form>
         </div>
     </div>
 
-    <div class="md:hidden fixed bottom-0 left-0 w-full bg-white border-t border-slate-200 px-6 py-3 flex justify-between items-center shadow-[0_-5px_15px_rgba(0,0,0,0.05)] z-50 rounded-t-xl">
-        <a href="{% url 'home' %}" class="flex flex-col items-center text-slate-400 hover:text-blue-600 transition">
-            <i class="fa-solid fa-house text-xl mb-1"></i><span class="text-[10px] font-semibold">Home</span>
-        </a>
-        <a href="{% url 'services' %}" class="flex flex-col items-center text-slate-400 hover:text-blue-600 transition">
-            <i class="fa-solid fa-list-ul text-xl mb-1"></i><span class="text-[10px] font-semibold">Services</span>
-        </a>
-        
-        <a href="{% url 'new_order' %}" class="relative -top-5 bg-gradient-to-r from-blue-600 to-purple-600 text-white w-14 h-14 rounded-full flex items-center justify-center shadow-lg shadow-blue-500/30 hover:scale-105 transition-transform">
-            <i class="fa-solid fa-plus text-2xl"></i>
-        </a>
-        
-        <a href="{% url 'add_funds' %}" class="flex flex-col items-center text-slate-400 hover:text-slate-700 transition">
-            <i class="fa-solid fa-wallet text-xl mb-1"></i><span class="text-[10px] font-semibold">Funds</span>
-        </a>
-        <a href="{% url 'orders' %}" class="flex flex-col items-center text-slate-400 hover:text-slate-700 transition">
-            <i class="fa-solid fa-user text-xl mb-1"></i><span class="text-[10px] font-semibold">Account</span>
-        </a>
-    </div>
+    <nav class="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-lg border-t border-slate-200 z-50 pb-safe shadow-[0_-4px_20px_rgba(0,0,0,0.03)]">
+        <div class="max-w-md mx-auto flex justify-between items-center px-6 py-2.5">
+            <a href="{% url 'home' %}" class="flex flex-col items-center text-slate-400 hover:text-blue-600 transition btn-press w-16"><i class="fa-solid fa-house text-xl mb-1"></i><span class="text-[10px] font-bold">Home</span></a>
+            <a href="{% url 'orders' %}" class="flex flex-col items-center text-slate-400 hover:text-blue-600 transition btn-press w-16"><i class="fa-solid fa-receipt text-xl mb-1"></i><span class="text-[10px] font-bold">Orders</span></a>
+            <a href="{% url 'team_rewards' %}" class="flex flex-col items-center text-slate-400 hover:text-blue-600 transition btn-press w-16"><i class="fa-solid fa-users text-xl mb-1"></i><span class="text-[10px] font-bold">Team</span></a>
+            <a href="{% url 'account' %}" class="flex flex-col items-center text-slate-400 hover:text-blue-600 transition btn-press w-16"><i class="fa-solid fa-user text-xl mb-1"></i><span class="text-[10px] font-bold">Profile</span></a>
+        </div>
+    </nav>
 
     <script>
-        function calculateCharge() {
-            const selectElement = document.getElementById("serviceSelect");
-            const quantityInput = document.getElementById("quantityInput").value;
-            const chargeDisplay = document.getElementById("chargeDisplay");
+        let currentPricePer1000 = 0;
+        let minOrder = 0;
+        let maxOrder = 0;
+        const walletBalance = parseFloat(document.getElementById('wallet-balance').getAttribute('data-balance'));
 
-            // Get selected option
-            const selectedOption = selectElement.options[selectElement.selectedIndex];
+        // 1. Toast System
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            let icon = 'fa-circle-check', textCol = 'text-emerald-600', iconBg = 'bg-emerald-50';
+            if (type === 'error') { icon = 'fa-circle-xmark'; textCol = 'text-rose-600'; iconBg = 'bg-rose-50'; }
+            toast.className = `glass-alert py-4 px-8 flex flex-col items-center justify-center gap-2 toast-enter transition-all duration-300 pointer-events-auto rounded-[2rem]`;
+            toast.innerHTML = `<div class="${iconBg} ${textCol} w-14 h-14 rounded-full flex items-center justify-center shrink-0 mb-1 shadow-inner border border-white"><i class="fa-solid ${icon} text-2xl"></i></div><p class="text-sm font-black text-slate-800 text-center leading-tight">${message}</p>`;
+            container.appendChild(toast);
+            requestAnimationFrame(() => { toast.classList.remove('toast-enter'); toast.classList.add('toast-active'); });
+            setTimeout(() => { toast.classList.remove('toast-active'); toast.classList.add('toast-enter'); setTimeout(() => toast.remove(), 400); }, 3500);
+        }
+
+        // Django Messages
+        document.addEventListener("DOMContentLoaded", () => {
+            {% if messages %}
+                {% for message in messages %}
+                    {% if message.tags == 'error' %} showToast("{{ message|escapejs }}", "error");
+                    {% elif message.tags == 'success' %} showToast("{{ message|escapejs }}", "success");
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
+        });
+
+        // 2. Service Selection Update
+        function updateServiceInfo() {
+            const select = document.getElementById('service-select');
+            const selected = select.options[select.selectedIndex];
             
-            // Get price from data-price attribute
-            const pricePer1000 = parseFloat(selectedOption.getAttribute("data-price"));
-            const quantity = parseInt(quantityInput);
+            currentPricePer1000 = parseFloat(selected.getAttribute('data-price'));
+            minOrder = parseInt(selected.getAttribute('data-min'));
+            maxOrder = parseInt(selected.getAttribute('data-max'));
+            
+            document.getElementById('min-max-text').innerText = `Min: ${minOrder} | Max: ${maxOrder}`;
+            document.getElementById('service-info').classList.remove('hidden');
+            
+            calculateTotal(); // Recalculate if quantity is already typed
+        }
 
-            // Calculate total charge
-            if (!isNaN(pricePer1000) && !isNaN(quantity) && quantity > 0) {
-                const totalCharge = (pricePer1000 / 1000) * quantity;
-                chargeDisplay.innerHTML = "₹ " + totalCharge.toFixed(2);
+        // 3. Live Pricing Calculator
+        function calculateTotal() {
+            const quantity = parseInt(document.getElementById('quantity').value) || 0;
+            const totalPrice = (currentPricePer1000 / 1000) * quantity;
+            const totalStr = totalPrice.toFixed(2);
+            
+            document.getElementById('total-price').innerText = `₹${totalStr}`;
+            
+            const submitBtn = document.getElementById('submit-btn');
+            const warning = document.getElementById('insufficient-warning');
+            
+            // Wallet Check
+            if (totalPrice > walletBalance) {
+                warning.classList.remove('hidden');
+                submitBtn.disabled = true;
+                submitBtn.classList.replace('bg-blue-600', 'bg-slate-400');
+                submitBtn.classList.replace('hover:bg-blue-700', 'hover:bg-slate-400');
+                submitBtn.innerHTML = '<i class="fa-solid fa-wallet"></i> Insufficient Funds';
             } else {
-                chargeDisplay.innerHTML = "₹ 0.00";
+                warning.classList.add('hidden');
+                submitBtn.disabled = false;
+                submitBtn.classList.replace('bg-slate-400', 'bg-blue-600');
+                submitBtn.classList.replace('hover:bg-slate-400', 'hover:bg-blue-700');
+                submitBtn.innerHTML = '<i class="fa-solid fa-rocket"></i> Place Order';
             }
         }
-    </script>
-</body>
-                                                                                                        </html>
-                        
+
+        // 🔍 4. THE MAGIC: Smart Profile Fetcher (Simulated)
+        let fetchTimer;
+        function handleLinkInput() {
+            clearTimeout(fetchTimer);
+            const link = document.getElementById('target-link').value.trim();
+            const iconWrap = document.getElementById('platform-icon');
+            const loadingBox = document.getElementById('profile-loading');
+            const previewBox = document.getElementById('profile-preview');
+            
+            if(!link) {
+                loadingBox.classList.add('hidden'); previewBox.classList.add('hidden');
+                iconWrap.innerHTML = '<i class="fa-solid fa-link"></i>';
+                iconWrap.className = 'text-slate-300 transition-colors';
+                return;
+            }
+
+            // Auto-detect platform icon
+            let platform = 'unknown';
+            if (link.includes('instagram.com')) { platform = 'instagram'; iconWrap.innerHTML = '<i class="fa-brands fa-instagram"></i>'; iconWrap.className = 'text-pink-500 transition-colors'; }
+            else if (link.includes('youtube.com') || link.includes('youtu.be')) { platform = 'youtube'; iconWrap.innerHTML = '<i class="fa-brands fa-youtube"></i>'; iconWrap.className = 'text-red-500 transition-colors'; }
+            else if (link.includes('t.me')) { platform = 'telegram'; iconWrap.innerHTML = '<i class="fa-brands fa-telegram"></i>'; iconWrap.className = 'text-blue-500 transition-colors'; }
+            
+            // Show Loading State
+            previewBox.classList.add('hidden');
+            loadingBox.classList.remove('hidden');
+
+            // Simulate API Fetch Delay (1.5 seconds)
+            fetchTimer = setTimeout(() => {
+                loadingBox.classList.add('hidden');
+                
+                // Mock Data based on Platform
+                if(platform === 'instagram') {
+                    document.getElementById('preview-avatar').src = 'https://ui-avatars.com/api/?name=IG&background=e1306c&color=fff&size=128';
+                    document.getElementById('preview-name').innerText = 'Instagram User';
+                    document.getElementById('preview-username').innerText = '@' + link.split('/').filter(Boolean).pop();
+                    document.getElementById('preview-stats').innerText = Math.floor(Math.random() * 50 + 10) + 'K';
+                    document.getElementById('preview-bg-icon').innerHTML = '<i class="fa-brands fa-instagram text-pink-500"></i>';
+                    previewBox.classList.remove('hidden');
+                } else if(platform === 'youtube') {
+                    document.getElementById('preview-avatar').src = 'https://ui-avatars.com/api/?name=YT&background=ff0000&color=fff&size=128';
+                    document.getElementById('preview-name').innerText = 'YouTube Channel';
+                    document.getElementById('preview-username').innerText = 'Channel ID detected';
+                    document.getElementById('preview-stats').innerText = Math.floor(Math.random() * 900 + 100) + 'K';
+                    document.getElementById('preview-bg-icon').innerHTML = '<i class="fa-brands fa-youtube text-red-500"></i>';
+                    previewBox.classList.remove('hidden');
+                } else {
+                    // Generic link (Don't show preview box to keep UI clean)
+                    previewBox.classList.add('hidden');
+                }
+            }, 1200);
+        }
+
+        // 5. Final Form Validation
+        function validateOrderForm(event) {
+            const service = document.getElementById('service-select').value;
+            const quantity = parseInt(document.getElementById('quantity').value);
+
+            if (!service) {
+                event.preventDefault(); showToast("Please select a service first!", "error"); return false;
+            }
+            if (quantity < minOrder) {
+                e
