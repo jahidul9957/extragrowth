@@ -92,6 +92,18 @@
         <div class="px-5 space-y-3 mb-6">
             <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 px-1">Account Options</h4>
             
+                        <a href="{% url 'payment_history' %}" class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between hover:bg-slate-50 transition btn-press group mt-3">
+                <div class="flex items-center gap-4">
+                    <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-500 flex items-center justify-center text-lg group-hover:scale-110 transition"><i class="fa-solid fa-money-bill-transfer"></i></div>
+                    <div>
+                        <p class="font-bold text-slate-700 text-sm">Payment History</p>
+                        <p class="text-[10px] text-slate-400">View your wallet transactions</p>
+                    </div>
+                </div>
+                <i class="fa-solid fa-chevron-right text-slate-300 text-xs"></i>
+                        </a>
+
+        
             <a href="{% url 'orders' %}" class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between hover:bg-slate-50 transition btn-press group">
                 <div class="flex items-center gap-4">
                     <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-500 flex items-center justify-center text-lg group-hover:scale-110 transition"><i class="fa-solid fa-box-open"></i></div>
