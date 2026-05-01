@@ -63,7 +63,7 @@
             <div class="bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 rounded-3xl p-6 text-white shadow-lg shadow-blue-500/30 relative overflow-hidden shine-effect">
                 <div class="absolute -right-6 -top-6 text-white/10 text-8xl"><i class="fa-solid fa-wallet"></i></div>
                 
-                <p class="text-blue-100 text-sm font-medium mb-1">👋 Hi, {{ request.user.username }}!</p>
+                                <p class="text-blue-100 text-sm font-medium mb-1">👋 Hi, {{ request.user.first_name|default:request.user.username }}!</p>
                 <h2 class="text-3xl font-black font-poppins mb-6">₹{{ request.user.wallet_balance|floatformat:2 }}</h2>
                 
                 <div class="flex items-center justify-between bg-black/20 backdrop-blur-sm rounded-2xl p-4 border border-white/10">
