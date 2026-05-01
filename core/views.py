@@ -100,17 +100,29 @@ def run_bot_in_background(order_id):
             
             if clicked:
                 order.status = 'Completed'
-                order.save() # Ab yahan koi ASYNC ERROR nahi aayega!
-                print("✨ [RENDER LOG] JS Click Successful! Task Finished!")
+                        if clicked:
+                print("⏳ [RENDER LOG] Waiting for YouTube servers to sync...")
+                # 🔥 THE FIX: Click karne ke baad 4 second ruko, taaki request puri ho sake!
+                page.wait_for_timeout(4000) 
+                
+                # Check karo ki "Sign in" popup toh nahi aa gaya?
+                if page.is_visible("text='Sign in to YouTube'"):
+                    print("❌ [RENDER LOG] FAILED: YouTube asked for Login! Cookies are dead.")
+                    raise Exception("Cookies expire ho chuki hain ya invalid hain. Nayi cookies daalein.")
+                
+                order.status = 'Completed'
+                order.save()
+                print("✨ [RENDER LOG] JS Click Successful & Synced! Task Finished!")
                 
                 Notification.objects.create(
                     user=order.user,
-                    title="🤖 Bot Success (JS Inject)",
+                    title="🤖 Bot Success",
                     message=f"Successfully processed your order for {order.link}",
                     icon="fa-robot",
                     color="emerald"
                 )
-            else:
+    else:
+
                 print("❌ [RENDER LOG] JS Click Failed: Button completely missing!")
                 raise Exception("Subscribe button DOM mein nahi mila (Login issue ya wrong link)")
 
