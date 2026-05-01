@@ -227,18 +227,19 @@ def orders_view(request):
 
 @login_required(login_url='/login/')
 def add_funds_view(request):
+    setting, _ = SiteSetting.objects.get_or_create(id=1) # 👈 Yeh line add karein
+    
     if request.method == 'POST':
-        amount = request.POST.get('amount')
-        utr_number = request.POST.get('utr_number')
-        
-        if Payment.objects.filter(utr_number=utr_number).exists():
-            messages.error(request, "❌ This UTR number has already been used.")
+        utr = request.POST.get('utr_number')
+        if Payment.objects.filter(utr_number=utr).exists():
+            messages.error(request, "❌ UTR already used.")
         else:
-            Payment.objects.create(user=request.user, amount=amount, utr_number=utr_number)
-            messages.success(request, "✅ Payment request submitted! Admin will verify it shortly.")
+            Payment.objects.create(user=request.user, amount=request.POST.get('amount'), utr_number=utr)
+            messages.success(request, "✅ Request submitted! Admin will verify shortly.")
         return redirect('add_funds')
-    return render(request, 'core/add_funds.html')
-
+        
+    return render(request, 'core/add_funds.html', {'setting': setting}) # 👈 Yahan 'setting' pass karein
+    
 @login_required(login_url='/login/')
 def account_view(request):
     user_orders_count = Order.objects.filter(user=request.user).count()
