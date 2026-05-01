@@ -99,14 +99,41 @@ def telegram_auth_api(request):
             if not is_valid or not tg_user:
                 return JsonResponse({'status': 'error', 'message': 'Invalid Signature!'}, status=403)
                 
-            tg_id = tg_user.get('id')
+            tg_id = str(tg_user.get('id'))
             tg_username = tg_user.get('username', f"user_{tg_id}")
             
+            # 📸 Telegram se asli data nikalo
+            first_name = tg_user.get('first_name', '')
+            last_name = tg_user.get('last_name', '')
+            photo_url = tg_user.get('photo_url', '')
+            
+            # 🚨 AUTO LOGOUT SECURITY: Agar purana user session me hai toh usko nikal do
+            if request.user.is_authenticated and request.user.telegram_id != tg_id:
+                logout(request)
+            
+            # 👤 User Create ya Fetch karo
             user, created = CustomUser.objects.get_or_create(
                 telegram_id=tg_id,
-                defaults={'username': tg_username, 'telegram_username': tg_username}
+                defaults={
+                    'username': tg_username, 
+                    'telegram_username': tg_username,
+                    'first_name': first_name,
+                    'last_name': last_name,
+                    'telegram_photo_url': photo_url
+                }
             )
             
+            # 🔄 Agar user pehle se hai, toh uski details update kardo (kya pata usne photo change ki ho)
+            if not created:
+                user.first_name = first_name
+                user.last_name = last_name
+                user.telegram_photo_url = photo_url
+                if tg_username:
+                    user.telegram_username = tg_username
+                    user.username = tg_username
+                user.save()
+            
+            # 🎁 Invite Logic
             if created and start_param and start_param.startswith('invite_'):
                 invite_code = start_param.replace('invite_', '')
                 inviter = CustomUser.objects.filter(invite_code=invite_code).first()
@@ -123,7 +150,7 @@ def telegram_auth_api(request):
         except Exception as e:
             return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
     return JsonResponse({'status': 'error', 'message': 'POST only'})
-
+            
 
 # ==========================================
 # 📱 3. CUSTOMER DASHBOARD VIEWS
