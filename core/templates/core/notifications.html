@@ -1,0 +1,44 @@
+{% extends 'core/base.html' %} <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notifications</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>body { background-color: #f8fafc; font-family: 'Inter', sans-serif; }</style>
+</head>
+<body class="pb-20 text-slate-800">
+
+    <div class="bg-white/90 backdrop-blur-lg px-5 py-4 flex items-center justify-between shadow-sm sticky top-0 z-50">
+        <a href="{% url 'home' %}" class="w-10 h-10 bg-slate-50 rounded-full flex items-center justify-center text-slate-500 hover:text-blue-600 transition"><i class="fa-solid fa-arrow-left"></i></a>
+        <h1 class="text-lg font-black font-poppins text-slate-800">Notifications</h1>
+        <div class="w-10"></div>
+    </div>
+
+    <div class="p-5 max-w-md mx-auto space-y-4">
+        {% for notif in notifications %}
+        <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex gap-4 relative overflow-hidden">
+            {% if not notif.is_read %}
+            <div class="absolute top-0 right-0 w-2 h-2 bg-rose-500 rounded-full m-3 animate-pulse"></div>
+            {% endif %}
+            
+            <div class="w-12 h-12 rounded-full bg-{{ notif.color }}-50 text-{{ notif.color }}-500 flex items-center justify-center text-xl shrink-0 shadow-inner">
+                <i class="fa-solid {{ notif.icon }}"></i>
+            </div>
+            <div>
+                <h3 class="text-sm font-bold text-slate-800">{{ notif.title }}</h3>
+                <p class="text-xs text-slate-500 mt-1 leading-relaxed">{{ notif.message }}</p>
+                <p class="text-[9px] font-bold text-slate-400 mt-2 uppercase tracking-widest"><i class="fa-regular fa-clock"></i> {{ notif.created_at|timesince }} ago</p>
+            </div>
+        </div>
+        {% empty %}
+        <div class="text-center py-10">
+            <i class="fa-regular fa-bell-slash text-5xl text-slate-300 mb-4"></i>
+            <h3 class="text-slate-500 font-bold">No notifications yet!</h3>
+        </div>
+        {% endfor %}
+    </div>
+</body>
+</html>
