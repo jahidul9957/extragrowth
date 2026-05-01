@@ -103,7 +103,19 @@
                 <i class="fa-solid fa-chevron-right text-slate-300 text-xs"></i>
                         </a>
 
-        
+                    <a href="{% url 'withdraw_history' %}" class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between hover:bg-slate-50 transition btn-press group mt-3">
+                <div class="flex items-center gap-4">
+                    <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-500 flex items-center justify-center text-lg group-hover:scale-110 transition shadow-inner border border-amber-100">
+                        <i class="fa-solid fa-hand-holding-dollar"></i>
+                    </div>
+                    <div>
+                        <p class="font-bold text-slate-800 text-sm">Withdrawal History</p>
+                        <p class="text-[10px] text-slate-400">Track your diamond redemptions</p>
+                    </div>
+                </div>
+                <i class="fa-solid fa-chevron-right text-slate-300 text-xs"></i>
+                    </a>
+            
             <a href="{% url 'orders' %}" class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between hover:bg-slate-50 transition btn-press group">
                 <div class="flex items-center gap-4">
                     <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-500 flex items-center justify-center text-lg group-hover:scale-110 transition"><i class="fa-solid fa-box-open"></i></div>
