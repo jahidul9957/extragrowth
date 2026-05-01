@@ -22,51 +22,85 @@ from .models import CustomUser, Service, Order, Payment, Bot, SiteSetting, Task,
 # ==========================================
 # 🤖 0. BACKGROUND BOT ENGINE (THE MISSING PIECE)
 # ==========================================
+from playwright.sync_api import sync_playwright # Upar import zaroor karein
+
 def run_bot_in_background(order_id):
-    """
-    Yeh function background mein chalega. Agar bot fail hua, 
-    toh seedha Render terminal aur Admin Panel mein error dikhega!
-    """
-    print(f"🚀 [RENDER LOG] THREAD STARTED FOR ORDER ID: {order_id}")
+    print(f"🚀 [RENDER LOG] BOT PROCESS STARTED FOR ORDER: {order_id}")
     try:
-        # Re-fetch order in new thread
         order = Order.objects.get(id=order_id)
-        print(f"⏳ [RENDER LOG] Starting Playwright bot for Link: {order.link}...")
+        # Ek active bot account uthao jiske paas cookies hon
+        bot_account = Bot.objects.filter(is_active=True, is_banned=False).first()
         
-        # ⚠️ YAHAN AAPKE PLAYWRIGHT KA ASLI CODE AAYEGA ⚠️
-        # from playwright.sync_api import sync_playwright
-        # with sync_playwright() as p:
-        #     browser = p.chromium.launch(headless=True)
-        #     page = browser.new_page()
-        #     page.goto(order.link)
-        #     page.click('button[aria-label="Subscribe"]')
-        #     browser.close()
-        
-        print("✅ [RENDER LOG] BOT SUCCESS: Subscribed perfectly!")
-        # Optional: Admin ko bata do ki success ho gaya
-        # Notification.objects.create(user=None, title="Bot Success", message=f"Subscribed to {order.link}", icon="fa-robot", color="emerald")
-        
+        if not bot_account:
+            print("❌ No active bot found in database!")
+            return
+
+        with sync_playwright() as p:
+            print("⏳ Launching Browser...")
+            browser = p.chromium.launch(headless=True, args=['--no-sandbox'])
+            
+            # Cookies load karo (JSON format mein honi chahiye)
+            context = browser.new_context()
+            if bot_account.cookies:
+                try:
+                    cookies = json.loads(bot_account.cookies)
+                    context.add_cookies(cookies)
+                    print("🍪 Cookies Loaded Successfully")
+                except:
+                    print("⚠️ Invalid Cookie Format")
+
+            page = context.new_page()
+            print(f"🎯 Going to: {order.link}")
+            
+            # YouTube Link par jao
+            page.goto(order.link, timeout=60000)
+            page.wait_for_load_state("networkidle")
+
+            # 🔥 Subscribe Button dhoondo aur click karo
+            # Alag-alag tarike se subscribe button dhoondne ki koshish:
+            subscribe_selectors = [
+                'button[aria-label*="Subscribe"]',
+                'div#subscribe-button button',
+                'tp-yt-paper-button[aria-label*="Subscribe"]'
+            ]
+
+            clicked = False
+            for selector in subscribe_selectors:
+                if page.is_visible(selector):
+                    page.click(selector)
+                    clicked = True
+                    print(f"✅ Clicked Subscribe using: {selector}")
+                    break
+            
+            if clicked:
+                order.status = 'Completed'
+                order.save()
+                print("✨ Task Finished Successfully!")
+            else:
+                print("❌ Subscribe button not found!")
+                raise Exception("Subscribe button not visible")
+
+            browser.close()
+
     except Exception as e:
-        print(f"❌ [RENDER LOG] BOT CRASHED DANGEROUSLY FOR ORDER {order_id}!")
-        print(traceback.format_exc()) # Yeh render terminal mein exact line no. batayega
+        print(f"❌ BOT ERROR: {str(e)}")
+        print(traceback.format_exc())
         
+        # Admin Logs mein error bhejo
         try:
-            # Admin ko panel mein error dikhane ke liye Notification save karein
             order = Order.objects.get(id=order_id)
-            error_msg = str(e)[:150]
+            order.status = 'Failed'
+            order.save()
             Notification.objects.create(
-                user=None, # User None matlab ye system/admin notification hai
-                title="🤖 Bot Task Failed ❌",
-                message=f"Order #{order.id} Link: {order.link}. Error: {error_msg}",
+                user=None,
+                title="🤖 Bot Failure",
+                message=f"Order #{order.id} failed. Error: {str(e)[:100]}",
                 icon="fa-bug",
                 color="rose"
             )
-            # Order status update kar do
-            order.status = 'Failed'
-            order.save()
         except:
             pass
-
+            
 
 # ==========================================
 # 💰 0. GOOGLE ADSENSE VERIFICATION
@@ -374,28 +408,37 @@ def admin_users(request):
 
 @login_required(login_url='/login/')
 def admin_user_action(request):
-   if not request.user.is_superuser: return redirect('home')
-   if request.method == 'POST':
-       action = request.POST.get('action')
-       user_id = request.POST.get('user_id')
-       target_user = get_object_or_404(CustomUser, id=user_id)
-       
-       if action == 'add_balance':
-           amt = float(request.POST.get('amount', 0))
-           target_user.wallet_balance += amt
-           target_user.save()
-           messages.success(request, f"Added ₹{amt} to @{target_user.username}")
-       elif action == 'add_diamonds':
-           amt = int(request.POST.get('amount', 0))
-           target_user.diamonds += amt
-           target_user.save()
-           messages.success(request, f"Added {amt} Diamonds to @{target_user.username}")
-       elif action == 'toggle_ban':
-           target_user.is_banned = not target_user.is_banned
-           target_user.save()
-           status = "Banned" if target_user.is_banned else "Unbanned"
-           messages.success(request, f"User @{target_user.username} is now {status}")
-   return redirect('admin_users')
+    if not request.user.is_superuser: return redirect('home')
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        user_id = request.POST.get('user_id')
+        target_user = get_object_or_404(CustomUser, id=user_id)
+        
+        if action == 'add_balance':
+            try:
+                # ❌ Purana: amt = float(request.POST.get('amount', 0))
+                # ✅ Naya: Decimal mein convert kiya
+                amt = Decimal(request.POST.get('amount', '0')) 
+                target_user.wallet_balance += amt
+                target_user.save()
+                messages.success(request, f"Added ₹{amt} to @{target_user.username}")
+            except Exception as e:
+                messages.error(request, f"Error: {str(e)}")
+                
+        elif action == 'add_diamonds':
+            amt = int(request.POST.get('amount', 0))
+            target_user.diamonds += amt
+            target_user.save()
+            messages.success(request, f"Added {amt} Diamonds to @{target_user.username}")
+            
+        elif action == 'toggle_ban':
+            target_user.is_banned = not target_user.is_banned
+            target_user.save()
+            status = "Banned" if target_user.is_banned else "Unbanned"
+            messages.success(request, f"User @{target_user.username} is now {status}")
+            
+    return redirect('admin_users')
+    )
 
 @login_required(login_url='/login/')
 def admin_services(request):
