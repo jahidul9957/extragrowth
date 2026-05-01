@@ -180,3 +180,15 @@ class UserTask(models.Model):
     
     # CustomUser ke andar sabse niche yeh add karein:
     
+class Notification(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, null=True, blank=True)
+    title = models.CharField(max_length=255)
+    message = models.TextField()
+    icon = models.CharField(max_length=50, default='fa-bell') # e.g., fa-wallet, fa-box
+    color = models.CharField(max_length=20, default='blue')   # blue, emerald, rose, amber
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user} - {self.title}"
+        
