@@ -24,7 +24,8 @@ urlpatterns = [
     path('dashboard/add-funds/', views.add_funds_view, name='add_funds'),
     path('dashboard/account/', views.account_view, name='account'),
     path('dashboard/team/', views.team_and_rewards, name='team_rewards'),
-    
+        path('dashboard/payments/', views.payment_history_view, name='payment_history'),
+
     # 💎 REWARD APIs (New)
     path('api/claim-daily/', views.claim_daily_view, name='claim_daily_api'),
     path('api/claim-task/', views.claim_task_view, name='claim_task_api'),
