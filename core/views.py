@@ -550,3 +550,10 @@ def claim_task_view(request):
         
         return JsonResponse({'status': 'success', 'message': f'Task Complete! +{task.reward_diamonds} 💎', 'diamonds': request.user.diamonds})
     
+@login_required(login_url='/login/')
+def notifications_view(request):
+    notifs = Notification.objects.filter(user=request.user).order_by('-created_at')[:50]
+    # Page open hote hi sabhi ko 'Read' mark kar do
+    Notification.objects.filter(user=request.user, is_read=False).update(is_read=True)
+    return render(request, 'core/notifications.html', {'notifications': notifs})
+    
