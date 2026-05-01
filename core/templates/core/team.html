@@ -40,104 +40,55 @@
                     <p class="text-[10px] text-blue-200 uppercase font-bold tracking-wider mb-0.5">Value in INR</p>
                     <p class="font-bold text-sm">₹{% widthratio request.user.diamonds 50 1 %}</p>
                 </div>
-                <form method="POST" action="{% url 'team_rewards' %}">
-                    {% csrf_token %}
-                    <input type="hidden" name="action" value="redeem">
-                    <button type="submit" class="bg-white text-blue-600 px-4 py-2 rounded-lg text-xs font-bold shadow-sm active:scale-95 transition">
-                        Redeem <i class="fa-solid fa-arrow-right-arrow-left ml-1 text-[10px]"></i>
-                    </button>
-                </form>
-            </div>
-            <p class="text-[9px] text-blue-200 mt-3 text-center opacity-80">*Minimum 50 Diamonds required to redeem (50 💎 = ₹1)</p>
-        </div>
-
-        <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 relative overflow-hidden">
-            <div class="absolute top-0 right-0 w-24 h-24 bg-amber-50 rounded-bl-full -z-0"></div>
-            
-            <div class="relative z-10 flex justify-between items-start mb-4">
-                <div>
-                    <h3 class="font-bold text-slate-800 text-lg">Your Invite Link</h3>
-                    <p class="text-xs text-slate-500 mt-1">Earn 5 diamonds for every ₹1 your friends spend!</p>
+                           <form method="POST" action="{% url 'team_rewards' %}" class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 space-y-4 mt-5" onsubmit="return validateWithdraw(event)">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="withdraw">
+                
+                <div class="flex items-center justify-between text-[10px] text-slate-500 uppercase font-bold tracking-wider mb-2 px-1">
+                    <span>Rate: {{ setting.diamonds_needed_for_1_rs }} 💎 = ₹1</span>
+                    <span class="text-blue-500 bg-blue-50 px-2 py-1 rounded">Avail: {{ request.user.diamonds }} 💎</span>
                 </div>
-                <div class="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center text-amber-500 text-xl shadow-inner">
-                    <i class="fa-solid fa-gift"></i>
+                
+                <div class="space-y-3">
+                    <div class="relative">
+                        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-amber-500"><i class="fa-regular fa-gem"></i></span>
+                        <input type="number" id="withdraw_diamonds" name="diamonds" required placeholder="Enter Diamonds" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm font-bold rounded-xl py-3.5 pl-10 pr-3 outline-none focus:ring-2 focus:ring-blue-500 transition">
+                    </div>
+                    
+                    <div class="relative">
+                        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-emerald-500"><i class="fa-solid fa-at"></i></span>
+                        <input type="text" name="upi_id" required placeholder="Enter UPI ID (e.g. 98765@ybl)" class="w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm font-bold rounded-xl py-3.5 pl-10 pr-3 outline-none focus:ring-2 focus:ring-blue-500 transition">
+                    </div>
                 </div>
-            </div>
-            
-            <div class="relative z-10 flex gap-2">
-                <input type="text" id="inviteLink" readonly value="https://t.me/ToolxKillerBot?startapp=invite_{{ request.user.invite_code }}" class="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs text-slate-500 outline-none font-mono tracking-tight">
-                <button onclick="copyLink()" class="bg-blue-50 text-blue-600 px-5 py-3 rounded-xl text-sm font-bold active:scale-95 transition border border-blue-100 flex items-center gap-2">
-                    <i class="fa-regular fa-copy"></i> Copy
+                
+                <button type="submit" id="withdraw-btn" class="w-full bg-blue-600 text-white py-3.5 rounded-xl text-sm font-bold shadow-md shadow-blue-500/30 hover:bg-blue-700 active:scale-95 transition flex justify-center items-center gap-2">
+                    <i class="fa-solid fa-money-bill-wave"></i> Request Withdrawal
                 </button>
-            </div>
-        </div>
+            </form>
 
-        <div class="grid grid-cols-2 gap-4">
-            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex flex-col items-center text-center">
-                <div class="w-8 h-8 bg-slate-50 rounded-full flex items-center justify-center text-slate-400 mb-2"><i class="fa-solid fa-users"></i></div>
-                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Total Invites</p>
-                <h4 class="text-2xl font-black text-slate-800">{{ total_invites }}</h4>
-            </div>
-            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex flex-col items-center text-center">
-                <div class="w-8 h-8 bg-slate-50 rounded-full flex items-center justify-center text-slate-400 mb-2"><i class="fa-solid fa-ranking-star"></i></div>
-                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Current Tier</p>
-                <h4 class="text-lg font-black {{ tier_color }} flex items-center gap-1">
-                    {{ tier_icon }} {{ tier_name }}
-                </h4>
-            </div>
-        </div>
+            <script>
+            function validateWithdraw(event) {
+                const inputDiamonds = parseInt(document.getElementById('withdraw_diamonds').value);
+                const minNeeded = parseInt("{{ setting.diamonds_needed_for_1_rs }}");
+                const userDiamonds = parseInt("{{ request.user.diamonds }}");
 
-        <div>
-            <h3 class="font-bold text-slate-800 mb-3 px-1 text-sm uppercase tracking-wide">Your Squad</h3>
-            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden divide-y divide-slate-50">
-                {% for friend in invited_friends %}
-                <div class="p-4 flex items-center justify-between hover:bg-slate-50 transition">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 bg-gradient-to-tr from-slate-100 to-slate-200 rounded-full flex items-center justify-center text-slate-500 shadow-inner">
-                            <i class="fa-solid fa-user-ninja"></i>
-                        </div>
-                        <div>
-                            <p class="text-sm font-bold text-slate-700">@{{ friend.username }}</p>
-                            <p class="text-[10px] text-slate-400 font-medium">Joined {{ friend.date_joined|date:"M d" }}</p>
-                        </div>
-                    </div>
-                    <div class="text-right">
-                        <p class="text-[9px] font-bold text-slate-400 uppercase mb-0.5 tracking-wider">Spent</p>
-                        <p class="text-xs font-bold text-emerald-600">₹{{ friend.total_spent|default:"0.00" }}</p>
-                    </div>
-                </div>
-                {% empty %}
-                <div class="p-10 text-center">
-                    <i class="fa-solid fa-user-group text-5xl text-slate-200 mb-4 drop-shadow-sm"></i>
-                    <p class="text-sm font-bold text-slate-600">No friends invited yet.</p>
-                    <p class="text-xs text-slate-400 mt-1">Share your link and start earning passive income!</p>
-                </div>
-                {% endfor %}
-            </div>
-        </div>
-    </div>
-
-    <script>
-        function copyLink() {
-            var copyText = document.getElementById("inviteLink");
-            copyText.select();
-            copyText.setSelectionRange(0, 99999); // Mobile ke liye
-            navigator.clipboard.writeText(copyText.value);
-            
-            // Temporary change button text to "Copied!"
-            const btn = event.currentTarget;
-            const originalHTML = btn.innerHTML;
-            btn.innerHTML = '<i class="fa-solid fa-check"></i> Copied!';
-            btn.classList.replace('text-blue-600', 'text-emerald-600');
-            btn.classList.replace('bg-blue-50', 'bg-emerald-50');
-            
-            setTimeout(() => {
-                btn.innerHTML = originalHTML;
-                btn.classList.replace('text-emerald-600', 'text-blue-600');
-                btn.classList.replace('bg-emerald-50', 'bg-blue-50');
-            }, 2000);
-        }
-    </script>
-</body>
-    </html>
-    
+                if (inputDiamonds < minNeeded) {
+                    event.preventDefault();
+                    showToast(`Minimum ${minNeeded} diamonds required to withdraw!`, "error");
+                    return false;
+                }
+                if (inputDiamonds > userDiamonds) {
+                    event.preventDefault();
+                    showToast(`You only have ${userDiamonds} diamonds!`, "error");
+                    return false;
+                }
+                
+                // Show loading state
+                const btn = document.getElementById('withdraw-btn');
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing...';
+                btn.classList.replace('bg-blue-600', 'bg-slate-400');
+                btn.style.pointerEvents = 'none';
+                return true;
+            }
+                    </script>
+                    
