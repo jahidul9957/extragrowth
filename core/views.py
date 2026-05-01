@@ -239,7 +239,14 @@ def add_funds_view(request):
         return redirect('add_funds')
         
     return render(request, 'core/add_funds.html', {'setting': setting}) # 👈 Yahan 'setting' pass karein
+
+@login_required(login_url='/login/')
+def payment_history_view(request):
+    # User ki saari payments nikaal kar template me bhejenge
+    payments = Payment.objects.filter(user=request.user).order_by('-created_at')
+    return render(request, 'core/payment_history.html', {'payments': payments})
     
+
 @login_required(login_url='/login/')
 def account_view(request):
     user_orders_count = Order.objects.filter(user=request.user).count()
