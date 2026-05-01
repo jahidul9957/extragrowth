@@ -13,7 +13,7 @@ from django.db.models import Sum
 from django.utils import timezone
 from datetime import timedelta
 from .models import UserTask # Upar imports me ise add zaroor karein
-from .models import CustomUser, Service, Order, Payment, Bot, SiteSetting, Task, UserTask, Notification
+from .models import CustomUser, Service, Order, Payment, Bot, SiteSetting, Task, UserTask, Notification, Withdrawal
 
 
 # ==========================================
@@ -199,11 +199,8 @@ def services_view(request):
 @login_required(login_url='/login/')
 def new_order_view(request):
     if request.method == 'POST':
-        service_id = request.POST.get('service')
-        link = request.POST.get('link')
+        service = get_object_or_404(Service, id=request.POST.get('service'))
         quantity = int(request.POST.get('quantity'))
-        
-        service = get_object_or_404(Service, id=service_id)
         charge = (service.price_per_1000 / 1000) * quantity
         
         if request.user.wallet_balance >= charge:
@@ -212,20 +209,28 @@ def new_order_view(request):
             request.user.save()
             
             if request.user.invited_by:
-                earned_diamonds = int(charge * 5)
-                inviter = request.user.invited_by
-                inviter.diamonds += earned_diamonds
-                inviter.save()
+                request.user.invited_by.diamonds += int(charge * 5)
+                request.user.invited_by.save()
+                
+            Order.objects.create(user=request.user, service=service, link=request.POST.get('link'), quantity=quantity, charge=charge)
             
-            Order.objects.create(user=request.user, service=service, link=link, quantity=quantity, charge=charge)
-            messages.success(request, f"🎉 Order placed successfully! ₹{charge} deducted.")
+            # 🔥 YAHAN JAYEGA NOTIFICATION 🔥
+            Notification.objects.create(
+                user=request.user, 
+                title="Order Placed 🚀", 
+                message=f"Order for {service.name} has been placed. Charge: ₹{charge}", 
+                icon="fa-box", 
+                color="blue"
+            )
+            
+            messages.success(request, f"🎉 Order placed! ₹{charge} deducted.")
             return redirect('orders')
         else:
-            messages.error(request, "⚠️ Insufficient balance! Please add funds.")
+            messages.error(request, "⚠️ Insufficient balance!")
             return redirect('add_funds')
             
-    services = Service.objects.filter(is_active=True)
-    return render(request, 'core/new_order.html', {'services': services})
+    return render(request, 'core/new_order.html', {'services': Service.objects.filter(is_active=True)})
+    
 
 @login_required(login_url='/login/')
 def orders_view(request):
@@ -463,27 +468,44 @@ def admin_service_action(request):
 
 
 @login_required(login_url='/login/')
+
+@login_required(login_url='/login/')
 def admin_payment_action(request):
     if not request.user.is_superuser: return redirect('home')
     if request.method == 'POST':
-        action = request.POST.get('action')
         payment = get_object_or_404(Payment, id=request.POST.get('payment_id'))
-        
-        if action == 'approve' and payment.status == 'Pending':
+        if request.POST.get('action') == 'approve' and payment.status == 'Pending':
             payment.status = 'Completed'
-            # Paise user ke wallet me add karo!
             payment.user.wallet_balance += payment.amount
             payment.user.save()
             payment.save()
-            messages.success(request, f"Payment Approved! ₹{payment.amount} added to @{payment.user.username}.")
             
-        elif action == 'reject' and payment.status == 'Pending':
+            # 🔥 SUCCESS NOTIFICATION 🔥
+            Notification.objects.create(
+                user=payment.user, 
+                title="Payment Approved 💸", 
+                message=f"₹{payment.amount} has been successfully added to your wallet.", 
+                icon="fa-money-bill-trend-up", 
+                color="emerald"
+            )
+            messages.success(request, f"Approved! ₹{payment.amount} added.")
+            
+        elif request.POST.get('action') == 'reject':
             payment.status = 'Rejected'
             payment.save()
-            messages.success(request, "Payment Rejected.")
+            
+            # 🔥 REJECT NOTIFICATION 🔥
+            Notification.objects.create(
+                user=payment.user, 
+                title="Payment Rejected ❌", 
+                message="Your recent payment request was rejected by the admin. Check UTR.", 
+                icon="fa-circle-xmark", 
+                color="rose"
+            )
+            messages.error(request, "Payment Rejected.")
             
     return redirect('admin_payments')
-
+    
 
 @login_required(login_url='/login/')
 def admin_bot_action(request):
