@@ -13,7 +13,8 @@ from django.db.models import Sum
 from django.utils import timezone
 from datetime import timedelta
 from .models import UserTask # Upar imports me ise add zaroor karein
-from .models import CustomUser, Service, Order, Payment, Bot, SiteSetting, Task
+from .models import CustomUser, Service, Order, Payment, Bot, SiteSetting, Task, UserTask, Notification
+
 
 # ==========================================
 # 💰 0. GOOGLE ADSENSE VERIFICATION
