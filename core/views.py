@@ -22,12 +22,16 @@ from .models import CustomUser, Service, Order, Payment, Bot, SiteSetting, Task,
 # ==========================================
 # 🤖 0. BACKGROUND BOT ENGINE (THE MISSING PIECE)
 # ==========================================
-from playwright.sync_api import sync_playwright # Upar import zaroor karein
+from playwright.sync_api import sync_playwright
+import traceback
+import json
 
 def run_bot_in_background(order_id):
     print(f"🚀 [RENDER LOG] BOT PROCESS STARTED FOR ORDER: {order_id}")
     try:
+        from .models import Order, Bot, Notification # Circular import se bachne ke liye andar bulaya
         order = Order.objects.get(id=order_id)
+        
         # Ek active bot account uthao jiske paas cookies hon
         bot_account = Bot.objects.filter(is_active=True, is_banned=False).first()
         
@@ -37,10 +41,11 @@ def run_bot_in_background(order_id):
 
         with sync_playwright() as p:
             print("⏳ Launching Browser...")
-            browser = p.chromium.launch(headless=True, args=['--no-sandbox'])
+            browser = p.chromium.launch(headless=True, args=['--no-sandbox', '--disable-setuid-sandbox'])
             
-            # Cookies load karo (JSON format mein honi chahiye)
             context = browser.new_context()
+            
+            # Cookies load karo
             if bot_account.cookies:
                 try:
                     cookies = json.loads(bot_account.cookies)
@@ -52,33 +57,50 @@ def run_bot_in_background(order_id):
             page = context.new_page()
             print(f"🎯 Going to: {order.link}")
             
-            # YouTube Link par jao
             page.goto(order.link, timeout=60000)
             page.wait_for_load_state("networkidle")
 
-            # 🔥 Subscribe Button dhoondo aur click karo
-            # Alag-alag tarike se subscribe button dhoondne ki koshish:
-            subscribe_selectors = [
-                'button[aria-label*="Subscribe"]',
-                'div#subscribe-button button',
-                'tp-yt-paper-button[aria-label*="Subscribe"]'
-            ]
-
-            clicked = False
-            for selector in subscribe_selectors:
-                if page.is_visible(selector):
-                    page.click(selector)
-                    clicked = True
-                    print(f"✅ Clicked Subscribe using: {selector}")
-                    break
+            # 🔥 THE MAGIC: JAVASCRIPT INJECTION 🔥
+            # Yeh JS code seedha browser console me run hoga aur force click karega
+            js_injection = """
+            () => {
+                const selectors = [
+                    'ytd-subscribe-button-renderer button',
+                    '#subscribe-button-shape button',
+                    'button[aria-label*="Subscribe"]',
+                    'tp-yt-paper-button[aria-label*="Subscribe"]'
+                ];
+                
+                for (let selector of selectors) {
+                    let btn = document.querySelector(selector);
+                    if (btn) {
+                        btn.click(); // 💉 Force JS Click
+                        return true;
+                    }
+                }
+                return false;
+            }
+            """
+            
+            print("💉 Injecting JavaScript to click Subscribe...")
+            clicked = page.evaluate(js_injection)
             
             if clicked:
                 order.status = 'Completed'
                 order.save()
-                print("✨ Task Finished Successfully!")
+                print("✨ [RENDER LOG] JS Click Successful! Task Finished!")
+                
+                # Optional: Admin ko batao ki JS se click ho gaya
+                Notification.objects.create(
+                    user=None,
+                    title="🤖 Bot Success (JS Inject)",
+                    message=f"Subscribed to {order.link} successfully.",
+                    icon="fa-robot",
+                    color="emerald"
+                )
             else:
-                print("❌ Subscribe button not found!")
-                raise Exception("Subscribe button not visible")
+                print("❌ [RENDER LOG] JS Click Failed: Button completely missing!")
+                raise Exception("Subscribe button DOM mein nahi mila (Login issue ya wrong link)")
 
             browser.close()
 
@@ -86,7 +108,6 @@ def run_bot_in_background(order_id):
         print(f"❌ BOT ERROR: {str(e)}")
         print(traceback.format_exc())
         
-        # Admin Logs mein error bhejo
         try:
             order = Order.objects.get(id=order_id)
             order.status = 'Failed'
@@ -100,6 +121,7 @@ def run_bot_in_background(order_id):
             )
         except:
             pass
+
             
 
 # ==========================================
