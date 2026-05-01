@@ -18,13 +18,11 @@ from datetime import timedelta
 
 from .models import CustomUser, Service, Order, Payment, Bot, SiteSetting, Task, UserTask, Notification, Withdrawal
 
+from playwright.sync_api import sync_playwright
 
 # ==========================================
 # 🤖 0. BACKGROUND BOT ENGINE (THE MISSING PIECE)
 # ==========================================
-from playwright.sync_api import sync_playwright
-import traceback
-import json
 
 def run_bot_in_background(order_id):
     print(f"🚀 [RENDER LOG] BOT PROCESS STARTED FOR ORDER: {order_id}")
