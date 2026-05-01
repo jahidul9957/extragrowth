@@ -53,10 +53,13 @@
                 </div>
                 <span class="font-poppins font-black text-lg text-slate-800 tracking-tight">{{ setting.platform_name|default:"NextGen" }}</span>
             </div>
-            <a href="{% url 'account' %}" class="w-10 h-10 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center relative hover:bg-slate-200 transition btn-press">
-                <i class="fa-regular fa-bell"></i>
-                <span class="absolute top-2 right-2.5 w-2 h-2 bg-rose-500 rounded-full border border-white"></span>
-            </a>     
+         <a href="{% url 'notifications' %}" class="w-10 h-10 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center relative hover:bg-slate-200 transition btn-press">
+    <i class="fa-regular fa-bell"></i>
+    {% if request.user.unread_notifications > 0 %}
+    <span class="absolute top-2 right-2.5 w-2.5 h-2.5 bg-rose-500 rounded-full border-2 border-white animate-pulse"></span>
+    {% endif %}
+</a> 
+            
         </header>
 
         <div class="px-5 mt-6">
