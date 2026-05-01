@@ -27,13 +27,15 @@ from .models import CustomUser, Service, Order, Payment, Bot, SiteSetting, Task,
 
 # ==========================================
 # 🤖 0. ULTIMATE BOT ENGINE (STEALTH + JS INJECT)
-# ==========================================
+# =========================================
+
 def run_bot_in_background(order_id):
     os.environ["DJANGO_ALLOW_ASYNC_UNSAFE"] = "true"
     
     try:
+        from .models import Order, Bot, Notification
         order = Order.objects.get(id=order_id)
-        # Order ki quantity ke hisaab se bots uthao
+        
         bots = Bot.objects.filter(is_active=True, is_banned=False)[:order.quantity]
         
         if not bots:
@@ -44,11 +46,12 @@ def run_bot_in_background(order_id):
             
         order.status = 'Processing'
         order.save()
-        success_count = order.delivered_quantity
+        
+        # 🔥 THE FIX: Database field ki jagah local variable '0' set kar diya
+        success_count = 0 
         target_link = order.link 
         
         with sync_playwright() as p:
-            # 🥷 STEALTH MODE
             browser = p.chromium.launch(
                 headless=True,
                 args=["--no-sandbox", "--disable-setuid-sandbox", "--disable-blink-features=AutomationControlled"]
@@ -56,7 +59,6 @@ def run_bot_in_background(order_id):
             
             for bot in bots:
                 try:
-                    # 🧹 SMART COOKIE CLEANER
                     raw_cookies = json.loads(bot.cookies) 
                     clean_cookies = []
                     
@@ -66,10 +68,9 @@ def run_bot_in_background(order_id):
                         elif c.get("sameSite") not in ["Strict", "Lax", "None"]:
                             c.pop("sameSite", None)
                             
-                        # 🔥 Domain Fixer for YouTube
                         domain = c.get("domain", "")
                         if "youtube" in domain or "googleusercontent" in domain:
-                            c["domain"] = ".youtube.com" # Exact root domain
+                            c["domain"] = ".youtube.com"
                             
                         clean_cookies.append(c)
 
@@ -82,27 +83,20 @@ def run_bot_in_background(order_id):
                     context.add_cookies(clean_cookies)
                     
                     page = context.new_page()
-                    stealth_sync(page) # 🥷 Magic Wand
+                    stealth_sync(page)
                     
                     print(f"\n🚀 Bot [{bot.name}] is navigating to: {target_link}")
                     page.goto(target_link, timeout=60000)
                     page.wait_for_load_state("networkidle")
                     time.sleep(5) 
                     
-                    print(f"👀 Page Title: {page.title()}")
-                    
                     try:
-                        # 💉 THE JAVASCRIPT INJECTION METHOD
                         js_code = """
                         () => {
                             const buttons = document.querySelectorAll('ytd-subscribe-button-renderer, yt-button-shape, button, div[role="button"]');
                             for(let b of buttons) {
                                 let text = (b.innerText || "").toLowerCase().trim();
-                                
-                                if(text.includes('subscribed') || text.includes('सदस्यता ली') || text.includes('सदस्य हैं')) {
-                                    return "ALREADY_SUBSCRIBED";
-                                }
-                                
+                                if(text.includes('subscribed') || text.includes('सदस्यता ली') || text.includes('सदस्य हैं')) return "ALREADY_SUBSCRIBED";
                                 if(text === 'subscribe' || text.includes('सदस्यता लें') || text.includes('subscribe')) {
                                     b.click();
                                     return "CLICKED";
@@ -111,37 +105,24 @@ def run_bot_in_background(order_id):
                             return "NOT_FOUND";
                         }
                         """
-                        
                         result = page.evaluate(js_code)
                         print(f"🧠 JS Engine Result: {result}")
                         
                         if result == "ALREADY_SUBSCRIBED":
-                            print(f"✅ Bot [{bot.name}]: Pehle se hi Subscribed hai!")
                             success_count += 1
-                            order.delivered_quantity = success_count
-                            order.save()
                         elif result == "CLICKED":
-                            print(f"✅ Bot [{bot.name}]: JS INJECTION Click Successful! 🎉")
                             time.sleep(2)
                             success_count += 1
-                            order.delivered_quantity = success_count
-                            order.save()
                         else:
-                            ss_name = f"error_no_btn_{bot.name.replace(' ', '_')}.png"
-                            page.screenshot(path=ss_name)
-                            print(f"📸 DANGER: JS Injection ko bhi button nahi mila! Screenshot saved as: {ss_name}")
+                            print("📸 DANGER: JS Injection ko bhi button nahi mila!")
                             
                     except Exception as btn_error:
-                        ss_name = f"error_crash_{bot.name.replace(' ', '_')}.png"
-                        page.screenshot(path=ss_name)
-                        print(f"📸 CRASH: Screenshot saved! Error: {btn_error}")
+                        print(f"📸 CRASH: Error: {btn_error}")
                         
                     context.close()
-                    
                 except Exception as e:
                     print(f"❌ Bot [{bot.name}] Failed: {e}")
-                    
-                time.sleep(4) # Bot switch delay
+                time.sleep(4)
                 
             browser.close()
             
@@ -159,14 +140,13 @@ def run_bot_in_background(order_id):
             Notification.objects.create(
                 user=order.user,
                 title="🤖 Order Processed",
-                message=f"Order {order.id} finished. Delivered: {success_count}/{order.quantity}",
+                message=f"Order #{order.id} finished. Delivered: {success_count}/{order.quantity}",
                 icon="fa-robot",
                 color="blue"
             )
             
     except Exception as e:
         print(f"🚨 Playwright Engine Error: {e}")
-        print(traceback.format_exc())
         try:
             order = Order.objects.get(id=order_id)
             order.status = 'Failed'
