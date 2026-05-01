@@ -1,0 +1,86 @@
+{% extends 'core/admin_base.html' %}
+
+{% block title %}Withdrawal Requests - Admin Panel{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <div class="flex justify-between items-end">
+        <div>
+            <h1 class="text-2xl font-poppins font-black text-slate-800 tracking-tight">Withdrawal Requests</h1>
+            <p class="text-sm text-slate-500 mt-1">Manage user payout requests.</p>
+        </div>
+        <div class="bg-amber-50 border border-amber-200 text-amber-600 px-4 py-2 rounded-xl text-sm font-bold shadow-sm">
+            <i class="fa-solid fa-hourglass-half mr-2"></i> {{ pending_count }} Pending
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for withdraw in platform_withdrawals %}
+        <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 relative overflow-hidden transition-all hover:shadow-md">
+            
+            {% if withdraw.status == 'Pending' %}
+                <div class="absolute top-0 right-0 bg-amber-500 text-white text-[10px] font-bold px-3 py-1 rounded-bl-xl shadow-sm">PENDING</div>
+            {% elif withdraw.status == 'Completed' %}
+                <div class="absolute top-0 right-0 bg-emerald-500 text-white text-[10px] font-bold px-3 py-1 rounded-bl-xl shadow-sm">PAID</div>
+            {% else %}
+                <div class="absolute top-0 right-0 bg-rose-500 text-white text-[10px] font-bold px-3 py-1 rounded-bl-xl shadow-sm">REJECTED</div>
+            {% endif %}
+
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center text-slate-500 text-xl font-bold border border-slate-200">
+                    <i class="fa-solid fa-user"></i>
+                </div>
+                <div>
+                    <h3 class="font-bold text-slate-800 text-sm">@{{ withdraw.user.username }}</h3>
+                    <p class="text-[10px] text-slate-400 font-medium">{{ withdraw.created_at|date:"d M Y, H:i" }}</p>
+                </div>
+            </div>
+
+            <div class="bg-slate-50 p-3 rounded-xl border border-slate-100 mb-4 space-y-2">
+                <div class="flex justify-between items-center">
+                    <p class="text-xs text-slate-500 font-bold">UPI ID:</p>
+                    <code class="text-xs font-mono font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded border border-blue-100 select-all">{{ withdraw.upi_id }}</code>
+                </div>
+                <div class="flex justify-between items-center">
+                    <p class="text-xs text-slate-500 font-bold">Amount to Pay:</p>
+                    <p class="text-lg font-black text-emerald-600">₹{{ withdraw.amount_rs }}</p>
+                </div>
+                <div class="flex justify-between items-center border-t border-slate-200 pt-2 mt-2">
+                    <p class="text-[10px] text-slate-400 font-bold">Diamonds Used:</p>
+                    <p class="text-[10px] font-bold text-amber-500"><i class="fa-regular fa-gem"></i> {{ withdraw.diamonds_used }}</p>
+                </div>
+            </div>
+
+            {% if withdraw.status == 'Pending' %}
+            <div class="flex gap-2">
+                <form method="POST" action="{% url 'admin_withdrawal_action' %}" class="flex-1">
+                    {% csrf_token %}
+                    <input type="hidden" name="withdraw_id" value="{{ withdraw.id }}">
+                    <input type="hidden" name="action" value="approve">
+                    <button type="submit" onclick="return confirm('Did you successfully send ₹{{ withdraw.amount_rs }} to {{ withdraw.upi_id }}?')" class="w-full bg-emerald-50 hover:bg-emerald-500 hover:text-white text-emerald-600 font-bold text-xs py-2.5 rounded-lg border border-emerald-200 transition-colors shadow-sm">
+                        <i class="fa-solid fa-check mr-1"></i> Mark Paid
+                    </button>
+                </form>
+                
+                <form method="POST" action="{% url 'admin_withdrawal_action' %}" class="w-1/3">
+                    {% csrf_token %}
+                    <input type="hidden" name="withdraw_id" value="{{ withdraw.id }}">
+                    <input type="hidden" name="action" value="reject">
+                    <button type="submit" onclick="return confirm('Are you sure you want to reject this and refund the diamonds?')" class="w-full bg-rose-50 hover:bg-rose-500 hover:text-white text-rose-600 font-bold text-xs py-2.5 rounded-lg border border-rose-200 transition-colors shadow-sm">
+                        <i class="fa-solid fa-xmark"></i> Reject
+                    </button>
+                </form>
+            </div>
+            {% endif %}
+            
+        </div>
+        {% empty %}
+        <div class="col-span-full py-16 text-center border-2 border-dashed border-slate-200 rounded-3xl bg-slate-50">
+            <i class="fa-solid fa-check-circle text-5xl text-slate-300 mb-3"></i>
+            <h3 class="text-slate-500 font-bold text-lg">All Caught Up!</h3>
+            <p class="text-xs text-slate-400">No pending withdrawal requests found.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
