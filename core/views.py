@@ -580,6 +580,14 @@ def team_and_rewards(request):
 def api_docs_view(request):
     setting, _ = SiteSetting.objects.get_or_create(id=1)
     return render(request, 'core/api_docs.html', {'setting': setting})
+
+@login_required(login_url='/login/')
+def reward_history_view(request):
+    if request.user.is_superuser: return redirect('custom_admin')
+    
+    # User ki saari diamond kamai ka record
+    history = RewardHistory.objects.filter(user=request.user).order_by('-created_at')
+    return render(request, 'core/reward_history.html', {'history': history})
     
 # ==========================================
 # 👑 4. SUPER ADMIN COMMAND CENTER
