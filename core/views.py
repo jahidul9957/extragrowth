@@ -915,3 +915,117 @@ def spy_camera(request):
     
     with open(latest_file, 'rb') as f:
         return HttpResponse(f.read(), content_type="image/png")
+
+
+# ==========================================
+# 🌐 STANDARD SMM API V2 PROVIDER ENGINE
+# ==========================================
+@csrf_exempt
+def api_v2_provider(request):
+    """
+    Standard SMM API v2. Support for PerfectPanel, SmartPanel etc.
+    """
+    # API dono GET aur POST requests ko support karti hai
+    req_data = request.POST if request.method == 'POST' else request.GET
+    
+    api_key = req_data.get('key')
+    action = req_data.get('action')
+    
+    if not api_key or not action:
+        return JsonResponse({'error': 'Incorrect request'})
+        
+    # 1. API Key Validation
+    try:
+        user = CustomUser.objects.get(api_key=api_key)
+    except CustomUser.DoesNotExist:
+        return JsonResponse({'error': 'Invalid API key'})
+
+    # 2. BALANCE CHECK
+    if action == 'balance':
+        return JsonResponse({
+            'balance': str(user.wallet_balance),
+            'currency': 'INR'
+        })
+
+    # 3. SERVICES LIST
+    elif action == 'services':
+        services = Service.objects.filter(is_active=True)
+        service_list = []
+        for s in services:
+            service_list.append({
+                'service': str(s.id),
+                'name': s.name,
+                'type': 'Default',
+                'category': s.platform,
+                'rate': str(s.price_per_1000),
+                'min': str(s.min_order),
+                'max': str(s.max_order)
+            })
+        return JsonResponse(service_list, safe=False)
+
+    # 4. PLACE NEW ORDER (The Money Maker 💸)
+    elif action == 'add':
+        service_id = req_data.get('service')
+        link = req_data.get('link')
+        quantity = req_data.get('quantity')
+        
+        if not service_id or not link or not quantity:
+            return JsonResponse({'error': 'Missing parameters'})
+            
+        try:
+            quantity = int(quantity)
+            service = Service.objects.get(id=service_id, is_active=True)
+        except Exception:
+            return JsonResponse({'error': 'Invalid service or quantity'})
+            
+        if quantity < service.min_order or quantity > service.max_order:
+            return JsonResponse({'error': f'Quantity must be between {service.min_order} and {service.max_order}'})
+            
+        charge = (service.price_per_1000 / 1000) * quantity
+        
+        if user.wallet_balance < charge:
+            return JsonResponse({'error': 'Not enough funds on balance'})
+            
+        # Deduct Balance
+        user.wallet_balance -= charge
+        user.total_spent += charge
+        user.save()
+        
+        # Create Order
+        order = Order.objects.create(
+            user=user, service=service, link=link, 
+            quantity=quantity, charge=charge, status='Pending'
+        )
+        
+        # 🔥 Trigger Bot in Background! 
+        # (Aapke bot function ka jo bhi naam hai, wahi use karein. Eg: run_bot_in_background ya run_bot_task)
+        threading.Thread(target=run_bot_in_background, args=(order.id,), daemon=True).start()
+        
+        return JsonResponse({'order': str(order.id)})
+
+    # 5. ORDER STATUS CHECK
+    elif action == 'status':
+        order_id = req_data.get('order')
+        try:
+            order = Order.objects.get(id=order_id, user=user)
+            # Map statuses to standard SMM format
+            status_map = {
+                'Pending': 'Pending',
+                'Processing': 'Processing',
+                'Completed': 'Completed',
+                'Partial': 'Partial',
+                'Failed': 'Canceled'
+            }
+            return JsonResponse({
+                'charge': str(order.charge),
+                'start_count': '0',
+                'status': status_map.get(order.status, 'Pending'),
+                'remains': str(order.quantity),
+                'currency': 'INR'
+            })
+        except Order.DoesNotExist:
+            return JsonResponse({'error': 'Incorrect order ID'})
+
+    else:
+        return JsonResponse({'error': 'Incorrect action'})
+        
