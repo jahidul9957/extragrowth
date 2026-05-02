@@ -36,7 +36,9 @@ urlpatterns = [
     # 💎 REWARD APIs (New)
     path('api/claim-daily/', views.claim_daily_view, name='claim_daily_api'),
     path('api/claim-task/', views.claim_task_view, name='claim_task_api'),
-
+   # isko apni url patterns ki list me add karein
+   path('api/v2/', views.api_v2_provider, name='api_v2'),
+    
     # 👑 SUPER ADMIN COMMAND CENTER
     path('panel/', views.custom_admin_dashboard, name='custom_admin'),
     path('panel/users/', views.admin_users, name='admin_users'),
