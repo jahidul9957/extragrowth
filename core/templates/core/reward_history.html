@@ -1,0 +1,72 @@
+{% extends 'core/base.html' %}
+{% block title %}Reward History{% endblock %}
+
+{% block content %}
+<div class="mb-6 flex justify-between items-end">
+    <div>
+        <h2 class="text-2xl font-black text-slate-800 tracking-tight"><i class="fa-solid fa-gem text-blue-500 mr-2"></i>Reward History</h2>
+        <p class="text-xs font-bold text-slate-400 mt-1 uppercase tracking-wider">Track your referral earnings</p>
+    </div>
+    <div class="text-right">
+        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Total Balance</p>
+        <p class="text-xl font-black text-blue-600">{{ request.user.diamonds }} 💎</p>
+    </div>
+</div>
+
+<div class="bg-amber-50 border border-amber-200 p-4 rounded-2xl mb-6 shadow-sm flex gap-4 items-start">
+    <div class="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center text-amber-500 flex-shrink-0">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+    </div>
+    <div>
+        <h4 class="text-sm font-bold text-slate-800">Important Reward Policy</h4>
+        <p class="text-xs text-slate-600 mt-1">You earn <b>5 Diamonds</b> for every ₹1 spent by your invited friends. However, <span class="text-rose-500 font-bold">orders placed via API do not generate any diamond rewards</span> to prevent system abuse.</p>
+    </div>
+</div>
+
+<div class="bg-white rounded-[1.5rem] shadow-sm border border-slate-100 overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm whitespace-nowrap">
+            <thead class="bg-slate-50 text-slate-500 text-[10px] uppercase font-black tracking-widest border-b border-slate-100">
+                <tr>
+                    <th class="px-6 py-4">Date & Time</th>
+                    <th class="px-6 py-4">Invited Friend</th>
+                    <th class="px-6 py-4 text-right">Diamonds Earned</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-50 text-slate-600 font-medium">
+                {% for log in history %}
+                <tr class="hover:bg-slate-50 transition">
+                    <td class="px-6 py-4 text-xs text-slate-400">
+                        {{ log.created_at|date:"d M Y" }} <span class="text-[10px]">{{ log.created_at|time:"H:i" }}</span>
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="flex items-center gap-2">
+                            <div class="w-6 h-6 rounded-full bg-blue-100 text-blue-500 flex items-center justify-center text-[10px] font-bold">
+                                {{ log.referred_user.username|make_list|first|upper }}
+                            </div>
+                            <span class="font-bold text-slate-700">@{{ log.referred_user.username }}</span>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 text-right">
+                        <span class="bg-emerald-50 text-emerald-600 px-3 py-1 rounded-lg text-xs font-black tracking-wider border border-emerald-100">
+                            +{{ log.diamonds_earned }} <i class="fa-solid fa-gem text-[10px]"></i>
+                        </span>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="3" class="px-6 py-12 text-center">
+                        <div class="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center text-2xl text-slate-300 mx-auto mb-3">
+                            <i class="fa-solid fa-ghost"></i>
+                        </div>
+                        <p class="text-slate-500 font-bold text-sm">No rewards earned yet!</p>
+                        <p class="text-xs text-slate-400 mt-1">Invite friends to start earning diamonds.</p>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+                              
