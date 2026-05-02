@@ -213,3 +213,31 @@ class RewardHistory(models.Model):
     def __str__(self):
         return f"{self.user.username} earned {self.diamonds_earned} 💎"
         
+# ==========================================
+# 🎁 8. REDEMPTION CODE SYSTEM
+# ==========================================
+class RedeemCode(models.Model):
+    code = models.CharField(max_length=20, unique=True)
+    min_diamonds = models.IntegerField(default=10)
+    max_diamonds = models.IntegerField(default=20)
+    usage_limit = models.IntegerField(default=50) # Kitne log use kar sakte hain
+    used_count = models.IntegerField(default=0)   # Ab tak kitno ne kiya
+    expires_at = models.DateTimeField()           # Kab expire hoga
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def is_valid(self):
+        from django.utils import timezone
+        return self.used_count < self.usage_limit and self.expires_at > timezone.now()
+
+    def __str__(self):
+        return f"{self.code} ({self.used_count}/{self.usage_limit})"
+
+class CodeUsage(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    code = models.ForeignKey(RedeemCode, on_delete=models.CASCADE)
+    diamonds_won = models.IntegerField()
+    redeemed_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'code') # Ek user ek code sirf 1 baar use karega
+    
