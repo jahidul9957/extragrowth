@@ -641,6 +641,42 @@ def admin_bots(request):
     return render(request, 'core/admin_bots.html', context)
 
 @login_required(login_url='/login/')
+def admin_bot_action(request):
+    if not request.user.is_superuser: return redirect('home')
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        
+        if action == 'add':
+            bot_count = Bot.objects.count() + 1
+            auto_name = f"Worker-Node-{bot_count:02d}"
+            cookies_data = request.POST.get('cookies', '')
+            
+            # 🔥 NAYA: Form se Platform nikalna (YouTube ya Instagram)
+            platform_choice = request.POST.get('platform', 'YouTube')
+            
+            # 🔥 NAYA: is_active=True ke sath platform bhi save kar rahe hain
+            Bot.objects.create(
+                name=auto_name, 
+                platform=platform_choice,
+                cookies=cookies_data,
+                is_active=True 
+            )
+            messages.success(request, f"🚀 {platform_choice} Bot [{auto_name}] Deployed & Auto-Activated!")
+            
+        else:
+            bot = get_object_or_404(Bot, id=request.POST.get('bot_id'))
+            if action == 'toggle':
+                bot.is_active = not bot.is_active
+                bot.save()
+                messages.success(request, f"[{bot.platform}] {bot.name} power state changed!")
+            elif action == 'delete':
+                bot.delete()
+                messages.success(request, "Bot Engine Terminated.")
+                
+    return redirect('admin_bots')
+            
+
+@login_required(login_url='/login/')
 def admin_task_action(request):
     if not request.user.is_superuser: return redirect('home')
     
@@ -763,33 +799,7 @@ def admin_payment_action(request):
     return redirect('admin_payments')
     
 
-@login_required(login_url='/login/')
-def admin_bot_action(request):
-    if not request.user.is_superuser: return redirect('home')
-    if request.method == 'POST':
-        action = request.POST.get('action')
-        
-        if action == 'add':
-            bot_count = Bot.objects.count() + 1
-            auto_name = f"Worker-Node-{bot_count:02d}"
-            cookies_data = request.POST.get('cookies', '')
-            
-            Bot.objects.create(name=auto_name, cookies=cookies_data)
-            messages.success(request, f"🚀 {auto_name} Deployed Successfully with Cookies!")
-            
-        else:
-            bot = get_object_or_404(Bot, id=request.POST.get('bot_id'))
-            if action == 'toggle':
-                bot.is_active = not bot.is_active
-                bot.save()
-                messages.success(request, f"{bot.name} power state changed!")
-            elif action == 'delete':
-                bot.delete()
-                messages.success(request, "Bot Engine Terminated.")
-                
-    return redirect('admin_bots')
-                
-
+#aha par admin bot action tha usko mene upar admin dashboard par hi khik diya#
 @login_required(login_url='/login/')
 def admin_tasks(request):
     if not request.user.is_superuser: return redirect('home')
