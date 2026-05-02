@@ -922,3 +922,40 @@ def api_v2_provider(request):
 
     else:
         return JsonResponse({'error': 'Incorrect action'})
+
+# ==========================================
+# 💸 WITHDRAWAL SYSTEM (Missing Functions)
+# ==========================================
+@login_required(login_url='/login/')
+def withdraw_history_view(request):
+    withdrawals = Withdrawal.objects.filter(user=request.user).order_by('-created_at')
+    return render(request, 'core/withdraw_history.html', {'withdrawals': withdrawals})
+
+@login_required(login_url='/login/')
+def admin_withdrawals(request):
+    if not request.user.is_superuser: return redirect('home')
+    withdrawals = Withdrawal.objects.all().order_by('-created_at')
+    return render(request, 'core/admin_withdrawals.html', {
+        'platform_withdrawals': withdrawals, 
+        'pending_count': withdrawals.filter(status='Pending').count()
+    })
+
+@login_required(login_url='/login/')
+def admin_withdrawal_action(request):
+    if not request.user.is_superuser: return redirect('home')
+    if request.method == 'POST':
+        withdraw = get_object_or_404(Withdrawal, id=request.POST.get('withdraw_id'))
+        if request.POST.get('action') == 'approve' and withdraw.status == 'Pending':
+            withdraw.status = 'Completed'
+            withdraw.save()
+            Notification.objects.create(user=withdraw.user, title="Withdrawal Approved 💸", message=f"₹{withdraw.amount_rs} has been sent to your UPI.", icon="fa-money-bill-wave", color="emerald")
+            messages.success(request, f"Approved! (Please manually send ₹{withdraw.amount_rs} to {withdraw.upi_id})")
+        elif request.POST.get('action') == 'reject' and withdraw.status == 'Pending':
+            withdraw.status = 'Rejected'
+            withdraw.user.diamonds += withdraw.diamonds_used 
+            withdraw.user.save()
+            withdraw.save()
+            Notification.objects.create(user=withdraw.user, title="Withdrawal Rejected ❌", message="Your withdrawal request was rejected. Diamonds refunded.", icon="fa-circle-xmark", color="rose")
+            messages.error(request, "Withdrawal Rejected & Diamonds Refunded.")
+    return redirect('admin_withdrawals')
+    
