@@ -357,14 +357,13 @@ def new_order_view(request):
                 request.user.total_spent += charge
                 request.user.save()
                 
-                # 🔥 NAYA REWARD LOGIC (With History) - Correctly Indented
+                # 🔥 NAYA REWARD LOGIC (With History)
                 if request.user.invited_by:
                     reward_diamonds = int(charge * 5)
                     if reward_diamonds > 0:
                         request.user.invited_by.diamonds += reward_diamonds
                         request.user.invited_by.save()
                         
-                        # 📝 History mein save karo
                         from .models import RewardHistory 
                         RewardHistory.objects.create(
                             user=request.user.invited_by,
@@ -382,7 +381,6 @@ def new_order_view(request):
                     color="blue"
                 )
                 
-                # 🔥 Trigger the Ultimate Bot Engine
                 threading.Thread(target=run_bot_in_background, args=(order.id,), daemon=True).start()
                 
                 messages.success(request, f"🎉 Order placed! ₹{charge} deducted.")
@@ -395,27 +393,6 @@ def new_order_view(request):
             
     return render(request, 'core/new_order.html', {'services': Service.objects.filter(is_active=True)})
                 
-@login_required(login_url='/login/')
-def orders_view(request):
-    if request.user.is_superuser: return redirect('custom_admin')
-    orders = Order.objects.filter(user=request.user).order_by('-created_at')
-    return render(request, 'core/orders.html', {'orders': orders})
-
-@login_required(login_url='/login/')
-def add_funds_view(request):
-    if request.user.is_superuser: return redirect('custom_admin')
-    setting, _ = SiteSetting.objects.get_or_create(id=1)
-    
-    if request.method == 'POST':
-        utr = request.POST.get('utr_number')
-        if Payment.objects.filter(utr_number=utr).exists():
-            messages.error(request, "❌ UTR already used.")
-        else:
-            Payment.objects.create(user=request.user, amount=request.POST.get('amount'), utr_number=utr)
-            messages.success(request, "✅ Request submitted! Admin will verify shortly.")
-        return redirect('add_funds')
-        
-    return render(request, 'core/add_funds.html', {'setting': setting})
 # ==========================================
 # 📱 3. CUSTOMER DASHBOARD VIEWS
 # ==========================================
