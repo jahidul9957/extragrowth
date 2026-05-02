@@ -228,3 +228,13 @@ class Withdrawal(models.Model):
     def __str__(self):
         return f"{self.user.username} - ₹{self.amount_rs}"
     
+# isko core/models.py ke sabse end me daal do
+class RewardHistory(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='earned_rewards')
+    referred_user = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, blank=True)
+    diamonds_earned = models.IntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.username} earned {self.diamonds_earned} 💎"
+        
