@@ -4,14 +4,15 @@ from django.contrib.auth.models import AbstractUser
 from django.utils.crypto import get_random_string
 
 # ==========================================
-# 1. USER MODEL (Customized for TMA & Admin)
+# 1. USER MODEL (Customized for TMA, Admin & API)
 # ==========================================
 class CustomUser(AbstractUser):
     # Telegram Authentication Data
     telegram_id = models.CharField(max_length=100, unique=True, null=True, blank=True)
     telegram_username = models.CharField(max_length=100, null=True, blank=True)
     telegram_photo_url = models.URLField(max_length=500, blank=True, null=True)
-        # (Existing CustomUser code ke andar ye add karein)
+    
+    # Daily Login System
     login_streak = models.IntegerField(default=0)
     last_daily_claim = models.DateField(null=True, blank=True)
     
@@ -23,6 +24,9 @@ class CustomUser(AbstractUser):
     # Referral System
     invite_code = models.CharField(max_length=20, unique=True, blank=True)
     invited_by = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='referrals')
+    
+    # 🔥 SMM API v2 System
+    api_key = models.CharField(max_length=255, blank=True, null=True, unique=True)
     
     # Admin & Profile Enhancements
     profile_image = models.ImageField(upload_to='profiles/', null=True, blank=True)
@@ -36,27 +40,19 @@ class CustomUser(AbstractUser):
         # Auto-generate invite code on account creation
         if not self.invite_code:
             self.invite_code = get_random_string(8).upper()
+        # Auto-generate API Key if not present
+        if not self.api_key:
+            self.api_key = uuid.uuid4().hex
         super().save(*args, **kwargs)
 
     def __str__(self):
         return f"@{self.username}"
 
-    # CustomUser ke andar sabse niche yeh add karein:
     @property
     def unread_notifications(self):
         return self.notification_set.filter(is_read=False).count()
-       # Apne CustomUser model me ye lines add karein:
-class CustomUser(AbstractUser):
-    # ... (aapke purane fields yahan honge jaise wallet_balance, diamonds etc.) ...
-    
-    # 🔥 NAYA: API Key System
-    api_key = models.CharField(max_length=255, blank=True, null=True, unique=True)
 
-    def save(self, *args, **kwargs):
-        # Agar user ke paas API key nahi hai, toh auto-generate kardo
-        if not self.api_key:
-            self.api_key = uuid.uuid4().hex
-        super().save(*args, **kwargs) 
+
 # ==========================================
 # 2. TASK MODEL (For Earning Diamonds)
 # ==========================================
@@ -71,7 +67,7 @@ class Task(models.Model):
     reward_diamonds = models.IntegerField(default=50)
     link = models.URLField(max_length=500, blank=True, null=True)
     task_type = models.CharField(max_length=20, choices=TASK_TYPES, default='telegram')
-    icon_class = models.CharField(max_length=100, default="fa-brands fa-telegram") # FontAwesome Class
+    icon_class = models.CharField(max_length=100, default="fa-brands fa-telegram")
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -142,53 +138,35 @@ class Payment(models.Model):
 
 
 # ==========================================
-# 6. BOT ENGINE MODEL (Playwright automation)
+# 6. BOT ENGINE MODEL (Multi-Platform)
 # ==========================================
-# core/models.py ke andar apni Bot class ko isse replace karein:
-
 class Bot(models.Model):
     PLATFORM_CHOICES = (
         ('YouTube', 'YouTube'),
         ('Instagram', 'Instagram'),
     )
-
     name = models.CharField(max_length=100, unique=True)
-    
-    # 🔥 NAYA: Bot kis platform ka hai (YouTube ya Instagram)
     platform = models.CharField(max_length=50, choices=PLATFORM_CHOICES, default='YouTube')
-    
-    # 🍪 Cookies (Dono platform ke liye JSON format mein cookies yahan save hongi)
     cookies = models.TextField(blank=True, null=True)
-    
-    # Status Toggles
     is_active = models.BooleanField(default=True)
     is_banned = models.BooleanField(default=False)
-    
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"[{self.platform}] {self.name}"
         
 
-
 # ==========================================
-# 7. SYSTEM SETTINGS MODEL (For Settings Page)
+# 7. SYSTEM SETTINGS & UTILS
 # ==========================================
 class SiteSetting(models.Model):
-    # Basic Info
     platform_name = models.CharField(max_length=100, default="NextGen SMM")
     maintenance_mode = models.BooleanField(default=False)
-    
-    # Support & Links
     support_telegram = models.CharField(max_length=100, default="@NextGenSupportBot")
     telegram_channel = models.URLField(default="https://t.me/nextgen_updates")
-    
-    # Payment Settings
     upi_id = models.CharField(max_length=100, default="admin@ybl")
     qr_image_url = models.URLField(blank=True, null=True)
     min_deposit = models.IntegerField(default=10)
-    
-    # Referral Rules
     diamonds_per_rupee = models.IntegerField(default=5)
     diamonds_needed_for_1_rs = models.IntegerField(default=50)
 
@@ -201,16 +179,14 @@ class UserTask(models.Model):
     completed_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ('user', 'task') # Ek user 1 task ko 1 hi baar karega
-    
-    # CustomUser ke andar sabse niche yeh add karein:
+        unique_together = ('user', 'task')
     
 class Notification(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, null=True, blank=True)
     title = models.CharField(max_length=255)
     message = models.TextField()
-    icon = models.CharField(max_length=50, default='fa-bell') # e.g., fa-wallet, fa-box
-    color = models.CharField(max_length=20, default='blue')   # blue, emerald, rose, amber
+    icon = models.CharField(max_length=50, default='fa-bell')
+    color = models.CharField(max_length=20, default='blue')
     is_read = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -222,13 +198,12 @@ class Withdrawal(models.Model):
     diamonds_used = models.IntegerField()
     amount_rs = models.DecimalField(max_digits=10, decimal_places=2)
     upi_id = models.CharField(max_length=100)
-    status = models.CharField(max_length=50, default='Pending') # Pending, Completed, Rejected
+    status = models.CharField(max_length=50, default='Pending')
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"{self.user.username} - ₹{self.amount_rs}"
     
-# isko core/models.py ke sabse end me daal do
 class RewardHistory(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='earned_rewards')
     referred_user = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, blank=True)
