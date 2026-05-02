@@ -333,6 +333,7 @@ def services_view(request):
     services = Service.objects.filter(is_active=True).order_by('-id')
     return render(request, 'core/services.html', {'services': services})
 
+
 @login_required(login_url='/login/')
 def new_order_view(request):
     if request.user.is_superuser: return redirect('custom_admin')
@@ -356,10 +357,21 @@ def new_order_view(request):
                 request.user.total_spent += charge
                 request.user.save()
                 
+                # 🔥 NAYA REWARD LOGIC (With History) - Correctly Indented
                 if request.user.invited_by:
-                    request.user.invited_by.diamonds += int(charge * 5)
-                    request.user.invited_by.save()
-                    
+                    reward_diamonds = int(charge * 5)
+                    if reward_diamonds > 0:
+                        request.user.invited_by.diamonds += reward_diamonds
+                        request.user.invited_by.save()
+                        
+                        # 📝 History mein save karo
+                        from .models import RewardHistory 
+                        RewardHistory.objects.create(
+                            user=request.user.invited_by,
+                            referred_user=request.user,
+                            diamonds_earned=reward_diamonds
+                        )
+                        
                 order = Order.objects.create(user=request.user, service=service, link=link, quantity=quantity, charge=charge, status='Pending')
                 
                 Notification.objects.create(
@@ -382,7 +394,7 @@ def new_order_view(request):
             messages.error(request, "⚠️ Please fill all details correctly.")
             
     return render(request, 'core/new_order.html', {'services': Service.objects.filter(is_active=True)})
-    
+                
 @login_required(login_url='/login/')
 def orders_view(request):
     if request.user.is_superuser: return redirect('custom_admin')
