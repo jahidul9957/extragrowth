@@ -959,3 +959,67 @@ def admin_withdrawal_action(request):
             messages.error(request, "Withdrawal Rejected & Diamonds Refunded.")
     return redirect('admin_withdrawals')
     
+# ==========================================
+# 📝 MISSING ADMIN FUNCTIONS (Tasks, Logs, Settings)
+# ==========================================
+@login_required(login_url='/login/')
+def admin_tasks(request):
+    if not request.user.is_superuser: return redirect('home')
+    tasks = Task.objects.all().order_by('-created_at')
+    return render(request, 'core/admin_tasks.html', {'tasks': tasks})
+    
+@login_required(login_url='/login/')
+def admin_task_action(request):
+    if not request.user.is_superuser: return redirect('home')
+    
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        
+        if action == 'add':
+            Task.objects.create(
+                title=request.POST.get('title'),
+                task_type=request.POST.get('task_type', 'custom'),
+                icon_class=request.POST.get('icon_class', 'fa-solid fa-star'),
+                link=request.POST.get('link', ''),
+                reward_diamonds=int(request.POST.get('reward_diamonds', 0))
+            )
+            messages.success(request, "New Reward Task Created!")
+            
+        else:
+            task = get_object_or_404(Task, id=request.POST.get('task_id'))
+            if action == 'toggle':
+                task.is_active = not task.is_active
+                task.save()
+                messages.success(request, "Task status updated!")
+            elif action == 'delete':
+                task.delete()
+                messages.success(request, "Task deleted permanently!")
+                
+    return redirect('admin_tasks')
+
+@login_required(login_url='/login/')
+def admin_logs_view(request):
+    if not request.user.is_superuser: return redirect('home')
+    logs = Notification.objects.all().order_by('-created_at')[:100]
+    return render(request, 'core/admin_logs.html', {'logs': logs})
+    
+@login_required(login_url='/login/')
+def admin_settings_view(request):
+    if not request.user.is_superuser: return redirect('home')
+    setting, _ = SiteSetting.objects.get_or_create(id=1)
+    
+    if request.method == 'POST':
+        setting.platform_name = request.POST.get('platform_name', setting.platform_name)
+        setting.upi_id = request.POST.get('upi_id', setting.upi_id)
+        setting.diamonds_needed_for_1_rs = int(request.POST.get('diamonds_needed', setting.diamonds_needed_for_1_rs))
+        setting.save()
+        
+        if 'profile_image' in request.FILES:
+            request.user.profile_image = request.FILES['profile_image']
+            request.user.save()
+            
+        messages.success(request, "Settings & Profile updated successfully!")
+        return redirect('admin_settings')
+        
+    return render(request, 'core/admin_settings.html', {'setting': setting})
+    
