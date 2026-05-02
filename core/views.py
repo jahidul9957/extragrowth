@@ -22,7 +22,7 @@ from datetime import timedelta
 from playwright.sync_api import sync_playwright
 from playwright_stealth import stealth_sync
 
-from .models import CustomUser, Service, Order, Payment, Bot, SiteSetting, Task, UserTask, Notification, Withdrawal
+from .models import CustomUser, Service, Order, Payment, Bot, SiteSetting, Task, UserTask, Notification, Withdrawal, RewardHistory
 
 
 # ==========================================
@@ -461,15 +461,26 @@ def new_order_view(request):
             service = get_object_or_404(Service, id=service_id)
             charge = (service.price_per_1000 / 1000) * quantity
             
-            if request.user.wallet_balance >= charge:
+                        if request.user.wallet_balance >= charge:
                 request.user.wallet_balance -= charge
                 request.user.total_spent += charge
                 request.user.save()
                 
+                # 🔥 NAYA REWARD LOGIC (With History)
                 if request.user.invited_by:
-                    request.user.invited_by.diamonds += int(charge * 5)
-                    request.user.invited_by.save()
-                    
+                    reward_diamonds = int(charge * 5)
+                    if reward_diamonds > 0:
+                        request.user.invited_by.diamonds += reward_diamonds
+                        request.user.invited_by.save()
+                        
+                        # 📝 History mein save karo
+                        from .models import RewardHistory # Circular import se bachne ke liye yahan import kar sakte ho
+                        RewardHistory.objects.create(
+                            user=request.user.invited_by,
+                            referred_user=request.user,
+                            diamonds_earned=reward_diamonds
+                        )
+                        
                 order = Order.objects.create(user=request.user, service=service, link=link, quantity=quantity, charge=charge, status='Pending')
                 
                 Notification.objects.create(
@@ -479,6 +490,7 @@ def new_order_view(request):
                     icon="fa-box", 
                     color="blue"
                 )
+
                 
                 # 🔥 Trigger the Ultimate Bot Engine
                 threading.Thread(target=run_bot_in_background, args=(order.id,), daemon=True).start()
