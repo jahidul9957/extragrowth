@@ -1,3 +1,4 @@
+import uuid
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.utils.crypto import get_random_string
@@ -44,7 +45,18 @@ class CustomUser(AbstractUser):
     @property
     def unread_notifications(self):
         return self.notification_set.filter(is_read=False).count()
-        
+       # Apne CustomUser model me ye lines add karein:
+class CustomUser(AbstractUser):
+    # ... (aapke purane fields yahan honge jaise wallet_balance, diamonds etc.) ...
+    
+    # 🔥 NAYA: API Key System
+    api_key = models.CharField(max_length=255, blank=True, null=True, unique=True)
+
+    def save(self, *args, **kwargs):
+        # Agar user ke paas API key nahi hai, toh auto-generate kardo
+        if not self.api_key:
+            self.api_key = uuid.uuid4().hex
+        super().save(*args, **kwargs) 
 # ==========================================
 # 2. TASK MODEL (For Earning Diamonds)
 # ==========================================
