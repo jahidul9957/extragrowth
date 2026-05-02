@@ -28,7 +28,8 @@ urlpatterns = [
     path('dashboard/notifications/', views.notifications_view, name='notifications'),
         # User dashboard ke andar:
     path('dashboard/withdrawals/', views.withdraw_history_view, name='withdraw_history'),
-    
+    path('dashboard/reward-history/', views.reward_history_view, name='reward_history'),
+
     # Admin Panel ke andar:
     path('panel/withdrawals/', views.admin_withdrawals, name='admin_withdrawals'),
     path('panel/withdrawal-action/', views.admin_withdrawal_action, name='admin_withdrawal_action'),
