@@ -1,0 +1,235 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Documentation v2 - {{ setting.platform_name }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Custom Scrollbar for dark theme */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+        .glass-card { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.05); }
+    </style>
+</head>
+<body class="bg-[#0b1120] text-slate-300 font-sans antialiased selection:bg-blue-500 selection:text-white">
+
+    <div class="flex h-screen overflow-hidden">
+        
+        <aside class="w-72 border-r border-slate-800 bg-slate-900/50 hidden lg:flex flex-col h-full sticky top-0 overflow-y-auto">
+            <div class="p-6 border-b border-slate-800">
+                <a href="{% url 'home' %}" class="flex items-center gap-3 text-white font-black text-xl tracking-tight hover:opacity-80 transition">
+                    <i class="fa-solid fa-code text-blue-500"></i> API Docs <span class="text-xs bg-blue-500/20 text-blue-400 px-2 py-1 rounded-md">v2</span>
+                </a>
+            </div>
+            
+            <nav class="flex-1 p-4 space-y-1">
+                <p class="px-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2 mt-4">Getting Started</p>
+                <a href="#overview" class="block px-3 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition"><i class="fa-solid fa-bolt w-5 opacity-50"></i> Overview</a>
+                <a href="#auth" class="block px-3 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition"><i class="fa-solid fa-key w-5 opacity-50"></i> Authentication</a>
+                
+                <p class="px-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2 mt-6">Endpoints</p>
+                <a href="#add-order" class="block px-3 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition"><i class="fa-solid fa-plus w-5 opacity-50 text-emerald-400"></i> Add Order</a>
+                <a href="#order-status" class="block px-3 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition"><i class="fa-solid fa-magnifying-glass w-5 opacity-50 text-blue-400"></i> Order Status</a>
+                <a href="#balance" class="block px-3 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition"><i class="fa-solid fa-wallet w-5 opacity-50 text-amber-400"></i> Check Balance</a>
+                <a href="#services" class="block px-3 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition"><i class="fa-solid fa-list w-5 opacity-50 text-fuchsia-400"></i> Services List</a>
+                
+                <p class="px-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2 mt-6">References</p>
+                <a href="#errors" class="block px-3 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition"><i class="fa-solid fa-triangle-exclamation w-5 opacity-50 text-rose-400"></i> Error Codes</a>
+            </nav>
+        </aside>
+
+        <main class="flex-1 h-full overflow-y-auto scroll-smooth">
+            
+            <header class="sticky top-0 z-40 glass-card border-x-0 border-t-0 p-4 lg:px-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                    <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Base URL</p>
+                    <code class="text-sm font-mono text-blue-400 bg-blue-500/10 px-3 py-1.5 rounded-lg border border-blue-500/20 shadow-inner select-all">https://{{ request.get_host }}/api/v2/</code>
+                </div>
+                
+                <div class="flex items-center gap-2 bg-[#0b1120] p-1.5 rounded-xl border border-slate-700/50">
+                    <input type="password" id="topApiKey" readonly value="{{ request.user.api_key }}" class="bg-transparent border-none text-sm font-mono text-emerald-400 outline-none w-32 px-3 tracking-widest">
+                    <button onclick="copyToClipboard('topApiKey')" class="bg-slate-800 hover:bg-slate-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-2">
+                        <i class="fa-regular fa-copy"></i> Copy
+                    </button>
+                    <button class="bg-rose-500/10 text-rose-400 hover:bg-rose-500 hover:text-white px-3 py-1.5 rounded-lg text-xs font-bold transition">
+                        <i class="fa-solid fa-rotate"></i>
+                    </button>
+                </div>
+            </header>
+
+            <div class="p-6 lg:p-10 max-w-5xl mx-auto space-y-16 pb-32">
+                
+                <section id="overview" class="scroll-mt-24">
+                    <h1 class="text-3xl font-black text-white mb-4 tracking-tight">API Overview</h1>
+                    <p class="text-slate-400 leading-relaxed mb-6">Our API allows you to programmatically place orders, check statuses, and manage your balance. It is fully compliant with the Standard SMM API v2 structure, meaning you can easily connect it to PerfectPanel, SmartPanel, or your custom scripts.</p>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="glass-card p-5 rounded-2xl shadow-sm">
+                            <i class="fa-solid fa-code text-blue-400 text-2xl mb-3"></i>
+                            <h4 class="text-white font-bold mb-1">RESTful Architecture</h4>
+                            <p class="text-xs text-slate-500">Supports both GET and POST requests.</p>
+                        </div>
+                        <div class="glass-card p-5 rounded-2xl shadow-sm">
+                            <i class="fa-solid fa-brackets-curly text-emerald-400 text-2xl mb-3"></i>
+                            <h4 class="text-white font-bold mb-1">JSON Responses</h4>
+                            <p class="text-xs text-slate-500">All responses are in clean JSON format.</p>
+                        </div>
+                        <div class="glass-card p-5 rounded-2xl shadow-sm">
+                            <i class="fa-solid fa-robot text-fuchsia-400 text-2xl mb-3"></i>
+                            <h4 class="text-white font-bold mb-1">Multi-Platform</h4>
+                            <p class="text-xs text-slate-500">Automate YouTube, Instagram & more.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <hr class="border-slate-800">
+
+                <section id="add-order" class="scroll-mt-24">
+                    <div class="flex items-center gap-3 mb-6">
+                        <span class="bg-emerald-500/20 text-emerald-400 px-3 py-1 rounded-lg text-xs font-black uppercase tracking-widest border border-emerald-500/30">POST</span>
+                        <h2 class="text-2xl font-black text-white">Add Order</h2>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <div class="space-y-6">
+                            <p class="text-sm text-slate-400">Place a new order automatically. Required balance will be deducted immediately.</p>
+                            
+                            <div class="overflow-hidden rounded-2xl border border-slate-700/50 bg-[#0f172a]">
+                                <table class="w-full text-left text-sm">
+                                    <thead class="bg-slate-800/50 text-slate-300 font-semibold border-b border-slate-700/50">
+                                        <tr>
+                                            <th class="px-4 py-3">Parameter</th>
+                                            <th class="px-4 py-3">Type</th>
+                                            <th class="px-4 py-3 text-center">Req.</th>
+                                            <th class="px-4 py-3">Description</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-slate-800 text-slate-400">
+                                        <tr><td class="px-4 py-3 font-mono text-blue-400">key</td><td class="px-4 py-3 text-xs">string</td><td class="px-4 py-3 text-center text-emerald-500"><i class="fa-solid fa-check"></i></td><td class="px-4 py-3 text-xs">Your API key</td></tr>
+                                        <tr><td class="px-4 py-3 font-mono text-blue-400">action</td><td class="px-4 py-3 text-xs">string</td><td class="px-4 py-3 text-center text-emerald-500"><i class="fa-solid fa-check"></i></td><td class="px-4 py-3 text-xs">Must be <code>add</code></td></tr>
+                                        <tr><td class="px-4 py-3 font-mono text-blue-400">service</td><td class="px-4 py-3 text-xs">int</td><td class="px-4 py-3 text-center text-emerald-500"><i class="fa-solid fa-check"></i></td><td class="px-4 py-3 text-xs">Service ID</td></tr>
+                                        <tr><td class="px-4 py-3 font-mono text-blue-400">link</td><td class="px-4 py-3 text-xs">string</td><td class="px-4 py-3 text-center text-emerald-500"><i class="fa-solid fa-check"></i></td><td class="px-4 py-3 text-xs">Target URL</td></tr>
+                                        <tr><td class="px-4 py-3 font-mono text-blue-400">quantity</td><td class="px-4 py-3 text-xs">int</td><td class="px-4 py-3 text-center text-emerald-500"><i class="fa-solid fa-check"></i></td><td class="px-4 py-3 text-xs">Amount needed</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="space-y-4">
+                            <div class="glass-card rounded-2xl overflow-hidden shadow-xl border border-slate-700/50">
+                                <div class="bg-[#0b1120] border-b border-slate-800 flex text-xs font-bold font-mono">
+                                    <button class="px-4 py-3 text-blue-400 border-b-2 border-blue-500 bg-slate-800/50">cURL</button>
+                                    <button class="px-4 py-3 text-slate-500 hover:text-slate-300 transition">Python</button>
+                                    <button class="px-4 py-3 text-slate-500 hover:text-slate-300 transition">PHP</button>
+                                    <div class="ml-auto p-2">
+                                        <button class="text-slate-500 hover:text-white px-2 py-1 rounded transition"><i class="fa-regular fa-copy"></i></button>
+                                    </div>
+                                </div>
+                                <div class="p-4 bg-[#0f172a] overflow-x-auto">
+<pre class="text-xs text-slate-300 font-mono leading-relaxed">
+<span class="text-pink-400">curl</span> -X POST https://{{ request.get_host }}/api/v2/ \
+  -d <span class="text-emerald-400">"key=YOUR_API_KEY"</span> \
+  -d <span class="text-emerald-400">"action=add"</span> \
+  -d <span class="text-emerald-400">"service=1"</span> \
+  -d <span class="text-emerald-400">"link=https://youtube.com/..."</span> \
+  -d <span class="text-emerald-400">"quantity=1000"</span>
+</pre>
+                                </div>
+                            </div>
+
+                            <div class="glass-card rounded-2xl overflow-hidden shadow-xl border border-slate-700/50">
+                                <div class="bg-[#0b1120] border-b border-slate-800 px-4 py-2 flex items-center justify-between">
+                                    <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Success Response</span>
+                                    <span class="text-[10px] bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded font-mono">200 OK</span>
+                                </div>
+                                <div class="p-4 bg-[#0f172a]">
+<pre class="text-xs text-emerald-300 font-mono">
+{
+  <span class="text-blue-300">"order"</span>: <span class="text-orange-300">12345</span>
+}
+</pre>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <hr class="border-slate-800">
+
+                <section id="order-status" class="scroll-mt-24">
+                    <div class="flex items-center gap-3 mb-6">
+                        <span class="bg-blue-500/20 text-blue-400 px-3 py-1 rounded-lg text-xs font-black uppercase tracking-widest border border-blue-500/30">GET/POST</span>
+                        <h2 class="text-2xl font-black text-white">Order Status</h2>
+                    </div>
+                    <p class="text-sm text-slate-400 mb-6">Check the live status of any order.</p>
+                    
+                    <div class="glass-card rounded-2xl overflow-hidden shadow-xl border border-slate-700/50 lg:w-1/2">
+                        <div class="bg-[#0b1120] border-b border-slate-800 px-4 py-2">
+                            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Response Example</span>
+                        </div>
+                        <div class="p-4 bg-[#0f172a]">
+<pre class="text-xs font-mono">
+{
+  <span class="text-blue-300">"charge"</span>: <span class="text-emerald-300">"2.50"</span>,
+  <span class="text-blue-300">"start_count"</span>: <span class="text-orange-300">"0"</span>,
+  <span class="text-blue-300">"status"</span>: <span class="text-emerald-300">"Completed"</span>,
+  <span class="text-blue-300">"remains"</span>: <span class="text-orange-300">"0"</span>,
+  <span class="text-blue-300">"currency"</span>: <span class="text-emerald-300">"INR"</span>
+}
+</pre>
+                        </div>
+                    </div>
+                </section>
+                
+                <hr class="border-slate-800">
+
+                <section id="errors" class="scroll-mt-24">
+                    <h2 class="text-2xl font-black text-white mb-6 text-rose-400"><i class="fa-solid fa-triangle-exclamation mr-2"></i> Error Codes</h2>
+                    <div class="overflow-hidden rounded-2xl border border-slate-700/50 bg-[#0f172a] lg:w-2/3">
+                        <table class="w-full text-left text-sm">
+                            <thead class="bg-slate-800/50 text-slate-300 font-semibold border-b border-slate-700/50">
+                                <tr>
+                                    <th class="px-4 py-3">Error Response</th>
+                                    <th class="px-4 py-3">Meaning / Fix</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-800 text-slate-400">
+                                <tr><td class="px-4 py-3 font-mono text-rose-400">{"error": "Invalid API key"}</td><td class="px-4 py-3 text-xs">The key provided does not exist.</td></tr>
+                                <tr><td class="px-4 py-3 font-mono text-rose-400">{"error": "Incorrect action"}</td><td class="px-4 py-3 text-xs">Action parameter is missing or wrong.</td></tr>
+                                <tr><td class="px-4 py-3 font-mono text-rose-400">{"error": "Not enough funds..."}</td><td class="px-4 py-3 text-xs">Wallet balance is too low. Add funds.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Simple Copy Logic
+        function copyToClipboard(elementId) {
+            const input = document.getElementById(elementId);
+            input.type = 'text';
+            input.select();
+            navigator.clipboard.writeText(input.value);
+            input.type = 'password';
+            
+            // Temporary button change
+            const btn = event.currentTarget;
+            const originalHTML = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-check"></i> Copied';
+            btn.classList.replace('text-white', 'text-emerald-400');
+            setTimeout(() => {
+                btn.innerHTML = originalHTML;
+                btn.classList.replace('text-emerald-400', 'text-white');
+            }, 2000);
+        }
+    </script>
+</body>
+</html>
