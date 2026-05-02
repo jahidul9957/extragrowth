@@ -1,4 +1,5 @@
 import hmac
+import random
 import hashlib
 import json
 import threading
@@ -1023,3 +1024,84 @@ def admin_settings_view(request):
         
     return render(request, 'core/admin_settings.html', {'setting': setting})
     
+
+
+# ==========================================
+# 🎁 PROMO CODE LOGIC (USER SIDE)
+# ==========================================
+@login_required(login_url='/login/')
+def apply_redeem_code(request):
+    if request.method == 'POST':
+        code_str = request.POST.get('code', '').strip().upper()
+        
+        if not code_str:
+            return JsonResponse({'status': 'error', 'message': 'Please enter a code.'})
+            
+        try:
+            code_obj = RedeemCode.objects.get(code=code_str)
+            
+            # 1. Check validity (Expiry & Limit)
+            if not code_obj.is_valid():
+                return JsonResponse({'status': 'error', 'message': 'Code is expired or fully used!'})
+                
+            # 2. Check if user already used it
+            if CodeUsage.objects.filter(user=request.user, code=code_obj).exists():
+                return JsonResponse({'status': 'error', 'message': 'You have already redeemed this code!'})
+                
+            # 3. Give Random Diamonds
+            won_diamonds = random.randint(code_obj.min_diamonds, code_obj.max_diamonds)
+            request.user.diamonds += won_diamonds
+            request.user.save()
+            
+            # 4. Update Code Stats & Save History
+            code_obj.used_count += 1
+            code_obj.save()
+            
+            CodeUsage.objects.create(user=request.user, code=code_obj, diamonds_won=won_diamonds)
+            
+            # Save to Reward History so they can see it
+            RewardHistory.objects.create(
+                user=request.user, 
+                diamonds_earned=won_diamonds
+            )
+            
+            return JsonResponse({'status': 'success', 'message': f'🎉 Boom! You won {won_diamonds} Diamonds!', 'diamonds': request.user.diamonds})
+            
+        except RedeemCode.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'Invalid Redemption Code!'})
+
+# ==========================================
+# 👑 ADMIN PROMO CODE GENERATOR
+# ==========================================
+@login_required(login_url='/login/')
+def admin_generate_code(request):
+    if not request.user.is_superuser: return redirect('home')
+    
+    if request.method == 'POST':
+        from django.utils.crypto import get_random_string
+        from datetime import datetime
+        
+        # Admin can enter custom code or leave blank for random
+        custom_code = request.POST.get('custom_code', '').strip().upper()
+        final_code = custom_code if custom_code else get_random_string(10).upper()
+        
+        min_d = int(request.POST.get('min_diamonds', 10))
+        max_d = int(request.POST.get('max_diamonds', 20))
+        limit = int(request.POST.get('usage_limit', 50))
+        expiry_str = request.POST.get('expires_at') # HTML datetime-local format
+        
+        try:
+            # Convert HTML datetime string to Django DateTime
+            expiry_dt = datetime.strptime(expiry_str, '%Y-%m-%dT%H:%M')
+            expiry_dt = timezone.make_aware(expiry_dt)
+            
+            RedeemCode.objects.create(
+                code=final_code, min_diamonds=min_d, max_diamonds=max_d,
+                usage_limit=limit, expires_at=expiry_dt
+            )
+            messages.success(request, f"🚀 Promo Code {final_code} generated successfully!")
+        except Exception as e:
+            messages.error(request, f"Error: {str(e)}")
+            
+    return redirect('custom_admin') # Ya apne kisi admin page par bhej do
+        
