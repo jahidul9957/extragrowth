@@ -148,6 +148,46 @@
                 </div>
                 <i class="fa-solid fa-chevron-right text-slate-300 text-xs"></i>
             </a>
+
+            <div class="bg-slate-900 p-6 rounded-3xl shadow-xl mt-6 text-white relative overflow-hidden border border-slate-800">
+    <div class="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 blur-[80px] rounded-full pointer-events-none"></div>
+    
+    <div class="flex items-center justify-between relative z-10">
+        <div>
+            <h3 class="text-sm font-bold text-slate-300 uppercase tracking-widest mb-1 flex items-center gap-2">
+                <i class="fa-solid fa-code text-blue-400"></i> Developer API v2
+            </h3>
+            <p class="text-[11px] text-slate-500 mb-4">Automate your orders by connecting your panel to our API.</p>
+        </div>
+        <a href="{% url 'api_docs' %}" class="bg-blue-600/20 text-blue-400 hover:bg-blue-600 hover:text-white px-4 py-2 rounded-xl text-xs font-bold transition-all border border-blue-500/30 shadow-[0_0_15px_rgba(37,99,235,0.2)]">
+            <i class="fa-solid fa-book-open-reader mr-1"></i> Read API Docs
+        </a>
+    </div>
+    
+    <div class="flex items-center gap-3 bg-black/50 p-3.5 rounded-2xl border border-white/5 backdrop-blur-md relative z-10">
+        <div class="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center text-slate-400">
+            <i class="fa-solid fa-key"></i>
+        </div>
+        <div class="flex-1">
+            <p class="text-[10px] text-slate-500 uppercase tracking-wider font-bold mb-0.5">Your Secret API Key</p>
+            <input type="password" id="maskedApiKey" readonly value="{{ request.user.api_key }}" class="bg-transparent border-none text-sm font-mono text-emerald-400 outline-none w-full p-0 tracking-widest select-all">
+        </div>
+        <button onclick="copyApiFromAccount()" class="bg-slate-800 text-slate-300 w-10 h-10 rounded-xl flex items-center justify-center shadow-md hover:bg-slate-700 hover:text-white transition active:scale-95" title="Copy Key">
+            <i class="fa-regular fa-copy"></i>
+        </button>
+    </div>
+</div>
+
+<script>
+function copyApiFromAccount() {
+    const apiInput = document.getElementById('maskedApiKey');
+    apiInput.type = 'text'; // Thodi der ke liye unmask karein
+    apiInput.select();
+    navigator.clipboard.writeText(apiInput.value);
+    apiInput.type = 'password'; // Wapas mask kar dein
+    alert("API Key Copied to Clipboard!"); // Aap apna custom toast laga sakte hain
+}
+</script>
             
             {% if request.user.is_superuser %}
             <a href="{% url 'custom_admin' %}" class="bg-slate-800 p-4 rounded-2xl shadow-sm flex items-center justify-between btn-press group mt-2">
