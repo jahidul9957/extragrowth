@@ -564,6 +564,11 @@ def team_and_rewards(request):
 
     return render(request, 'core/team.html', {'setting': setting, 'invited_friends': invited_friends, 'total_invites': total_invites, 'tier_name': tier_name, 'tier_icon': tier_icon, 'tier_color': tier_color})
 
+@login_required(login_url='/login/')
+def api_docs_view(request):
+    setting, _ = SiteSetting.objects.get_or_create(id=1)
+    return render(request, 'core/api_docs.html', {'setting': setting})
+    
 # ==========================================
 # 👑 4. SUPER ADMIN COMMAND CENTER
 # ==========================================
