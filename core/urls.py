@@ -31,7 +31,8 @@ urlpatterns = [
     path('dashboard/reward-history/', views.reward_history_view, name='reward_history'),
     path('api/redeem-code/', views.apply_redeem_code, name='apply_redeem_code'),
     path('admin/generate-code/', views.admin_generate_code, name='admin_generate_code'),
-    
+    path('dashboard/redeem/', views.redeem_page_view, name='redeem_page'),
+
     # Admin Panel ke andar:
     path('panel/withdrawals/', views.admin_withdrawals, name='admin_withdrawals'),
     path('panel/withdrawal-action/', views.admin_withdrawal_action, name='admin_withdrawal_action'),
