@@ -333,7 +333,6 @@ def services_view(request):
     services = Service.objects.filter(is_active=True).order_by('-id')
     return render(request, 'core/services.html', {'services': services})
 
-
 @login_required(login_url='/login/')
 def new_order_view(request):
     if request.user.is_superuser: return redirect('custom_admin')
@@ -392,7 +391,8 @@ def new_order_view(request):
             messages.error(request, "⚠️ Please fill all details correctly.")
             
     return render(request, 'core/new_order.html', {'services': Service.objects.filter(is_active=True)})
-                
+                        
+
 # ==========================================
 # 📱 3. CUSTOMER DASHBOARD VIEWS
 # ==========================================
