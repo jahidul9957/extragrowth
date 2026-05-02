@@ -132,17 +132,30 @@ class Payment(models.Model):
 # ==========================================
 # 6. BOT ENGINE MODEL (Playwright automation)
 # ==========================================
+# core/models.py ke andar apni Bot class ko isse replace karein:
+
 class Bot(models.Model):
-    name = models.CharField(max_length=100)
-    # 👇 Yeh nayi line add karein Cookies save karne ke liye
-    cookies = models.TextField(blank=True, null=True) 
+    PLATFORM_CHOICES = (
+        ('YouTube', 'YouTube'),
+        ('Instagram', 'Instagram'),
+    )
+
+    name = models.CharField(max_length=100, unique=True)
     
-    is_active = models.BooleanField(default=False)
+    # 🔥 NAYA: Bot kis platform ka hai (YouTube ya Instagram)
+    platform = models.CharField(max_length=50, choices=PLATFORM_CHOICES, default='YouTube')
+    
+    # 🍪 Cookies (Dono platform ke liye JSON format mein cookies yahan save hongi)
+    cookies = models.TextField(blank=True, null=True)
+    
+    # Status Toggles
+    is_active = models.BooleanField(default=True)
     is_banned = models.BooleanField(default=False)
+    
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return self.name
+        return f"[{self.platform}] {self.name}"
         
 
 
