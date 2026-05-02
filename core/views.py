@@ -1105,3 +1105,15 @@ def admin_generate_code(request):
             
     return redirect('custom_admin') # Ya apne kisi admin page par bhej do
         
+# ==========================================
+# 🎁 REDEEM CENTER PAGE
+# ==========================================
+@login_required(login_url='/login/')
+def redeem_page_view(request):
+    if request.user.is_superuser: return redirect('custom_admin')
+    
+    # User ne ab tak kitne code use kiye hain, uska record nikalenge
+    usage_history = CodeUsage.objects.filter(user=request.user).order_by('-redeemed_at')
+    
+    return render(request, 'core/redeem.html', {'usage_history': usage_history})
+    
