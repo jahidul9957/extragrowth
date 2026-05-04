@@ -33,6 +33,10 @@ class CustomUser(AbstractUser):
     last_login_ip = models.GenericIPAddressField(null=True, blank=True)
     country = models.CharField(max_length=100, default="India")
     
+    # Telegram Force Join Tracking
+    has_joined_telegram = models.BooleanField(default=False)
+
+    
     # Security
     is_banned = models.BooleanField(default=False)
 
@@ -169,7 +173,9 @@ class SiteSetting(models.Model):
     min_deposit = models.IntegerField(default=10)
     diamonds_per_rupee = models.IntegerField(default=5)
     diamonds_needed_for_1_rs = models.IntegerField(default=50)
-
+    # For Force Join API Check (e.g., @nextgen_updates)
+    telegram_channel_id = models.CharField(max_length=100, default="@nextgen_updates")
+    
     def __str__(self):
         return "Platform Global Settings"
     
@@ -240,7 +246,4 @@ class CodeUsage(models.Model):
 
     class Meta:
         unique_together = ('user', 'code') # Ek user ek code sirf 1 baar use karega
-    
-    # Telegram Force Join Tracking
-    has_joined_telegram = models.BooleanField(default=False)
     
