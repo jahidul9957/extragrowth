@@ -1,351 +1,166 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Dashboard - NextGen</title>
-    
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+{% extends 'core/base.html' %}
+{% block title %}Dashboard{% endblock %}
 
-    <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; padding-bottom: 90px; -webkit-tap-highlight-color: transparent; }
-        .font-poppins { font-family: 'Poppins', sans-serif; }
-        
-        /* Smooth animations */
-        .shine-effect { position: relative; overflow: hidden; }
-        .shine-effect::after { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.3) 50%, rgba(255,255,255,0) 100%); transform: rotate(30deg); animation: shine 3s infinite; }
-        @keyframes shine { 0% { transform: translateX(-100%) rotate(30deg); } 100% { transform: translateX(100%) rotate(30deg); } }
-        
-        /* Loader Animation */
-        .loader-ring { border: 3px solid #e2e8f0; border-top-color: #2563eb; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        
-        /* Toast Animation */
-        .toast-enter { transform: translateY(-150%); opacity: 0; }
-        .toast-active { transform: translateY(0); opacity: 1; }
-        
-        /* Active Nav indicator dot */
-        .nav-active::after { content: ''; position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%); width: 4px; height: 4px; background-color: #2563eb; border-radius: 50%; }
-        .btn-press:active { transform: scale(0.96); }
-        .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
-    </style>
-</head>
-<body class="antialiased text-slate-800">
-
-    <div id="page-loader" class="fixed inset-0 z-[99999] bg-slate-50 flex items-center justify-center transition-opacity duration-500">
-        <div class="flex flex-col items-center">
-            <div class="loader-ring mb-4"></div>
-            <p class="text-xs font-bold text-slate-400 font-poppins tracking-widest uppercase animate-pulse">Loading Panel...</p>
+{% block content %}
+<div class="flex justify-between items-center mb-6">
+    <div class="flex items-center gap-3">
+        <div class="w-12 h-12 rounded-full bg-gradient-to-tr from-indigo-500 to-fuchsia-500 p-0.5 shadow-lg">
+            <div class="w-full h-full bg-slate-900 rounded-full flex items-center justify-center text-xl font-black text-white">
+                {{ request.user.username|make_list|first|upper }}
+            </div>
+        </div>
+        <div>
+            <p class="text-[10px] text-slate-400 uppercase tracking-widest font-bold">Welcome back,</p>
+            <h2 class="text-lg font-black text-white">@{{ request.user.username }}</h2>
         </div>
     </div>
+    <div class="text-right bg-white/5 border border-white/10 px-4 py-2 rounded-2xl backdrop-blur-md shadow-sm">
+        <p class="text-[10px] text-slate-400 uppercase tracking-widest font-bold mb-0.5">Wallet</p>
+        <p class="text-sm font-black text-blue-400 drop-shadow-sm">{{ request.user.diamonds }} 💎</p>
+    </div>
+</div>
 
-    <div id="toast-container" class="fixed top-4 left-1/2 transform -translate-x-1/2 z-[100] flex flex-col gap-2 w-11/12 max-w-sm pointer-events-none"></div>
-    <div id="csrf-token-container" class="hidden">{% csrf_token %}</div>
-
-    <div class="max-w-md mx-auto relative h-full">
-
-        <header class="flex justify-between items-center px-6 py-4 bg-white/80 backdrop-blur-md sticky top-0 z-40 border-b border-slate-100">
-            <div class="flex items-center gap-2">
-                <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white shadow-md">
-                    <i class="fa-solid fa-rocket text-sm"></i>
-                </div>
-                <span class="font-poppins font-black text-lg text-slate-800 tracking-tight">{{ setting.platform_name|default:"NextGen" }}</span>
-            </div>
-         <a href="{% url 'notifications' %}" class="w-10 h-10 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center relative hover:bg-slate-200 transition btn-press">
-    <i class="fa-regular fa-bell"></i>
-    {% if request.user.unread_notifications > 0 %}
-    <span class="absolute top-2 right-2.5 w-2.5 h-2.5 bg-rose-500 rounded-full border-2 border-white animate-pulse"></span>
-    {% endif %}
-</a> 
-            
-        </header>
-
-        <div class="px-5 mt-6">
-            <div class="bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 rounded-3xl p-6 text-white shadow-lg shadow-blue-500/30 relative overflow-hidden shine-effect">
-                <div class="absolute -right-6 -top-6 text-white/10 text-8xl"><i class="fa-solid fa-wallet"></i></div>
-                
-                                <p class="text-blue-100 text-sm font-medium mb-1">👋 Hi, {{ request.user.first_name|default:request.user.username }}!</p>
-                <h2 class="text-3xl font-black font-poppins mb-6">₹{{ request.user.wallet_balance|floatformat:2 }}</h2>
-                
-                <div class="flex items-center justify-between bg-black/20 backdrop-blur-sm rounded-2xl p-4 border border-white/10">
-                    <div>
-                        <p class="text-[10px] text-blue-200 uppercase tracking-wider font-bold mb-0.5">Diamond Balance</p>
-                        <p class="text-xl font-black text-yellow-300 flex items-center gap-2" id="user-diamonds">
-                            <i class="fa-regular fa-gem animate-pulse"></i> {{ request.user.diamonds }}
-                        </p>
-                    </div>
-                    <a href="{% url 'new_order' %}" class="bg-white text-blue-700 text-sm font-bold px-5 py-2.5 rounded-xl transition-transform shadow-md btn-press">
-                        Boost Now
-                    </a>
-                </div>
-            </div>
+<div class="mb-8">
+    <div class="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-2 hide-scrollbar">
+        <div class="snap-center shrink-0 w-[85%] md:w-[60%] h-36 bg-gradient-to-r from-blue-600 to-indigo-700 rounded-3xl p-5 relative overflow-hidden shadow-lg border border-white/10">
+            <i class="fa-solid fa-rocket absolute -right-4 -bottom-4 text-7xl text-white/10"></i>
+            <h3 class="text-white font-black text-xl mb-1">Boost Your Growth</h3>
+            <p class="text-blue-100 text-xs w-2/3">Get real engagement instantly with our premium API network.</p>
+            <a href="{% url 'new_order' %}" class="mt-3 inline-block bg-white text-blue-700 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider nav-btn shadow-sm hover:scale-105 transition">Order Now</a>
         </div>
+        <div class="snap-center shrink-0 w-[85%] md:w-[60%] h-36 bg-gradient-to-r from-fuchsia-600 to-purple-700 rounded-3xl p-5 relative overflow-hidden shadow-lg border border-white/10">
+            <i class="fa-solid fa-gift absolute -right-4 -bottom-4 text-7xl text-white/10"></i>
+            <h3 class="text-white font-black text-xl mb-1">Invite & Earn</h3>
+            <p class="text-fuchsia-100 text-xs w-2/3">Earn 5 diamonds for every ₹1 spent by your referred friends.</p>
+            <a href="{% url 'team_rewards' %}" class="mt-3 inline-block bg-white text-fuchsia-700 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider nav-btn shadow-sm hover:scale-105 transition">Invite Friends</a>
+        </div>
+    </div>
+</div>
 
-        <div class="px-5 mt-8">
-            <div class="flex justify-between items-end mb-4">
-                <h3 class="font-bold text-slate-800 text-lg">Earn Rewards 🎁</h3>
-            </div>
+<div class="mb-8">
+    <div class="flex overflow-x-auto gap-3 pb-3 hide-scrollbar">
+        <a href="{% url 'services' %}" class="shrink-0 bg-white/5 border border-white/10 hover:bg-white/10 backdrop-blur-md px-5 py-3 rounded-2xl flex flex-col items-center gap-2 transition nav-btn min-w-[80px] shadow-sm">
+            <i class="fa-solid fa-list-check text-xl text-blue-400"></i>
+            <span class="text-[10px] font-black text-slate-300 uppercase tracking-widest">Service</span>
+        </a>
+        <a href="{% url 'add_funds' %}" class="shrink-0 bg-white/5 border border-white/10 hover:bg-white/10 backdrop-blur-md px-5 py-3 rounded-2xl flex flex-col items-center gap-2 transition nav-btn min-w-[80px] shadow-sm">
+            <i class="fa-solid fa-wallet text-xl text-emerald-400"></i>
+            <span class="text-[10px] font-black text-slate-300 uppercase tracking-widest">Recharge</span>
+        </a>
+        <a href="{% url 'api_docs' %}" class="shrink-0 bg-white/5 border border-white/10 hover:bg-white/10 backdrop-blur-md px-5 py-3 rounded-2xl flex flex-col items-center gap-2 transition nav-btn min-w-[80px] shadow-sm">
+            <i class="fa-solid fa-code text-xl text-fuchsia-400"></i>
+            <span class="text-[10px] font-black text-slate-300 uppercase tracking-widest">API</span>
+        </a>
+        <a href="{% url 'about' %}" class="shrink-0 bg-white/5 border border-white/10 hover:bg-white/10 backdrop-blur-md px-5 py-3 rounded-2xl flex flex-col items-center gap-2 transition nav-btn min-w-[80px] shadow-sm">
+            <i class="fa-solid fa-circle-info text-xl text-amber-400"></i>
+            <span class="text-[10px] font-black text-slate-300 uppercase tracking-widest">About</span>
+        </a>
+        <a href="{% url 'support' %}" class="shrink-0 bg-white/5 border border-white/10 hover:bg-white/10 backdrop-blur-md px-5 py-3 rounded-2xl flex flex-col items-center gap-2 transition nav-btn min-w-[80px] shadow-sm">
+            <i class="fa-solid fa-headset text-xl text-rose-400"></i>
+            <span class="text-[10px] font-black text-slate-300 uppercase tracking-widest">Support</span>
+        </a>
+    </div>
+</div>
 
-            <div class="flex gap-2 overflow-x-auto pb-2 scrollbar-hide mb-2">
-                <button onclick="switchTab('hot')" id="tab-hot" class="px-5 py-1.5 bg-slate-800 text-white rounded-full text-xs font-semibold whitespace-nowrap shadow-sm transition btn-press">🔥 Hot</button>
-                <button onclick="switchTab('daily')" id="tab-daily" class="px-5 py-1.5 bg-white border border-slate-200 text-slate-600 rounded-full text-xs font-semibold whitespace-nowrap transition btn-press">Daily</button>
-                <button onclick="switchTab('bonus')" id="tab-bonus" class="px-5 py-1.5 bg-white border border-slate-200 text-slate-600 rounded-full text-xs font-semibold whitespace-nowrap transition btn-press">Bonus</button>
-            </div>
+<div class="mt-4">
+    <h3 class="text-lg font-black text-white tracking-tight mb-4 flex items-center gap-2">
+        <i class="fa-solid fa-gem text-indigo-500"></i> Earn Free Diamonds
+    </h3>
 
-        <div id="rewards-container" class="space-y-4 fade-in">
-                
-            <div class="reward-daily bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
-                <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Daily Login Calendar</h4>
-                <div class="grid grid-cols-4 gap-2">
-                    
-                    {% for i in "123456"|make_list %}
-                    <div class="bg-slate-50 border border-slate-100 rounded-xl p-2 text-center relative transition-all {% if forloop.counter == claimable_day %}btn-press cursor-pointer ring-2 ring-blue-500 shadow-md bg-blue-50{% elif forloop.counter > checked_days and forloop.counter != claimable_day %}opacity-50{% endif %}"
-                         {% if forloop.counter == claimable_day %}onclick="claimDailyFromDB()"{% endif %}>
-                        <p class="daily-date text-[8px] font-bold text-blue-500 mb-0.5 uppercase" data-offset="{{ forloop.counter|add:'-1' }}">Date</p>
-                        <p class="text-[9px] font-bold text-slate-400 mb-1 relative z-10">Day {{ forloop.counter }}</p>
-                        <i class="fa-regular fa-gem text-amber-400 text-lg mb-1 relative z-10 drop-shadow-sm"></i>
-                        <p class="text-xs font-black text-slate-700 relative z-10">+10</p>
-                        
-                        {% if forloop.counter <= checked_days %}
-                        <div class="absolute inset-0 bg-black/5 flex items-center justify-center backdrop-blur-[1px] rounded-xl z-20"><i class="fa-solid fa-check text-emerald-500 text-xl drop-shadow-md"></i></div>
-                        {% endif %}
+    {% if request.user.has_joined_telegram %}
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {% for task in tasks %}
+                <div class="bg-white/5 border border-white/10 p-4 rounded-2xl backdrop-blur-md flex items-center justify-between shadow-sm hover:shadow-md transition">
+                    <div class="flex items-center gap-4">
+                        <div class="w-10 h-10 rounded-xl bg-slate-800 text-white flex items-center justify-center text-lg shadow-inner"><i class="{{ task.icon_class }}"></i></div>
+                        <div>
+                            <h4 class="text-sm font-bold text-white">{{ task.title }}</h4>
+                            <p class="text-[10px] text-slate-400">+{{ task.reward_diamonds }} Diamonds</p>
+                        </div>
                     </div>
-                    {% endfor %} <div class="col-span-2 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl p-2 text-center text-white flex flex-col justify-center items-center shadow-md relative overflow-hidden transition-all {% if claimable_day == 7 %}btn-press cursor-pointer ring-2 ring-white scale-105{% elif 7 > checked_days and claimable_day != 7 %}opacity-50{% endif %}"
-                         {% if claimable_day == 7 %}onclick="claimDailyFromDB()"{% endif %}>
-                        <p class="daily-date text-[8px] font-bold text-amber-100 uppercase mb-0.5 relative z-10" data-offset="6">Date</p>
-                        <p class="text-[9px] font-bold text-white/90 uppercase tracking-widest mb-1 relative z-10">Day 7 Mega</p>
-                        <div class="flex items-center gap-1 relative z-10"><i class="fa-regular fa-gem text-xl animate-pulse"></i><span class="text-lg font-black">+50</span></div>
-                        <i class="fa-solid fa-gift absolute -right-2 -bottom-2 text-4xl opacity-20"></i>
-                        
-                        {% if checked_days == 7 %}
-                        <div class="absolute inset-0 bg-black/20 flex items-center justify-center backdrop-blur-[2px] rounded-xl z-20"><i class="fa-solid fa-check text-emerald-400 text-3xl drop-shadow-md"></i></div>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-
-            <div class="reward-bonus space-y-3"> {% for task in tasks %}
-                <div id="task-card-{{ task.id }}" class="bg-white p-3.5 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4 transition-transform hover:-translate-y-0.5 btn-press {% if task.id in completed_task_ids %}opacity-60{% endif %}">
-                    <div class="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl flex-shrink-0 {% if 'youtube' in task.icon_class %}bg-rose-50 text-rose-500{% elif 'telegram' in task.icon_class %}bg-blue-50 text-blue-500{% else %}bg-amber-50 text-amber-500{% endif %}">
-                        <i class="{{ task.icon_class }}"></i>
-                    </div>
-                    <div class="flex-1 min-w-0">
-                        <h4 class="text-sm font-bold text-slate-800 truncate">{{ task.title }}</h4>
-                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{{ task.get_task_type_display }}</p>
-                        <p class="text-xs font-black text-amber-500 mt-0.5"><i class="fa-regular fa-gem mr-1"></i>+{{ task.reward_diamonds }}</p>
-                    </div>
-                    
                     {% if task.id in completed_task_ids %}
-                        <button disabled class="bg-slate-100 text-slate-400 text-xs font-bold px-4 py-2.5 rounded-xl w-20 text-center cursor-not-allowed">
-                            <i class="fa-solid fa-check"></i>
-                        </button>
+                        <button disabled class="bg-emerald-500/20 text-emerald-400 px-4 py-2 rounded-xl text-xs font-bold cursor-not-allowed"><i class="fa-solid fa-check"></i></button>
                     {% else %}
-                        <button id="task-btn-{{ task.id }}" onclick="initiateTask('{{ task.id }}', '{{ task.get_task_type_display }}', '{{ task.link }}')" class="bg-blue-50 border border-blue-100 text-blue-600 text-xs font-bold px-4 py-2.5 rounded-xl hover:bg-blue-600 hover:text-white transition-colors shadow-sm w-20 text-center">
-                            Start
-                        </button>
+                        <button onclick="claimTask({{ task.id }}, '{{ task.link }}')" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-xl text-xs font-bold nav-btn shadow-md active:scale-95 transition">Claim</button>
                     {% endif %}
                 </div>
-                
-                {% empty %} <div class="bg-slate-50 border border-slate-100 border-dashed rounded-2xl p-6 text-center">
-                    <i class="fa-solid fa-box-open text-3xl text-slate-300 mb-2"></i>
-                    <p class="text-sm font-bold text-slate-600">All caught up!</p>
-                    <p class="text-xs text-slate-400">You have completed all available tasks.</p>
+            {% empty %}
+                <div class="col-span-1 md:col-span-2 bg-white/5 border border-white/10 p-6 rounded-2xl backdrop-blur-md text-center">
+                    <p class="text-slate-400 text-sm font-bold"><i class="fa-solid fa-box-open mr-2"></i> No tasks available right now.</p>
                 </div>
-                
-                {% endfor %}
-            </div>
+            {% endfor %}
+        </div>
+
+        <script>
+        function claimTask(taskId, taskLink) {
+            if (taskLink) window.open(taskLink, '_blank');
             
-                                     </div>
-    
-        <div class="px-5 mt-8">
-            <div class="bg-gradient-to-r from-purple-500 to-indigo-600 rounded-3xl p-5 flex items-center justify-between text-white shadow-lg shadow-purple-500/20 btn-press transition-transform relative overflow-hidden">
-                <i class="fa-solid fa-bullhorn absolute right-0 top-0 text-7xl opacity-10 transform -rotate-12 translate-x-4"></i>
-                <div class="relative z-10">
-                    <span class="bg-white/20 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest mb-2 inline-block backdrop-blur-sm">Limited Time</span>
-                    <h3 class="font-poppins font-black text-lg leading-tight">Invite Friends <br> Earn Unlimited 💎</h3>
-                </div>
-                <a href="{% url 'team_rewards' %}" class="w-12 h-12 bg-white text-purple-600 rounded-full flex items-center justify-center text-xl shadow-md hover:scale-110 transition-transform relative z-10">
-                    <i class="fa-solid fa-arrow-right"></i>
-                </a>
-            </div>
-        </div>
-
-        <div class="px-5 mt-8 mb-8">
-            <h3 class="font-bold text-slate-800 text-lg mb-4">Need Help? 🤝</h3>
-            <div class="grid grid-cols-2 gap-4">
-                <a href="{% url 'about' %}" class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex flex-col items-center text-center hover:bg-blue-50 hover:border-blue-100 transition-colors btn-press group">
-                    <div class="w-10 h-10 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center mb-2 group-hover:bg-blue-100 transition-colors">
-                        <i class="fa-solid fa-circle-info"></i>
-                    </div>
-                    <h4 class="text-xs font-bold text-slate-800">About Us</h4>
-                    <p class="text-[9px] text-slate-400 mt-0.5">Who we are</p>
-                </a>
-                <a href="{% url 'support' %}" class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex flex-col items-center text-center hover:bg-emerald-50 hover:border-emerald-100 transition-colors btn-press group">
-                    <div class="w-10 h-10 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center mb-2 group-hover:bg-emerald-100 transition-colors">
-                        <i class="fa-solid fa-headset"></i>
-                    </div>
-                    <h4 class="text-xs font-bold text-slate-800">Support</h4>
-                    <p class="text-[9px] text-slate-400 mt-0.5">24/7 Live Help</p>
-                </a>
-                <a href="{% url 'faq' %}" class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex flex-col items-center text-center hover:bg-purple-50 hover:border-purple-100 transition-colors btn-press group">
-                    <div class="w-10 h-10 bg-purple-50 text-purple-500 rounded-full flex items-center justify-center mb-2 group-hover:bg-purple-100 transition-colors">
-                        <i class="fa-solid fa-clipboard-question"></i>
-                    </div>
-                    <h4 class="text-xs font-bold text-slate-800">FAQ</h4>
-                    <p class="text-[9px] text-slate-400 mt-0.5">Common questions</p>
-                </a>
-                <a href="{% url 'guide' %}" class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex flex-col items-center text-center hover:bg-amber-50 hover:border-amber-100 transition-colors btn-press group">
-                    <div class="w-10 h-10 bg-amber-50 text-amber-500 rounded-full flex items-center justify-center mb-2 group-hover:bg-amber-100 transition-colors">
-                        <i class="fa-solid fa-book-open"></i>
-                    </div>
-                    <h4 class="text-xs font-bold text-slate-800">Guide</h4>
-                    <p class="text-[9px] text-slate-400 mt-0.5">How to use panel</p>
-                </a>
-            </div>
-        </div>
-
-    </div>
-
-    <nav class="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-lg border-t border-slate-200 z-50 pb-safe shadow-[0_-4px_20px_rgba(0,0,0,0.03)]">
-        <div class="max-w-md mx-auto flex justify-between items-center px-6 py-2.5">
-            <a href="{% url 'home' %}" class="flex flex-col items-center text-blue-600 relative nav-active btn-press w-16 transition">
-                <i class="fa-solid fa-house text-xl mb-1 animate-bounce-short"></i><span class="text-[10px] font-black">Home</span>
-            </a>
-            <a href="{% url 'orders' %}" class="flex flex-col items-center text-slate-400 hover:text-blue-600 transition btn-press w-16">
-                <i class="fa-solid fa-receipt text-xl mb-1"></i><span class="text-[10px] font-bold">Orders</span>
-            </a>
-            <a href="{% url 'team_rewards' %}" class="flex flex-col items-center text-slate-400 hover:text-blue-600 transition btn-press w-16">
-                <i class="fa-solid fa-users text-xl mb-1"></i><span class="text-[10px] font-bold">Team</span>
-            </a>
-            <a href="{% url 'account' %}" class="flex flex-col items-center text-slate-400 hover:text-blue-600 transition btn-press w-16">
-                <i class="fa-solid fa-user text-xl mb-1"></i><span class="text-[10px] font-bold">Profile</span>
-            </a>
-        </div>
-    </nav>
-
-    <script>
-        const csrfToken = document.querySelector('#csrf-token-container input').value;
-
-        // 1. Loader & Toast System
-        window.addEventListener('load', function() {
-            setTimeout(() => { document.getElementById('page-loader').style.opacity = '0'; setTimeout(() => { document.getElementById('page-loader').style.display = 'none'; }, 500); }, 300); 
-        });
-
-        function showToast(message, type = 'success') {
-            const container = document.getElementById('toast-container');
-            const toast = document.createElement('div');
-            let icon = 'fa-circle-check', bg = 'bg-white', border = 'border-emerald-200', text = 'text-emerald-600', iconBg = 'bg-emerald-50';
-            if (type === 'error') { icon = 'fa-circle-exclamation'; border = 'border-rose-200'; text = 'text-rose-600'; iconBg = 'bg-rose-50'; }
-            if (type === 'info') { icon = 'fa-circle-info'; border = 'border-blue-200'; text = 'text-blue-600'; iconBg = 'bg-blue-50'; }
-
-            toast.className = `flex items-center p-3 rounded-2xl shadow-lg border ${border} ${bg} toast-enter transition-all duration-500 pointer-events-auto`;
-            toast.innerHTML = `<div class="${iconBg} ${text} w-8 h-8 rounded-full flex items-center justify-center shrink-0"><i class="fa-solid ${icon} text-sm"></i></div><p class="ml-3 text-xs font-bold text-slate-700 flex-1">${message}</p>`;
-            container.appendChild(toast);
-            
-            requestAnimationFrame(() => { toast.classList.remove('toast-enter'); toast.classList.add('toast-active'); });
-            setTimeout(() => { toast.classList.remove('toast-active'); toast.classList.add('toast-enter'); setTimeout(() => toast.remove(), 500); }, 3500);
-        }
-
-        // Catch Django Backend Messages
-        document.addEventListener("DOMContentLoaded", () => {
-            {% if messages %}
-                {% for message in messages %}
-                    {% if message.tags == 'error' %} showToast("{{ message|escapejs }}", "error");
-                    {% elif message.tags == 'success' %} showToast("{{ message|escapejs }}", "success");
-                    {% else %} showToast("{{ message|escapejs }}", "info");
-                    {% endif %}
-                {% endfor %}
-            {% endif %}
-        });
-
-        // 2. Tab System
-        function switchTab(tabName) {
-            ['hot', 'daily', 'bonus'].forEach(t => document.getElementById('tab-' + t).className = "px-5 py-1.5 bg-white border border-slate-200 text-slate-600 rounded-full text-xs font-semibold whitespace-nowrap transition btn-press");
-            document.getElementById('tab-' + tabName).className = "px-5 py-1.5 bg-slate-800 text-white border border-slate-800 rounded-full text-xs font-semibold whitespace-nowrap shadow-sm transition btn-press";
-            document.querySelector('.reward-daily').style.display = (tabName === 'hot' || tabName === 'daily') ? 'block' : 'none';
-            document.querySelector('.reward-bonus').style.display = (tabName === 'hot' || tabName === 'bonus') ? 'block' : 'none';
-        }
-
-        // 3. Dynamic Dates for Calendar
-        const dateElements = document.querySelectorAll('.daily-date');
-        const today = new Date();
-        const checkedDays = {{ checked_days|default:"0" }};
-        dateElements.forEach(el => {
-            const d = new Date(today);
-            d.setDate(today.getDate() + parseInt(el.getAttribute('data-offset')) - checkedDays);
-            el.innerText = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-        });
-
-        // 4. Real Database Daily Claim API
-        function claimDailyFromDB() {
-            showToast("Claiming reward...", "info");
-            fetch('{% url "claim_daily_api" %}', {
+            fetch("{% url 'claim_task' %}", {
                 method: 'POST',
-                headers: { 'X-CSRFToken': csrfToken, 'Content-Type': 'application/json' }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if(data.status === 'success') {
-                    showToast(data.message, "success");
-                    document.getElementById('user-diamonds').innerHTML = `<i class="fa-regular fa-gem animate-pulse"></i> ${data.diamonds}`;
-                    setTimeout(() => window.location.reload(), 1500); // Reload to lock the claimed box
-                } else { 
-                    showToast(data.message, "error"); 
-                }
-            })
-            .catch(error => showToast("Network error. Try again.", "error"));
-        }
-
-        // 5. Real Database Task Claim API
-        function initiateTask(taskId, type, link) {
-            const btn = document.getElementById('task-btn-' + taskId);
-            if(link && link !== 'None' && link !== '#') window.open(link, '_blank');
-            
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
-            btn.classList.replace('bg-blue-50', 'bg-slate-100');
-            btn.classList.replace('text-blue-600', 'text-slate-500');
-            btn.disabled = true;
-
-            const isTelegram = type.toLowerCase().includes('telegram');
-            if(isTelegram) showToast("Verifying Telegram join status...", "info");
-
-            setTimeout(() => {
-                btn.innerHTML = 'Claim';
-                btn.disabled = false;
-                btn.classList.replace('bg-slate-100', 'bg-emerald-500');
-                btn.classList.replace('text-slate-500', 'text-white');
-                btn.onclick = () => claimTaskFromDB(taskId, btn);
-            }, isTelegram ? 5000 : 8000);
-        }
-
-        function claimTaskFromDB(taskId, btn) {
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
-            fetch('{% url "claim_task_api" %}', {
-                method: 'POST',
-                headers: { 'X-CSRFToken': csrfToken, 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
                 body: JSON.stringify({ task_id: taskId })
             })
             .then(response => response.json())
             .then(data => {
                 if(data.status === 'success') {
-                    showToast(data.message, "success");
-                    document.getElementById('user-diamonds').innerHTML = `<i class="fa-regular fa-gem animate-pulse"></i> ${data.diamonds}`;
-                    // Fade out and remove the task card
-                    const taskCard = document.getElementById('task-card-' + taskId);
-                    taskCard.style.opacity = '0';
-                    setTimeout(() => taskCard.style.display = 'none', 300);
+                    alert(data.message);
+                    location.reload(); 
                 } else {
-                    showToast(data.message, "error");
-                    btn.innerHTML = 'Claim';
+                    alert(data.message);
+                }
+            });
+        }
+        </script>
+
+    {% else %}
+        <div class="bg-gradient-to-br from-slate-900 to-black p-8 rounded-[2rem] shadow-2xl border border-indigo-500/30 text-center relative overflow-hidden">
+            <div class="absolute -right-10 -top-10 w-40 h-40 bg-indigo-500/20 blur-[60px] rounded-full pointer-events-none"></div>
+            <div class="absolute -left-10 -bottom-10 w-32 h-32 bg-fuchsia-500/10 blur-[50px] rounded-full pointer-events-none"></div>
+            
+            <div class="relative z-10 w-16 h-16 bg-indigo-500/10 rounded-full flex items-center justify-center text-3xl text-indigo-400 mx-auto mb-4 border border-indigo-500/20 shadow-inner">
+                <i class="fa-solid fa-lock"></i>
+            </div>
+            
+            <h3 class="relative z-10 text-xl font-black text-white mb-2">Tasks Locked!</h3>
+            <p class="relative z-10 text-xs text-slate-400 max-w-sm mx-auto mb-6">Join our official Telegram channel to unlock premium tasks and start earning free diamonds today.</p>
+            
+            <div class="relative z-10 flex flex-col sm:flex-row items-center justify-center gap-3">
+                <a href="{{ setting.telegram_channel }}" target="_blank" class="w-full sm:w-auto bg-[#0088cc] hover:bg-[#0077b3] text-white px-6 py-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition shadow-lg hover:shadow-[#0088cc]/30">
+                    <i class="fa-brands fa-telegram text-base"></i> Join Channel
+                </a>
+                <button onclick="verifyTelegramJoin()" id="verifyBtn" class="w-full sm:w-auto bg-emerald-500 hover:bg-emerald-400 text-white px-6 py-3 rounded-xl text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 transition shadow-lg hover:shadow-emerald-500/30 active:scale-95">
+                    Verify <i class="fa-solid fa-circle-check"></i>
+                </button>
+            </div>
+        </div>
+
+        <script>
+        function verifyTelegramJoin() {
+            const btn = document.getElementById('verifyBtn');
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Checking...';
+            btn.disabled = true;
+
+            fetch("{% url 'verify_telegram_join' %}")
+            .then(response => response.json())
+            .then(data => {
+                if(data.status === 'success') { 
+                    alert("🎉 " + data.message); 
+                    location.reload(); 
+                } 
+                else { 
+                    alert("❌ " + data.message); 
+                    btn.innerHTML = 'Verify <i class="fa-solid fa-circle-check"></i>'; 
+                    btn.disabled = false; 
                 }
             })
             .catch(error => {
-                showToast("Network error. Try again.", "error");
-                btn.innerHTML = 'Claim';
+                alert("⚠️ Network Error. Try again!");
+                btn.innerHTML = 'Verify <i class="fa-solid fa-circle-check"></i>';
+                btn.disabled = false;
             });
         }
-    </script>
-</body>
-</html>
+        </script>
+    {% endif %}
+</div>
+{% endblock %}
+    
