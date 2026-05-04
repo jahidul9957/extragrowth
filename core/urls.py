@@ -32,6 +32,7 @@ urlpatterns = [
     path('api/redeem-code/', views.apply_redeem_code, name='apply_redeem_code'),
     path('admin/generate-code/', views.admin_generate_code, name='admin_generate_code'),
     path('dashboard/redeem/', views.redeem_page_view, name='redeem_page'),
+    path('api/verify-telegram/', views.verify_telegram_join, name='verify_telegram_join'),
 
     # Admin Panel ke andar:
     path('panel/withdrawals/', views.admin_withdrawals, name='admin_withdrawals'),
