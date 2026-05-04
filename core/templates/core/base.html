@@ -16,41 +16,69 @@
         .mui-alert { animation: slideIn 0.4s ease-out; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
     </style>
 </head>
-<body>
+<body class="bg-[#0b1120] text-slate-300 font-sans antialiased selection:bg-indigo-500 selection:text-white pb-20 md:pb-0 relative min-h-screen">
 
-    <nav class="glass-nav fixed w-full z-50 top-0 left-0 h-14 flex items-center px-4">
-        <button onclick="history.back()" class="text-[#00ffcc] text-xl hover:scale-110 transition"><i class="fas fa-chevron-left"></i></button>
-        <h1 class="mx-auto text-lg font-bold tracking-widest text-white">NEXTGEN <span class="text-[#00ffcc]">AI</span></h1>
+    <div class="fixed inset-0 z-[-1] opacity-30" style="background-image: url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2564&auto=format&fit=crop'); background-size: cover; background-position: center; background-attachment: fixed;"></div>
+    <div class="fixed inset-0 z-[-1] bg-gradient-to-b from-[#0b1120]/80 via-[#0b1120]/95 to-[#0b1120]"></div>
+
+    <div id="global-loader" class="fixed inset-0 z-[100] bg-[#0b1120]/80 backdrop-blur-sm hidden flex flex-col items-center justify-center transition-opacity duration-300">
+        <div class="w-16 h-16 border-4 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin shadow-[0_0_15px_rgba(99,102,241,0.5)]"></div>
+        <p class="mt-4 text-sm font-bold text-indigo-400 tracking-widest uppercase animate-pulse">Loading...</p>
+    </div>
+
+    <div class="max-w-md md:max-w-5xl mx-auto min-h-screen flex flex-col">
+        <main class="flex-1 p-4 md:p-6 pb-24">
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+
+    <nav class="fixed bottom-0 left-0 w-full bg-[#0f172a]/90 backdrop-blur-xl border-t border-slate-800 z-50 md:hidden pb-safe">
+        <div class="flex justify-around items-center p-2">
+            <a href="{% url 'home' %}" class="flex flex-col items-center gap-1 p-2 text-indigo-400 nav-btn">
+                <i class="fa-solid fa-house text-lg drop-shadow-[0_0_8px_rgba(99,102,241,0.5)]"></i>
+                <span class="text-[9px] font-black tracking-wider uppercase">Home</span>
+            </a>
+            <a href="{% url 'services' %}" class="flex flex-col items-center gap-1 p-2 text-slate-400 hover:text-indigo-400 transition nav-btn">
+                <i class="fa-solid fa-list text-lg"></i>
+                <span class="text-[9px] font-black tracking-wider uppercase">Service</span>
+            </a>
+            <a href="{% url 'team_rewards' %}" class="flex flex-col items-center gap-1 p-2 text-slate-400 hover:text-indigo-400 transition nav-btn">
+                <i class="fa-solid fa-users text-lg"></i>
+                <span class="text-[9px] font-black tracking-wider uppercase">Team</span>
+            </a>
+            <a href="{% url 'api_docs' %}" class="flex flex-col items-center gap-1 p-2 text-slate-400 hover:text-indigo-400 transition nav-btn">
+                <i class="fa-solid fa-code text-lg"></i>
+                <span class="text-[9px] font-black tracking-wider uppercase">API</span>
+            </a>
+            <a href="{% url 'account' %}" class="flex flex-col items-center gap-1 p-2 text-slate-400 hover:text-indigo-400 transition nav-btn">
+                <i class="fa-solid fa-user text-lg"></i>
+                <span class="text-[9px] font-black tracking-wider uppercase">Account</span>
+            </a>
+        </div>
     </nav>
 
-    <div class="fixed top-16 left-0 right-0 z-50 px-4 flex flex-col items-center pointer-events-none">
-        {% if messages %}
-            {% for message in messages %}
-                <div class="mui-alert px-6 py-3 rounded-lg text-sm font-bold text-white mb-2 max-w-sm w-full text-center
-                    {% if 'success' in message.tags %} bg-green-600/90 border border-green-400 {% else %} bg-red-600/90 border border-red-400 {% endif %}">
-                    {{ message }}
-                </div>
-            {% endfor %}
-        {% endif %}
-    </div>
-
-    <div class="pt-20 px-4 md:px-8 max-w-7xl mx-auto">
-        {% block content %}{% endblock %}
-    </div>
-
-    {% if request.user.is_authenticated %}
-    <div class="bottom-nav fixed bottom-0 left-0 w-full h-16 flex justify-around items-center z-50 md:hidden">
-        <a href="{% url 'home' %}" class="flex flex-col items-center text-gray-400 hover:text-[#00ffcc]"><i class="fas fa-home text-xl"></i><span class="text-[10px]">Home</span></a>
-        <a href="{% url 'services' %}" class="flex flex-col items-center text-gray-400 hover:text-[#00ffcc]"><i class="fas fa-list text-xl"></i><span class="text-[10px]">Services</span></a>
-        <a href="{% url 'new_order' %}" class="flex flex-col items-center text-gray-400 hover:text-[#00ffcc] transform -translate-y-4 bg-gradient-to-r from-[#00d2ff] to-[#3a7bd5] p-3 rounded-full text-white shadow-[0_0_15px_rgba(0,210,255,0.4)]"><i class="fas fa-plus text-xl"></i></a>
-        <a href="{% url 'orders' %}" class="flex flex-col items-center text-gray-400 hover:text-[#00ffcc]"><i class="fas fa-history text-xl"></i><span class="text-[10px]">Orders</span></a>
-        <a href="{% url 'add_funds' %}" class="flex flex-col items-center text-gray-400 hover:text-[#00ffcc]"><i class="fas fa-wallet text-xl"></i><span class="text-[10px]">Wallet</span></a>
-    </div>
-    {% endif %}
-
     <script>
-        // Auto hide alerts after 4 seconds
-        setTimeout(() => { document.querySelectorAll('.mui-alert').forEach(el => el.style.display = 'none'); }, 4000);
+        document.addEventListener("DOMContentLoaded", () => {
+            const loader = document.getElementById("global-loader");
+            // Jab kisi link par click ho (jo naye tab ya anchor me na khul raha ho)
+            document.querySelectorAll("a.nav-btn, button[type='submit']").forEach(el => {
+                el.addEventListener("click", () => {
+                    loader.classList.remove("hidden");
+                });
+            });
+            // Hide on pageshow (back button press par issue na aaye)
+            window.addEventListener('pageshow', (event) => {
+                if (event.persisted) loader.classList.add("hidden");
+            });
+        });
     </script>
+    
+    <style>
+        /* Hide scrollbar for horizontal menus */
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+            
+    
 </body>
 </html>
