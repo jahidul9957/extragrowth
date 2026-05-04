@@ -241,3 +241,6 @@ class CodeUsage(models.Model):
     class Meta:
         unique_together = ('user', 'code') # Ek user ek code sirf 1 baar use karega
     
+    # Telegram Force Join Tracking
+    has_joined_telegram = models.BooleanField(default=False)
+    
