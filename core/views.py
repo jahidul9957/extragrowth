@@ -8,6 +8,8 @@ import time
 import os
 from urllib.parse import parse_qsl
 from decimal import Decimal
+import requests
+
 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login as auth_login, logout as auth_logout, authenticate
@@ -1117,3 +1119,45 @@ def redeem_page_view(request):
     
     return render(request, 'core/redeem.html', {'usage_history': usage_history})
     
+
+# ==========================================
+# 🛡️ TELEGRAM FORCE JOIN VERIFICATION ENGINE
+# ==========================================
+@login_required(login_url='/login/')
+def verify_telegram_join(request):
+    if request.user.has_joined_telegram:
+        return JsonResponse({'status': 'success', 'message': 'Already verified!'})
+
+    if not request.user.telegram_id:
+        return JsonResponse({'status': 'error', 'message': '⚠️ Please login using Telegram to use this feature!'})
+
+    setting, _ = SiteSetting.objects.get_or_create(id=1)
+    channel_id = setting.telegram_channel_id
+
+    if not channel_id:
+        return JsonResponse({'status': 'error', 'message': 'Admin has not set a Channel ID.'})
+
+    # Aapka Bot Token
+    bot_token = "8691081519:AAEVWnllssUWpRvYOAUcA9hgwKZs0oKV3Hc" 
+    
+    # Telegram API Call
+    url = f"https://api.telegram.org/bot{bot_token}/getChatMember?chat_id={channel_id}&user_id={request.user.telegram_id}"
+
+    try:
+        response = requests.get(url).json()
+        
+        if response.get('ok'):
+            status = response['result']['status']
+            # Agar user member, admin, ya creator hai
+            if status in ['member', 'administrator', 'creator']:
+                request.user.has_joined_telegram = True
+                request.user.save()
+                return JsonResponse({'status': 'success', 'message': '🎉 Verification Successful! Tasks Unlocked.'})
+            else:
+                return JsonResponse({'status': 'error', 'message': '❌ You have not joined the channel yet!'})
+        else:
+            print("Telegram API Error:", response)
+            return JsonResponse({'status': 'error', 'message': '⚠️ System Error: Ensure the Bot is an ADMIN in the Telegram Channel!'})
+            
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': 'Network error during verification.'})
